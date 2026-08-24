@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { ArrowRight, Bot, Target, Zap, Phone, Share2, Wrench, PenTool, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Bot, Target, Zap, Phone, Share2, Wrench, PenTool, CheckCircle2, Lightbulb, Blocks, Settings, Users, ArrowUpRight, Globe, Layers, Eye } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "About Us | Spyke AI Technologies",
@@ -34,7 +34,7 @@ export default function AboutUs() {
       <section className="py-24 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 font-heading">The Gap Between Capability and Reality</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 font-heading">Our Story</h2>
             <div className="space-y-6 text-gray-600 text-lg">
               <p>
                 Spyke AI Technologies was founded on a simple observation: AI is moving incredibly fast. Yet most businesses struggle to turn that technology into something useful for their day-to-day operations.
@@ -96,8 +96,49 @@ export default function AboutUs() {
         </div>
       </section>
 
+      {/* Why Spyke AI Section (NEW) */}
+      <section className="py-24 bg-white px-4 sm:px-6 lg:px-8 border-y border-gray-200">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">Why SpykeAI?</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <WhyCard 
+              icon={<Lightbulb />} 
+              title="We Start With the Business Problem" 
+              desc="We don't believe in adding AI simply because AI is fashionable. We first identify the problem and then determine whether AI is the right solution." 
+            />
+            <WhyCard 
+              icon={<Blocks />} 
+              title="Product Thinking, Not Just Tool Integration" 
+              desc="Our product background means we think beyond connecting APIs. We look at the complete experience, workflow, user journey, business logic, edge cases, and measurable outcomes." 
+            />
+            <WhyCard 
+              icon={<Wrench />} 
+              title="Practical AI" 
+              desc="We focus on solutions that can actually be deployed and used by businesses today." 
+            />
+            <WhyCard 
+              icon={<Settings />} 
+              title="Built Around Your Existing Stack" 
+              desc="Your business already has tools, systems, CRMs, communication channels, and processes. Where possible, we integrate AI into that existing ecosystem rather than forcing you to replace everything." 
+            />
+            <WhyCard 
+              icon={<Users />} 
+              title="Human + AI" 
+              desc="We don't believe every business process should become fully autonomous. The right balance between AI automation and human oversight depends on the use case." 
+            />
+            <WhyCard 
+              icon={<ArrowUpRight />} 
+              title="Technology That Keeps Evolving" 
+              desc="AI will continue to change rapidly. Our approach is designed to evolve with it rather than lock businesses into a single model or technology." 
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Services Grid */}
-      <section className="py-24 bg-gray-50 px-4 sm:px-6 lg:px-8 border-y border-gray-200">
+      <section className="py-24 bg-gray-50 px-4 sm:px-6 lg:px-8 border-b border-gray-200">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">What We Do</h2>
@@ -114,34 +155,94 @@ export default function AboutUs() {
         </div>
       </section>
 
-      {/* Approach Steps */}
+      {/* Who We Work With (NEW) */}
       <section className="py-24 bg-white px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">Our Approach</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">We believe successful AI implementation is less about the technology and more about solving the right problem.</p>
+            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">Who We Work With</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              We work with businesses that want to use AI to improve the way they operate and grow. Our solutions can be applied across industries including:
+            </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Step num="1" title="Understand" desc="We first understand the business, its existing processes, bottlenecks, systems, and goals." />
-            <Step num="2" title="Identify" desc="We identify where AI creates leverage. We only focus on areas where it makes a difference." />
-            <Step num="3" title="Design" desc="We design the workflow, agent, automation, or integration around the business requirement." />
-            <Step num="4" title="Build" desc="We implement the solution and connect it with the tools and systems you already use." />
-            <Step num="5" title="Launch" desc="We test the system, refine the workflows, and confidently put it into production." />
-            <Step num="6" title="Improve" desc="We continuously improve the system as better models and capabilities become available." />
+          
+          <div className="flex flex-wrap justify-center gap-4 mb-16">
+            {["Real Estate", "Healthcare and Clinics", "E-commerce and D2C", "Recruitment", "Professional Services", "Financial and Accounting", "Travel", "Education", "Digital Agencies", "Home Services", "Startups", "SMBs"].map((industry, i) => (
+              <div key={i} className="bg-gray-50 border border-gray-200 px-6 py-3 rounded-full text-gray-800 font-bold hover:border-[#00DF81] hover:text-[#00DF81] transition cursor-default">
+                {industry}
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-[#E8FBF1] p-10 rounded-3xl text-center max-w-4xl mx-auto border border-[#00DF81]/20">
+            <p className="text-xl text-gray-900 font-bold">
+              If a business has repetitive processes, large volumes of customer interactions, manual workflows, or disconnected systems, there is often an opportunity for AI to help.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Our Vision & The Future (NEW) */}
+      <section className="py-24 bg-gray-900 text-white px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16">
+          <div>
+            <div className="flex items-center gap-4 mb-6">
+              <Eye className="w-8 h-8 text-[#00DF81]" />
+              <h2 className="text-3xl md:text-4xl font-bold font-heading">Our Vision</h2>
+            </div>
+            <div className="space-y-6 text-gray-300 text-lg">
+              <p>We believe the next generation of businesses will not simply use AI tools. <strong>They will be AI-powered businesses.</strong></p>
+              <ul className="space-y-3">
+                <li className="flex items-center"><CheckCircle2 className="w-5 h-5 text-[#00DF81] mr-3 shrink-0" /> Sales teams will have AI assistants.</li>
+                <li className="flex items-center"><CheckCircle2 className="w-5 h-5 text-[#00DF81] mr-3 shrink-0" /> Customer support will be augmented by AI.</li>
+                <li className="flex items-center"><CheckCircle2 className="w-5 h-5 text-[#00DF81] mr-3 shrink-0" /> Marketing workflows will run with far less manual effort.</li>
+                <li className="flex items-center"><CheckCircle2 className="w-5 h-5 text-[#00DF81] mr-3 shrink-0" /> Operations will become increasingly automated.</li>
+                <li className="flex items-center"><CheckCircle2 className="w-5 h-5 text-[#00DF81] mr-3 shrink-0" /> Businesses will have AI agents working alongside their teams.</li>
+              </ul>
+              <p>Our vision is to help make that transition practical and accessible.</p>
+              <p>We want to become the AI implementation partner businesses turn to when they know AI can transform their business, but don't know where to start.</p>
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center gap-4 mb-6">
+              <Globe className="w-8 h-8 text-[#00DF81]" />
+              <h2 className="text-3xl md:text-4xl font-bold font-heading">The Future We're Building</h2>
+            </div>
+            <div className="space-y-6 text-gray-300 text-lg">
+              <p>The AI landscape will continue to change. Today's best model may not be tomorrow's best model. Today's workflow may be automated differently six months from now.</p>
+              <p className="text-white font-bold text-xl">That's okay.</p>
+              <p>We don't believe businesses should build their future around one AI model, one tool, or one trend. We believe they should build around better business processes and use the best technology available to improve them.</p>
+              <p>That's the philosophy behind SpykeAI.</p>
+              <div className="bg-gray-800 p-8 rounded-2xl border border-gray-700 mt-6">
+                <p className="text-[#00DF81] font-bold text-xl mb-2">Find the problem.</p>
+                <p className="text-[#00DF81] font-bold text-xl mb-2">Find the opportunity.</p>
+                <p className="text-[#00DF81] font-bold text-xl mb-2">Build the solution.</p>
+                <p className="text-white font-black text-2xl mt-4 uppercase tracking-wider">Put AI to work.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section (UPDATED) */}
       <section className="py-24 bg-[#00DF81] px-4 sm:px-6 lg:px-8 text-center">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">Let's Build Something With AI</h2>
-          <p className="text-xl text-gray-800 mb-10 font-medium">
-            You don't need to know which AI tool you need. Tell us what you're trying to achieve, and we'll help you figure out where AI can actually make a difference.
+          <p className="text-xl text-gray-900 mb-10 font-medium leading-relaxed">
+            If you're exploring how AI can improve your business, we'd love to understand what you're working on. You don't need to know which AI tool you need. Tell us what you're trying to achieve, and we'll help you figure out where AI can actually make a difference.
           </p>
-          <a href="http://wa.link/18sxk1" target="_blank" className="inline-flex items-center bg-gray-900 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-black transition shadow-2xl">
+          <a href="http://wa.link/18sxk1" target="_blank" className="inline-flex items-center bg-gray-900 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-black transition shadow-2xl mb-12">
             Talk to Us on WhatsApp <ArrowRight className="ml-2 w-5 h-5" />
           </a>
+          
+          <div className="bg-white/20 backdrop-blur-sm rounded-3xl p-8 text-left max-w-xl mx-auto border border-white/30">
+            <h3 className="font-bold text-gray-900 text-2xl mb-2">Spyke AI Technologies</h3>
+            <p className="text-gray-800 font-medium mb-6">AI Services & Automation Company</p>
+            <div className="space-y-2 text-gray-800 font-medium">
+              <p>📍 Hyderabad, Telangana, India</p>
+              <p>🌐 <a href="https://spykeai.com" className="hover:text-gray-900 underline">spykeai.com</a></p>
+              <p>✉️ <a href="mailto:contact@spykeai.com" className="hover:text-gray-900 underline">contact@spykeai.com</a></p>
+            </div>
+          </div>
         </div>
       </section>
     </div>
@@ -152,6 +253,18 @@ function ServiceCard({ icon, title, desc }: { icon: React.ReactNode, title: stri
   return (
     <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 group">
       <div className="w-14 h-14 bg-green-50 text-[#00DF81] rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+        {icon}
+      </div>
+      <h3 className="text-xl font-bold text-gray-900 mb-3 font-heading">{title}</h3>
+      <p className="text-gray-600 leading-relaxed">{desc}</p>
+    </div>
+  );
+}
+
+function WhyCard({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
+  return (
+    <div className="bg-gray-50 p-8 rounded-3xl border border-gray-100 shadow-sm">
+      <div className="w-12 h-12 bg-white text-[#00DF81] rounded-full flex items-center justify-center mb-6 shadow-sm border border-gray-100">
         {icon}
       </div>
       <h3 className="text-xl font-bold text-gray-900 mb-3 font-heading">{title}</h3>
