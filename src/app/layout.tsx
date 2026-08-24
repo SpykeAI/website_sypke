@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { League_Spartan, Kumbh_Sans } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
-import { Mic, MessageCircle, Phone, ArrowRight, PhoneCall, Facebook, Instagram, Linkedin, Youtube, Twitter } from "lucide-react";
+import { Mic, MessageCircle, Phone, ArrowRight, PhoneCall } from "lucide-react";
 
 const leagueSpartan = League_Spartan({ 
   subsets: ["latin"],
@@ -44,7 +44,7 @@ export default function RootLayout({
               </nav>
               <div className="hidden md:flex items-center space-x-4">
                 <a
-                  href="#lead-form"
+                  href="/#lead-form"
                   className="bg-[#00DF81] text-white px-6 py-2.5 rounded-full font-bold hover:bg-[#00c271] transition shadow-lg shadow-[#00DF81]/20"
                 >
                   Book a Call
@@ -65,13 +65,13 @@ export default function RootLayout({
                 <p className="mt-6 text-gray-600 max-w-sm leading-relaxed font-medium">
                   Empowering HVAC companies with AI voice agents that never sleep, never drop the ball, and drive better conversions.
                 </p>
-                <div className="flex space-x-4 mt-8">
-                  <a href="https://www.facebook.com/Spykeaitech/" target="_blank" className="text-gray-400 hover:text-[#00DF81] transition"><Facebook size={24} /></a>
-                  <a href="https://www.instagram.com/spykeai/" target="_blank" className="text-gray-400 hover:text-[#00DF81] transition"><Instagram size={24} /></a>
-                  <a href="https://www.linkedin.com/company/spykeai/" target="_blank" className="text-gray-400 hover:text-[#00DF81] transition"><Linkedin size={24} /></a>
-                  <a href="https://x.com/spykeai" target="_blank" className="text-gray-400 hover:text-[#00DF81] transition"><Twitter size={24} /></a>
-                  <a href="https://www.youtube.com/@SpykeAITech" target="_blank" className="text-gray-400 hover:text-[#00DF81] transition"><Youtube size={24} /></a>
-                  <a href="https://linktr.ee/spykeai" target="_blank" className="text-gray-400 hover:text-[#00DF81] font-bold transition flex items-center ml-2">Linktree</a>
+                <div className="flex flex-wrap gap-4 mt-8">
+                  <a href="https://www.facebook.com/Spykeaitech/" target="_blank" className="text-gray-400 hover:text-[#00DF81] font-bold transition">Facebook</a>
+                  <a href="https://www.instagram.com/spykeai/" target="_blank" className="text-gray-400 hover:text-[#00DF81] font-bold transition">Instagram</a>
+                  <a href="https://www.linkedin.com/company/spykeai/" target="_blank" className="text-gray-400 hover:text-[#00DF81] font-bold transition">LinkedIn</a>
+                  <a href="https://x.com/spykeai" target="_blank" className="text-gray-400 hover:text-[#00DF81] font-bold transition">X (Twitter)</a>
+                  <a href="https://www.youtube.com/@SpykeAITech" target="_blank" className="text-gray-400 hover:text-[#00DF81] font-bold transition">YouTube</a>
+                  <a href="https://linktr.ee/spykeai" target="_blank" className="text-gray-400 hover:text-[#00DF81] font-bold transition">Linktree</a>
                 </div>
               </div>
               <div>
@@ -99,8 +99,8 @@ export default function RootLayout({
 
         {/* Floating Voice Widget */}
         <div className="fixed bottom-28 md:bottom-8 right-6 z-40 hidden md:block">
-          <button className="bg-white text-[#00DF81] p-4 rounded-full shadow-2xl border-2 border-[#00DF81] hover:bg-gray-50 transition flex items-center justify-center transform hover:scale-105 active:scale-95">
-            <Mic size={28} />
+          <button className="bg-[#00DF81] text-white p-4 rounded-full shadow-2xl border-2 border-[#00DF81] hover:bg-[#00c271] transition flex items-center justify-center transform hover:scale-105 active:scale-95 animate-bounce">
+            <Phone size={28} />
           </button>
         </div>
 
