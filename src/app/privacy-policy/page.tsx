@@ -7,13 +7,18 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-white py-24 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto prose prose-lg">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">
-          Privacy Policy
-        </h1>
-        <p className="text-gray-500 font-medium mb-12">Effective Date: 22 August 2026</p>
-        
+    <div className="min-h-screen bg-white">
+      {/* Hero Section */}
+      <section className="bg-gray-50 py-20 border-b border-gray-100 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 font-heading">
+            Privacy Policy
+          </h1>
+          <p className="text-gray-500 font-medium">Effective Date: 22 August 2026</p>
+        </div>
+      </section>
+
+      <div className="max-w-4xl mx-auto prose prose-lg prose-green py-20 px-4 sm:px-6 lg:px-8">
         <div className="space-y-8 text-gray-700 leading-relaxed font-medium">
           <p>
             Spyke AI Technologies ("SpykeAI," "we," "our," or "us") respects your privacy and is committed to protecting personal information entrusted to us.

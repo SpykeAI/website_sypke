@@ -39,7 +39,7 @@ export default function RootLayout({
               </div>
               <nav className="hidden md:flex space-x-8">
                 <Link href="/" className="text-gray-600 hover:text-[#00DF81] font-bold transition text-sm">Home</Link>
-                <Link href="/about" className="text-gray-600 hover:text-[#00DF81] font-bold transition text-sm">About Us</Link>
+                <Link href="/aboutus" className="text-gray-600 hover:text-[#00DF81] font-bold transition text-sm">About Us</Link>
                 <Link href="/contact" className="text-gray-600 hover:text-[#00DF81] font-bold transition text-sm">Contact Us</Link>
               </nav>
               <div className="hidden md:flex items-center space-x-4">
@@ -78,15 +78,15 @@ export default function RootLayout({
                 <h3 className="text-lg font-bold mb-6 font-heading text-gray-900 uppercase tracking-wider">Quick Links</h3>
                 <ul className="space-y-4 font-medium text-gray-600">
                   <li><Link href="/" className="hover:text-[#00DF81] transition">Home</Link></li>
-                  <li><Link href="/about" className="hover:text-[#00DF81] transition">About Us</Link></li>
+                  <li><Link href="/aboutus" className="hover:text-[#00DF81] transition">About Us</Link></li>
                   <li><Link href="/contact" className="hover:text-[#00DF81] transition">Contact Us</Link></li>
                 </ul>
               </div>
               <div>
                 <h3 className="text-lg font-bold mb-6 font-heading text-gray-900 uppercase tracking-wider">Legal</h3>
                 <ul className="space-y-4 font-medium text-gray-600">
-                  <li><Link href="/privacy" className="hover:text-[#00DF81] transition">Privacy Policy</Link></li>
-                  <li><Link href="/terms" className="hover:text-[#00DF81] transition">Terms & Conditions</Link></li>
+                  <li><Link href="/privacy-policy" className="hover:text-[#00DF81] transition">Privacy Policy</Link></li>
+                  <li><Link href="/terms-and-conditions" className="hover:text-[#00DF81] transition">Terms & Conditions</Link></li>
                   <li><Link href="/refund" className="hover:text-[#00DF81] transition">Refund Policy</Link></li>
                 </ul>
               </div>

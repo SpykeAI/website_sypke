@@ -1,9 +1,13 @@
 export default function RefundPolicy() {
   return (
-    <div className="min-h-screen bg-white py-24 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto prose prose-lg">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8 font-heading">Refund Policy</h1>
-        <p className="text-gray-600 mb-4">Last updated: August 2026</p>
+    <div className="min-h-screen bg-white">
+      <section className="bg-gray-50 py-20 border-b border-gray-100 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4 font-heading">Refund Policy</h1>
+          <p className="text-gray-500 font-medium">Last updated: August 2026</p>
+        </div>
+      </section>
+      <div className="max-w-4xl mx-auto prose prose-lg prose-green py-20 px-4 sm:px-6 lg:px-8">
         
         <div className="space-y-6 text-gray-600">
           <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">1. Subscription Refunds</h2>
