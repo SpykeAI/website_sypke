@@ -234,14 +234,13 @@ export default function AboutUs() {
             <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">What We Do</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">SpykeAI provides AI-powered services and implementation solutions for businesses.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-8">
             <ServiceCard icon={<Phone />} title="AI Voice Agents" desc="AI-powered voice agents that can handle conversations, qualify leads, answer questions, schedule appointments, follow up with prospects, and perform other voice-based workflows." />
             <ServiceCard icon={<Bot />} title="AI Chatbots" desc="Intelligent conversational systems for websites, WhatsApp, customer support, lead qualification, sales, and other business use cases." />
             <ServiceCard icon={<Zap />} title="Business Automations" desc="We connect your existing tools and systems to automate repetitive processes across sales, marketing, operations, customer support, and other functions." />
             <ServiceCard icon={<Target />} title="AI Agents" desc="AI-powered agents designed to perform multi-step tasks, interact with business systems, retrieve information, make decisions within defined workflows, and take actions on behalf of the business." />
             <ServiceCard icon={<Share2 />} title="CRM & System Integrations" desc="We connect AI systems with CRMs, calendars, communication platforms, databases, websites, and other business tools so AI becomes part of the existing workflow rather than another disconnected tool." />
             <ServiceCard icon={<PenTool />} title="AI-Powered Content & Creative Services" desc="We use AI to help businesses create images, videos, audio, copy, and other content more efficiently." />
-            <ServiceCard icon={<CheckCircle2 />} title="Custom AI Solutions" desc="Every business is different. Where an off-the-shelf solution isn't enough, we design and implement custom AI workflows and systems around the specific requirements of the business." />
           </div>
         </div>
       </section>
@@ -325,13 +324,13 @@ export default function AboutUs() {
             Talk to Us on WhatsApp <ArrowRight className="ml-2 w-5 h-5" />
           </a>
           
-          <div className="bg-white/20 backdrop-blur-sm rounded-3xl p-8 text-left max-w-xl mx-auto border border-white/30">
+          <div className="bg-white rounded-3xl p-8 text-left max-w-xl mx-auto border border-gray-200 shadow-xl">
             <h3 className="font-bold text-gray-900 text-2xl mb-2">Spyke AI Technologies</h3>
-            <p className="text-gray-800 font-medium mb-6">AI Services & Automation Company</p>
-            <div className="space-y-2 text-gray-800 font-medium">
-              <p>📍 Hyderabad, Telangana, India</p>
-              <p>🌐 <a href="https://spykeai.com" className="hover:text-gray-900 underline">spykeai.com</a></p>
-              <p>✉️ <a href="mailto:contact@spykeai.com" className="hover:text-gray-900 underline">contact@spykeai.com</a></p>
+            <p className="text-gray-600 font-medium mb-6">AI Services & Automation Company</p>
+            <div className="space-y-3 text-gray-700 font-medium">
+              <p className="flex items-center gap-2">📍 Hyderabad, Telangana, India</p>
+              <p className="flex items-center gap-2">🌐 <a href="https://spykeai.com" className="hover:text-[#00DF81] transition underline">spykeai.com</a></p>
+              <p className="flex items-center gap-2">✉️ <a href="mailto:contact@spykeai.com" className="hover:text-[#00DF81] transition underline">contact@spykeai.com</a></p>
             </div>
           </div>
         </div>
