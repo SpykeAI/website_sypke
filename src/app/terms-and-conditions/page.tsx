@@ -33,8 +33,17 @@ export default function TermsConditions() {
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 relative z-20">
         <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden p-8 md:p-16">
-          <div className="prose prose-lg max-w-none text-gray-600 prose-headings:font-heading prose-headings:font-bold prose-headings:text-gray-900 prose-a:text-[#00DF81] prose-a:no-underline hover:prose-a:underline prose-li:marker:text-[#00DF81]">
-            
+          <div className="
+            text-gray-600 text-lg leading-relaxed
+            [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:text-gray-900 [&_h2]:font-heading [&_h2]:mt-16 [&_h2]:mb-6 [&_h2]:border-b [&_h2]:border-gray-100 [&_h2]:pb-4
+            [&_h3]:text-2xl [&_h3]:font-bold [&_h3]:text-gray-900 [&_h3]:font-heading [&_h3]:mt-10 [&_h3]:mb-4
+            [&_p]:mb-6
+            [&_ul]:list-none [&_ul]:pl-0 [&_ul]:space-y-3 [&_ul]:mb-8
+            [&_li]:relative [&_li]:pl-6
+            [&_li::before]:content-[''] [&_li::before]:absolute [&_li::before]:left-0 [&_li::before]:top-3 [&_li::before]:w-2 [&_li::before]:h-2 [&_li::before]:bg-[#00DF81] [&_li::before]:rounded-full
+            [&_a]:text-[#00DF81] [&_a]:font-medium [&_a]:underline-offset-4 hover:[&_a]:underline
+            [&_strong]:text-gray-900
+          ">
             <p>Welcome to Spyke AI Technologies ("SpykeAI," "we," "our," or "us").</p>
             <p>These Terms and Conditions ("Terms") govern your access to and use of our website, technology solutions, AI services, software integrations, automation services, AI voice agents, AI chatbots, AI-powered applications, and other services provided by Spyke AI Technologies (collectively, the "Services"), including services made available through <a href="https://spykeai.com">https://spykeai.com</a> and any related websites, applications, portals, or communication channels operated by us.</p>
             <p>By accessing our website, purchasing our Services, signing a proposal or order form, subscribing to a service, or otherwise engaging with SpykeAI, you acknowledge that you have read, understood, and agreed to these Terms.</p>
