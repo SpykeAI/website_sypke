@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { Shield, Info, Database, Lock, Eye, Users, Server, FileText, Briefcase, Bell, Mail } from "lucide-react";
+import { Shield, Info, Database, Lock, Eye, Users, Server, FileText, Briefcase, Bell, Mail, CheckCircle2 } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | Spyke AI Technologies",
