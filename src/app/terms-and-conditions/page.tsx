@@ -8,40 +8,44 @@ export const metadata: Metadata = {
 
 export default function TermsConditions() {
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-white pb-24">
       {/* Hero Section */}
-      <section className="bg-white pt-32 pb-24 px-4 sm:px-6 lg:px-8 border-b border-gray-200 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#00DF81]/10 via-transparent to-transparent -z-10"></div>
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03] -z-10"></div>
+      <section className="bg-gray-900 pt-32 pb-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#00DF81]/20 via-transparent to-transparent -z-10"></div>
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 -z-10"></div>
         
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center justify-center p-4 bg-green-50 rounded-2xl mb-6 shadow-sm border border-green-100">
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <div className="inline-flex items-center justify-center p-4 bg-gray-800 rounded-2xl mb-8 shadow-sm border border-gray-700">
             <FileText className="w-10 h-10 text-[#00DF81]" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-black text-gray-900 mb-6 font-heading tracking-tight">
+          <h1 className="text-4xl md:text-6xl font-black text-white mb-6 font-heading tracking-tight">
             Terms & Conditions
           </h1>
-          <p className="text-gray-600 text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed">
+          <p className="text-gray-400 text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed">
             Please read these terms and conditions carefully before using our AI services, technologies, and automation solutions.
           </p>
-          <div className="mt-8 inline-block bg-gray-900 text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg">
-            Effective Date: 22 August 2026
-          </div>
         </div>
       </section>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 relative z-20">
-        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden p-8 md:p-16">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 relative z-20">
+        <div className="bg-white rounded-t-3xl p-8 md:p-12">
+          
+          <div className="mb-12 inline-block bg-green-50 text-[#00DF81] px-6 py-2.5 rounded-full text-sm font-bold border border-green-200">
+            Effective Date: 22 August 2026
+          </div>
+
           <div className="
             text-gray-600 text-lg leading-relaxed
-            [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:text-gray-900 [&_h2]:font-heading [&_h2]:mt-16 [&_h2]:mb-6 [&_h2]:border-b [&_h2]:border-gray-100 [&_h2]:pb-4
+            border-l-2 border-gray-100 md:pl-10 pl-6 ml-2 md:ml-4
+            [&_h2]:relative [&_h2]:text-3xl [&_h2]:font-bold [&_h2]:text-gray-900 [&_h2]:font-heading [&_h2]:mt-20 [&_h2]:mb-6
+            [&_h2::before]:content-[''] [&_h2::before]:absolute [&_h2::before]:-left-[49px] md:[&_h2::before]:-left-[65px] [&_h2::before]:top-2 [&_h2::before]:w-4 [&_h2::before]:h-4 [&_h2::before]:bg-[#00DF81] [&_h2::before]:rounded-full [&_h2::before]:ring-8 [&_h2::before]:ring-white
             [&_h3]:text-2xl [&_h3]:font-bold [&_h3]:text-gray-900 [&_h3]:font-heading [&_h3]:mt-10 [&_h3]:mb-4
             [&_p]:mb-6
             [&_ul]:list-none [&_ul]:pl-0 [&_ul]:space-y-3 [&_ul]:mb-8
             [&_li]:relative [&_li]:pl-6
-            [&_li::before]:content-[''] [&_li::before]:absolute [&_li::before]:left-0 [&_li::before]:top-3 [&_li::before]:w-2 [&_li::before]:h-2 [&_li::before]:bg-[#00DF81] [&_li::before]:rounded-full
-            [&_a]:text-[#00DF81] [&_a]:font-medium [&_a]:underline-offset-4 hover:[&_a]:underline
+            [&_li::before]:content-[''] [&_li::before]:absolute [&_li::before]:left-0 [&_li::before]:top-3 [&_li::before]:w-2 [&_li::before]:h-2 [&_li::before]:bg-gray-300 [&_li::before]:rounded-full
+            [&_a]:text-[#00DF81] [&_a]:font-bold [&_a]:underline-offset-4 hover:[&_a]:underline
             [&_strong]:text-gray-900
           ">
             <p>Welcome to Spyke AI Technologies ("SpykeAI," "we," "our," or "us").</p>
