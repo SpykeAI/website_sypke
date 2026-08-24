@@ -10,19 +10,19 @@ export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Hero Section */}
-      <section className="bg-[#00DF81] pt-28 pb-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="absolute inset-0 bg-black/5"></div>
+      <section className="bg-gray-50 pt-24 pb-32 px-4 sm:px-6 lg:px-8 border-b border-gray-100 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#00DF81]/5 via-transparent to-transparent -z-10"></div>
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center justify-center p-4 bg-white/20 rounded-full mb-6 backdrop-blur-sm">
-            <Shield className="w-10 h-10 text-white" />
+          <div className="inline-flex items-center justify-center p-4 bg-white rounded-full mb-6 shadow-sm border border-gray-100">
+            <Shield className="w-10 h-10 text-[#00DF81]" />
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 font-heading tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 font-heading tracking-tight">
             Privacy Policy
           </h1>
-          <p className="text-white/90 text-lg md:text-xl font-medium max-w-2xl mx-auto">
+          <p className="text-gray-600 text-lg md:text-xl font-medium max-w-2xl mx-auto">
             We are committed to protecting your personal information and being transparent about how we use it.
           </p>
-          <div className="mt-8 inline-block bg-black/10 backdrop-blur-md text-white px-6 py-2 rounded-full text-sm font-bold border border-white/20">
+          <div className="mt-8 inline-block bg-white text-gray-700 px-6 py-2 rounded-full text-sm font-bold border border-gray-200 shadow-sm">
             Effective Date: 22 August 2026
           </div>
         </div>
