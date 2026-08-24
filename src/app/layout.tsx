@@ -37,9 +37,11 @@ export default function RootLayout({
                   Spyke<span className="text-gray-900">AI</span>
                 </Link>
               </div>
-              <nav className="hidden md:flex space-x-8">
+              <nav className="hidden md:flex space-x-6 lg:space-x-8 items-center">
                 <Link href="/" className="text-gray-600 hover:text-[#00DF81] font-bold transition text-sm">Home</Link>
                 <Link href="/aboutus" className="text-gray-600 hover:text-[#00DF81] font-bold transition text-sm">About Us</Link>
+                <Link href="/privacy-policy" className="text-gray-600 hover:text-[#00DF81] font-bold transition text-sm">Privacy Policy</Link>
+                <Link href="/terms-and-conditions" className="text-gray-600 hover:text-[#00DF81] font-bold transition text-sm">Terms & Conditions</Link>
                 <Link href="/contact" className="text-gray-600 hover:text-[#00DF81] font-bold transition text-sm">Contact Us</Link>
               </nav>
               <div className="hidden md:flex items-center space-x-4">
