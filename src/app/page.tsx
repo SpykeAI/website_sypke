@@ -1,4 +1,4 @@
-import { Phone, Clock, DollarSign, CalendarCheck, CheckCircle2, ChevronRight, MessageSquare, Wrench, Thermometer, Zap } from "lucide-react";
+import { Phone, Clock, DollarSign, CalendarCheck, CheckCircle2, ChevronRight, MessageSquare, Wrench, Thermometer, Zap, Headset, LineChart, Building } from "lucide-react";
 
 export default function Home() {
   return (
