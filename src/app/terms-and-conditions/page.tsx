@@ -55,7 +55,7 @@ export default function TermsConditions() {
 
             <hr className="my-10 border-gray-100" />
 
-            <h2>1. Definitions</h2>
+            <h2>Definitions</h2>
             <p>For these Terms:</p>
             <ul>
               <li><strong>"SpykeAI," "we," "our," or "us"</strong> means Spyke AI Technologies and its applicable affiliates, representatives, employees, contractors, and authorised service providers.</li>
@@ -83,12 +83,12 @@ export default function TermsConditions() {
               <li><strong>"Deliverables"</strong> means the specific outputs, configurations, workflows, software, content, integrations, or other items that SpykeAI has agreed to provide under a proposal, order form, statement of work, or other commercial agreement.</li>
             </ul>
 
-            <h2>2. Eligibility</h2>
+            <h2>Eligibility</h2>
             <p>You must be legally capable of entering into a binding agreement to use our Services.</p>
             <p>If you are using our Services on behalf of a company, organisation, or other legal entity, you represent and warrant that you have the authority to bind that entity to these Terms.</p>
             <p>By using our Services, you confirm that the information you provide to us is accurate, complete, and current.</p>
 
-            <h2>3. Scope of Services</h2>
+            <h2>Scope of Services</h2>
             <p>SpykeAI provides AI-powered technology and implementation services designed to help businesses automate, improve, or augment various business processes.</p>
             <p>The exact Services provided to a Client will depend on the applicable proposal, quotation, order form, statement of work, subscription plan, or other commercial agreement between SpykeAI and the Client.</p>
             <p>Unless specifically stated otherwise in writing, the Services do not include:</p>
@@ -101,7 +101,7 @@ export default function TermsConditions() {
             </ul>
             <p>SpykeAI reserves the right to modify, improve, replace, or discontinue components of the Services where reasonably necessary.</p>
 
-            <h2>4. AI Technology Disclaimer</h2>
+            <h2>AI Technology Disclaimer</h2>
             <p>AI technology is probabilistic and continually evolving.</p>
             <p>Accordingly, SpykeAI does not guarantee that AI-generated or AI-assisted outputs will always be:</p>
             <ul>
@@ -117,7 +117,7 @@ export default function TermsConditions() {
             <p>Clients are responsible for reviewing and validating AI-generated outputs before relying on them for material business, legal, financial, medical, operational, or other decisions.</p>
             <p>SpykeAI does not guarantee that an AI system will produce a particular business outcome merely because the system has been configured or implemented for that purpose.</p>
 
-            <h2>5. AI Voice Agents and Automated Communications</h2>
+            <h2>AI Voice Agents and Automated Communications</h2>
             <p>Where SpykeAI provides AI Voice Agents, chatbots, messaging systems, automated calling systems, or similar Services, the Client acknowledges that such systems may communicate directly with the Client's customers, prospects, employees, suppliers, or other third parties.</p>
             <p>The Client is responsible for:</p>
             <ul>
@@ -132,7 +132,7 @@ export default function TermsConditions() {
             <p>Where calls or interactions are recorded, transcribed, analysed, or stored, the Client is responsible for determining whether applicable consent, disclosure, notification, or other legal requirements apply to its particular use case.</p>
             <p>SpykeAI does not provide legal advice regarding telecommunications, call recording, marketing communications, consent, or privacy requirements.</p>
 
-            <h2>6. Client Responsibilities</h2>
+            <h2>Client Responsibilities</h2>
             <p>The Client agrees to:</p>
             <ul>
               <li>Provide accurate, complete, and timely information required to deliver the Services.</li>
@@ -145,7 +145,7 @@ export default function TermsConditions() {
             </ul>
             <p>Delays caused by missing information, approvals, access credentials, third-party permissions, or Client dependencies may result in corresponding delays to delivery timelines.</p>
 
-            <h2>7. Acceptable Use</h2>
+            <h2>Acceptable Use</h2>
             <p>You may not use the Services to:</p>
             <ul>
               <li>Conduct unlawful, fraudulent, deceptive, or abusive activities.</li>
@@ -161,7 +161,7 @@ export default function TermsConditions() {
             </ul>
             <p>SpykeAI may suspend or terminate Services if we reasonably believe that the Services are being used in violation of these Terms or applicable law.</p>
 
-            <h2>8. Third-Party Services and AI Providers</h2>
+            <h2>Third-Party Services and AI Providers</h2>
             <p>SpykeAI may use or integrate third-party services to provide the Services. These may include, for example:</p>
             <ul>
               <li>AI model providers</li>
@@ -180,7 +180,7 @@ export default function TermsConditions() {
             <p>Third-party providers may change their APIs, pricing, models, policies, functionality, limits, or technical requirements. Such changes may affect the Services.</p>
             <p>Where a third-party change materially affects a Service, SpykeAI may modify, replace, or discontinue the affected functionality. Additional third-party terms may apply to your use of such services.</p>
 
-            <h2>9. Service Availability and Changes</h2>
+            <h2>Service Availability and Changes</h2>
             <p>We aim to provide reliable Services but do not guarantee uninterrupted or error-free operation.</p>
             <p>Services may occasionally be unavailable due to:</p>
             <ul>
@@ -196,7 +196,7 @@ export default function TermsConditions() {
             </ul>
             <p>SpykeAI may update, modify, improve, or replace components of its Services from time to time.</p>
 
-            <h2>10. Fees and Payments</h2>
+            <h2>Fees and Payments</h2>
             <p>Fees for Services will be specified in the applicable quotation, proposal, order form, subscription plan, invoice, or other commercial agreement.</p>
             <p>Unless otherwise agreed in writing:</p>
             <ul>
@@ -208,25 +208,25 @@ export default function TermsConditions() {
             </ul>
             <p>Failure to make payments when due may result in suspension of Services. SpykeAI may charge reasonable costs associated with failed payments, where permitted by law and disclosed to the Client.</p>
 
-            <h2>11. Subscriptions and Recurring Services</h2>
+            <h2>Subscriptions and Recurring Services</h2>
             <p>Where a Service is provided on a recurring or subscription basis, the subscription period, renewal terms, fees, usage limits, and cancellation conditions will be specified in the applicable commercial agreement.</p>
             <p>Unless otherwise agreed, recurring Services may automatically renew for the applicable renewal period.</p>
             <p>The Client may cancel recurring Services according to the cancellation terms communicated at the time of purchase or specified in the applicable agreement.</p>
             <p>Cancellation does not automatically entitle the Client to a refund for Services already delivered, work already performed, or committed third-party costs, except where required by applicable law or expressly agreed in writing.</p>
 
-            <h2>12. Refunds and Cancellations</h2>
+            <h2>Refunds and Cancellations</h2>
             <p>Refunds and cancellations are governed by SpykeAI's Refund Policy, which forms part of these Terms.</p>
             <p>Refund eligibility may depend on the nature of the Service, whether work has already commenced, whether third-party costs have been incurred, and the terms of the applicable commercial agreement.</p>
             <p>Where a Client purchases a custom implementation, development, automation, AI agent, integration, or other bespoke Service, work may begin after payment or approval. Once substantial work has commenced, the applicable fees may be non-refundable except where otherwise required by law or agreed in writing.</p>
             <p>Refund Policy: <a href="/refund">View Refund Policy</a></p>
 
-            <h2>13. Intellectual Property</h2>
+            <h2>Intellectual Property</h2>
             <p>Unless otherwise agreed in writing:</p>
-            <h3>13.1 Client Materials</h3>
+            <h3>Client Materials</h3>
             <p>The Client retains ownership of Client Data and materials supplied by the Client.</p>
             <p>The Client grants SpykeAI a limited, non-exclusive right to access, process, reproduce, modify, transmit, and otherwise use Client Data solely to the extent reasonably necessary to provide the Services.</p>
             
-            <h3>13.2 SpykeAI Technology</h3>
+            <h3>SpykeAI Technology</h3>
             <p>SpykeAI retains ownership of its pre-existing and independently developed:</p>
             <ul>
               <li>Software</li>
@@ -247,11 +247,11 @@ export default function TermsConditions() {
             </ul>
             <p>Unless expressly agreed otherwise in writing, the provision of Services does not transfer ownership of SpykeAI's underlying technology or intellectual property to the Client.</p>
             
-            <h3>13.3 Client-Specific Deliverables</h3>
+            <h3>Client-Specific Deliverables</h3>
             <p>Ownership or licensing rights relating to custom Deliverables will be determined by the applicable proposal, statement of work, order form, or other written agreement.</p>
             <p>Unless otherwise agreed, payment for Services does not automatically transfer ownership of SpykeAI's underlying technology, frameworks, tools, or reusable components used to create the Deliverables.</p>
 
-            <h2>14. Client Data and Privacy</h2>
+            <h2>Client Data and Privacy</h2>
             <p>SpykeAI may process Client Data in order to provide the Services.</p>
             <p>The Client represents that it has the necessary rights, permissions, notices, and lawful basis required to provide Client Data to SpykeAI and to permit SpykeAI and its service providers to process such data for the purposes of delivering the Services.</p>
             <p>SpykeAI will handle personal data in accordance with its Privacy Policy and applicable data-protection requirements.</p>
@@ -259,7 +259,7 @@ export default function TermsConditions() {
             <p>The Client acknowledges that certain Services may involve the processing of data through third-party AI, cloud, communication, or software providers.</p>
             <p>Privacy Policy: <a href="/privacy-policy">View Privacy Policy</a></p>
 
-            <h2>15. Confidentiality</h2>
+            <h2>Confidentiality</h2>
             <p>Each party may receive confidential information belonging to the other party.</p>
             <p>The receiving party agrees to:</p>
             <ul>
@@ -276,24 +276,24 @@ export default function TermsConditions() {
               <li>Must be disclosed by law or a valid legal or governmental order.</li>
             </ul>
 
-            <h2>16. Credentials and Account Access</h2>
+            <h2>Credentials and Account Access</h2>
             <p>Where the Client provides SpykeAI with access credentials, API keys, login information, or other authentication information, the Client authorises SpykeAI to use such access solely as reasonably necessary to provide the Services.</p>
             <p>The Client remains responsible for maintaining appropriate ownership and permissions for its accounts.</p>
             <p>The Client should not provide unnecessary credentials or access beyond what is required for the Services.</p>
             <p>SpykeAI may request that credentials be provided through secure methods where available.</p>
 
-            <h2>17. Intellectual Property of Third Parties</h2>
+            <h2>Intellectual Property of Third Parties</h2>
             <p>The Services may incorporate or interact with third-party software, models, APIs, libraries, content, or other intellectual property.</p>
             <p>Such third-party intellectual property remains subject to the applicable third-party licences and terms.</p>
             <p>The Client agrees not to use any third-party component in a manner that violates its applicable licence or terms.</p>
 
-            <h2>18. AI-Generated Content</h2>
+            <h2>AI-Generated Content</h2>
             <p>Where SpykeAI provides AI-generated images, videos, audio, text, voice, or other content, the Client acknowledges that AI-generated content may not be unique and may resemble content generated for other users or produced through publicly available or third-party AI systems.</p>
             <p>The Client is responsible for reviewing AI-generated content before publishing, distributing, or commercially using it.</p>
             <p>SpykeAI does not guarantee that AI-generated content will be free from third-party intellectual property claims. However, we will use reasonable processes appropriate to the Service to create and deliver the requested content.</p>
             <p>The Client is responsible for determining whether the final content is appropriate for its intended commercial use.</p>
 
-            <h2>19. No Guarantee of Business Results</h2>
+            <h2>No Guarantee of Business Results</h2>
             <p>SpykeAI provides technology and implementation Services.</p>
             <p>Unless expressly stated in a written agreement, SpykeAI does not guarantee any particular:</p>
             <ul>
@@ -311,7 +311,7 @@ export default function TermsConditions() {
             </ul>
             <p>Business outcomes depend on numerous factors outside SpykeAI's control, including the Client's products, pricing, sales process, market conditions, staff, customer behaviour, advertising, data quality, and third-party platforms.</p>
 
-            <h2>20. Disclaimer of Warranties</h2>
+            <h2>Disclaimer of Warranties</h2>
             <p>To the maximum extent permitted by applicable law, the Services are provided on an "as available" and "as is" basis.</p>
             <p>SpykeAI does not warrant that:</p>
             <ul>
@@ -324,12 +324,12 @@ export default function TermsConditions() {
             </ul>
             <p>Nothing in these Terms excludes any warranty or statutory right that cannot lawfully be excluded.</p>
 
-            <h2>21. Limitation of Liability</h2>
+            <h2>Limitation of Liability</h2>
             <p>To the maximum extent permitted by applicable law, SpykeAI shall not be liable for indirect, incidental, special, consequential, exemplary, or punitive damages, including loss of profits, revenue, business opportunities, goodwill, data, or anticipated savings arising from or relating to the Services.</p>
             <p>To the maximum extent permitted by law, SpykeAI's total aggregate liability arising out of or relating to the Services or these Terms shall not exceed the total amount of fees actually paid by the Client to SpykeAI for the affected Services during the three (3) months immediately preceding the event giving rise to the claim.</p>
             <p>This limitation does not apply to liability that cannot legally be limited or excluded under applicable law.</p>
 
-            <h2>22. Indemnification</h2>
+            <h2>Indemnification</h2>
             <p>To the extent permitted by applicable law, the Client agrees to indemnify and hold harmless SpykeAI, its officers, employees, contractors, and representatives from claims, damages, losses, liabilities, and reasonable expenses arising from:</p>
             <ul>
               <li>The Client's unlawful use of the Services.</li>
@@ -342,7 +342,7 @@ export default function TermsConditions() {
             </ul>
             <p>This section does not apply to the extent that a claim results directly from SpykeAI's own gross negligence, wilful misconduct, or other liability that cannot legally be excluded.</p>
 
-            <h2>23. Suspension and Termination</h2>
+            <h2>Suspension and Termination</h2>
             <p>SpykeAI may suspend or terminate access to the Services if:</p>
             <ul>
               <li>The Client materially breaches these Terms.</li>
@@ -356,35 +356,35 @@ export default function TermsConditions() {
             <p>Upon termination, the Client's right to use the applicable Services will cease, except where continued access is expressly agreed.</p>
             <p>Termination will not affect rights or obligations that accrued before termination.</p>
 
-            <h2>24. Force Majeure</h2>
+            <h2>Force Majeure</h2>
             <p>SpykeAI shall not be responsible for delays or failures caused by circumstances beyond its reasonable control.</p>
             <p>Such circumstances may include natural disasters, war, terrorism, government actions, telecommunications failures, internet outages, power failures, cyberattacks, third-party platform outages, major software or API changes, labour disputes, epidemics, or other events beyond our reasonable control.</p>
 
-            <h2>25. Communications and Electronic Agreements</h2>
+            <h2>Communications and Electronic Agreements</h2>
             <p>The Client agrees that communications, approvals, proposals, invoices, agreements, and other documents may be provided electronically.</p>
             <p>Electronic acceptance, approval, signature, or other forms of electronic communication may constitute acceptance of the applicable agreement where legally valid.</p>
             <p>The UAE's electronic-transactions framework recognises the validity and enforceability of electronic contracts and electronic documents.</p>
 
-            <h2>26. Changes to These Terms</h2>
+            <h2>Changes to These Terms</h2>
             <p>SpykeAI may update these Terms from time to time.</p>
             <p>When we make changes, we will update the Effective Date at the beginning of this page.</p>
             <p>Your continued use of the Services after updated Terms become effective constitutes acceptance of the revised Terms, to the extent permitted by applicable law.</p>
             <p>Where a material change requires additional notice or consent under applicable law, we will provide such notice or obtain such consent as required.</p>
 
-            <h2>27. Governing Law and Jurisdiction</h2>
+            <h2>Governing Law and Jurisdiction</h2>
             <p>These Terms and the relationship between you and Spyke AI Technologies shall be governed by and interpreted in accordance with the laws of India, without regard to its conflict-of-law principles.</p>
             <p>Any dispute, claim, or controversy arising out of or relating to these Terms, the Services, or the relationship between Spyke AI Technologies and the Client shall be subject to the jurisdiction of the competent courts in Hyderabad, Telangana, India, unless otherwise required by applicable law or expressly agreed in writing between Spyke AI Technologies and the Client.</p>
             <p>Where the Client is located outside India, the parties may agree in writing to additional contractual terms relating to applicable local laws, data protection requirements, dispute resolution, or jurisdiction.</p>
             <p>Nothing in these Terms prevents either party from seeking urgent or interim relief from a court of competent jurisdiction where such relief is necessary.</p>
 
-            <h2>28. Severability</h2>
+            <h2>Severability</h2>
             <p>If any provision of these Terms is determined to be invalid, illegal, or unenforceable, that provision shall be modified or limited to the minimum extent necessary, and the remaining provisions shall continue in full force and effect.</p>
 
-            <h2>29. Entire Agreement</h2>
+            <h2>Entire Agreement</h2>
             <p>These Terms, together with any applicable proposal, quotation, order form, statement of work, subscription agreement, Service Agreement, Privacy Policy, Refund Policy, and other written agreements between SpykeAI and the Client, constitute the agreement governing the use and provision of the Services.</p>
             <p>If there is a conflict between these Terms and a specific written agreement signed or accepted by SpykeAI and the Client, the specific written agreement shall prevail to the extent of the conflict.</p>
 
-            <h2>30. Contact Information</h2>
+            <h2>Contact Information</h2>
             <p>If you have questions, concerns, or requests regarding these Terms or our Services, please contact us:</p>
             <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 not-prose">
               <h3 className="font-bold text-gray-900 text-xl mb-4">Spyke AI Technologies</h3>
