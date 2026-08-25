@@ -343,7 +343,7 @@ export default function PrivacyPolicy() {
 
             {/* Contact Box */}
             <section className="mt-16 bg-[#00DF81] rounded-3xl p-8 md:p-12 text-center shadow-xl shadow-[#00DF81]/20">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4 font-heading">20. Contact Us</h2>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4 font-heading">Contact Us</h2>
               <p className="text-gray-900/80 mb-8 max-w-xl mx-auto font-medium">
                 If you have questions, concerns, or requests regarding this Privacy Policy or the way SpykeAI handles personal information, please reach out to us.
               </p>
