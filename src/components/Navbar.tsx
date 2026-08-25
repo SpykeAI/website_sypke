@@ -20,8 +20,8 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="text-3xl font-bold text-[#00DF81] font-heading tracking-tight" onClick={closeMenu}>
-              Spyke<span className="text-gray-900">AI</span>
+            <Link href="/" onClick={closeMenu}>
+              <img src="/logo.png" alt="SpykeAI Logo" className="h-12 w-auto" />
             </Link>
           </div>
           
