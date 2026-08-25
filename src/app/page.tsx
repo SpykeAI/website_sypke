@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
-      <section className="relative bg-white pt-20 pb-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <section className="relative bg-white pt-20 pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-[#00DF81]/10 via-white to-white -z-10"></div>
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="text-left">
@@ -63,12 +63,13 @@ export default function Home() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <span className="text-[#00DF81] font-bold text-sm tracking-wider uppercase">Built to move these numbers</span>
-            <h2 className="text-3xl font-bold text-gray-900 mt-2 font-heading">What a faster response is worth</h2>
+            <span className="text-[#0A8F5C] font-bold text-sm uppercase tracking-widest mb-3 block">Built to move these numbers</span>
+            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 font-heading tracking-tight">Why is a Faster Response worth it?</h2>
+            <p className="text-xl text-gray-600 font-medium max-w-2xl mx-auto">Every missed call is a missed opportunity.</p>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-[#E8FBF1] rounded-2xl p-6 text-center">
-              <div className="text-3xl md:text-4xl font-black text-[#0A8F5C] mb-2 font-heading">&lt;15 sec</div>
+              <div className="text-3xl md:text-4xl font-black text-[#0A8F5C] mb-2 font-heading">&lt;60 Seconds</div>
               <div className="text-sm font-bold text-gray-600">Avg. time to first response</div>
             </div>
             <div className="bg-[#E8FBF1] rounded-2xl p-6 text-center">
@@ -103,16 +104,17 @@ export default function Home() {
       </section>
 
       {/* The Problem */}
-      <section className="py-24 bg-gray-50 px-4 sm:px-6 lg:px-8">
+      <section className="py-24 bg-gradient-to-br from-red-50 to-white px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">The Problem with Traditional Dispatch</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto font-medium">Summer heatwaves and winter freezes mean massive call spikes. If you don't answer, your competitor will.</p>
+            <span className="text-[#0A8F5C] font-bold text-sm uppercase tracking-widest mb-3 block">The 3 biggest mistakes costing HVAC companies their growth</span>
+            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 font-heading tracking-tight">You don't have a lead problem!</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto font-medium">You have a lead-conversion problem.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <ProblemCard icon={<Clock />} title="Missed After-Hours Calls" desc="Customers with emergencies at 10 PM won't wait until 8 AM. They call the next company on Google." />
-            <ProblemCard icon={<DollarSign />} title="Expensive Call Centers" desc="Traditional answering services cost thousands, put customers on hold, and often lack HVAC technical knowledge." />
-            <ProblemCard icon={<Phone />} title="Summer Volume Spikes" desc="When a heatwave hits, your front desk is overwhelmed. Customers get busy signals and you lose thousands in revenue." />
+            <ProblemCard icon={<Headset />} title="Treating every lead the same." desc="Not every lead has the same urgency or value. Handle everything the same way and your high-value opportunities get buried." />
+            <ProblemCard icon={<Clock />} title="Manual follow-ups on everything." desc="'Just call them back' sounds simple. But it depends on people remembering to follow-up while doing everything else." />
+            <ProblemCard icon={<DollarSign />} title="Not reactivating old opportunities." desc="Uncontacted leads, dormant leads, and unsold estimates sitting in your CRM. Without a system, you'll never know which ones still need you." />
           </div>
         </div>
       </section>
@@ -121,7 +123,9 @@ export default function Home() {
       <section className="py-24 bg-white px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4 font-heading">Human Dispatcher vs. AI Agent</h2>
+            <span className="text-[#0A8F5C] font-bold text-sm uppercase tracking-widest mb-3 block">The HVAC Revenue Recovery Loop</span>
+            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 font-heading tracking-tight">Human Receptionist Vs Spyke AI Voice Agent</h2>
+            <p className="text-xl text-gray-600 font-medium max-w-2xl mx-auto">You don't need a complicated system. You need one that moves opportunities through the right stages.</p>
           </div>
           
           <div className="bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-xl">
@@ -154,9 +158,10 @@ export default function Home() {
       {/* Pros Section */}
       <section className="py-24 bg-[#E8FBF1]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-16">
-            <span className="text-[#00DF81] font-bold text-sm tracking-wider uppercase mb-2 block">Why teams switch</span>
-            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 font-heading">What you get that a front desk can't</h2>
+          <div className="text-center mb-16">
+            <span className="text-[#0A8F5C] font-bold text-sm uppercase tracking-widest mb-3 block">Why teams switch</span>
+            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 font-heading tracking-tight">What do you get with our AI Voice Agents?</h2>
+            <p className="text-xl text-gray-600 font-medium max-w-2xl mx-auto">Built to scale without the headcount overhead.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
@@ -165,7 +170,7 @@ export default function Home() {
               { t: "Always professional", d: "On-script, on-brand, every call" },
               { t: "Same energy, all day", d: "No bad moods, no burnout" },
               { t: "24/7 coverage", d: "Nights, weekends & holidays" },
-              { t: "Parallel calling", d: "Inbound & outbound at once" }
+              { t: "Human voices", d: "Natural voice that sounds Human" }
             ].map((p, i) => (
               <div key={i} className="bg-white rounded-2xl p-5 flex items-start gap-4 shadow-sm border border-gray-100">
                 <div className="w-6 h-6 rounded-full bg-[#00DF81] flex items-center justify-center shrink-0 mt-0.5">
@@ -184,10 +189,10 @@ export default function Home() {
       {/* Who It's For */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-16">
-            <span className="text-[#00DF81] font-bold text-sm tracking-wider uppercase mb-2 block">Who it's for</span>
-            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 font-heading mb-4">Built for every stakeholder in the deal</h2>
-            <p className="text-xl text-gray-600">Different roles, same missed-call problem underneath.</p>
+          <div className="text-center mb-16">
+            <span className="text-[#0A8F5C] font-bold text-sm uppercase tracking-widest mb-3 block">Who it's for</span>
+            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 font-heading tracking-tight">Built for every stakeholder in the deal</h2>
+            <p className="text-xl text-gray-600 font-medium max-w-2xl mx-auto">Different roles, same missed-call problem underneath.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="border border-gray-200 rounded-2xl p-6">
@@ -241,9 +246,10 @@ export default function Home() {
       {/* How It Works */}
       <section className="py-24 bg-gray-50 border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-16">
-            <span className="text-[#00DF81] font-bold text-sm tracking-wider uppercase mb-2 block">Setup, start to finish</span>
-            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 font-heading">Live on your business number in under 3 weeks</h2>
+          <div className="text-center mb-16">
+            <span className="text-[#0A8F5C] font-bold text-sm uppercase tracking-widest mb-3 block">Setup, start to finish</span>
+            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 font-heading tracking-tight">Live on your business number in under 3 weeks</h2>
+            <p className="text-xl text-gray-600 font-medium max-w-2xl mx-auto">We build the workflows, you just run the business.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
             <div className="hidden md:block absolute top-[28px] left-[10%] right-[40%] border-t-2 border-dashed border-gray-300"></div>
@@ -280,13 +286,9 @@ export default function Home() {
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(700px 320px at 15% 0%, rgba(0,217,138,0.14), transparent 60%), radial-gradient(600px 300px at 100% 100%, rgba(255,192,80,0.10), transparent 60%)' }}></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center text-[#FFC050] font-bold text-sm tracking-wider uppercase mb-4">
-              ◆ The Facts, Verified
-            </div>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4 font-heading text-white">What the research actually says</h2>
-            <p className="text-[#AEB6C0] text-lg max-w-2xl mx-auto">
-              Not our numbers — landmark, widely-cited studies on lead response.
-            </p>
+            <span className="text-[#FFC050] font-bold text-sm uppercase tracking-widest mb-3 block">The Facts, Verified</span>
+            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 font-heading tracking-tight">What the research actually says</h2>
+            <p className="text-[#AEB6C0] text-xl font-medium max-w-2xl mx-auto">Not our numbers — landmark, widely-cited studies on lead response.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-white/5 border border-white/10 p-6 rounded-2xl hover:border-[#FFC050]/50 hover:-translate-y-1 transition-all duration-300">
@@ -316,11 +318,10 @@ export default function Home() {
       {/* FAQ Section */}
       <section className="py-24 bg-white px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
-          <div className="mb-16">
-            <div className="inline-flex items-center text-[#00DF81] font-bold text-sm tracking-wider uppercase mb-4">
-              Before you call
-            </div>
-            <h2 className="text-3xl md:text-5xl font-bold text-gray-900 font-heading">Common questions</h2>
+          <div className="text-center mb-16">
+            <span className="text-[#0A8F5C] font-bold text-sm uppercase tracking-widest mb-3 block">Before you call</span>
+            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 font-heading tracking-tight">Common questions</h2>
+            <p className="text-xl text-gray-600 font-medium max-w-2xl mx-auto">Everything you need to know before booking a demo.</p>
           </div>
           
           <div className="border-t border-gray-200">
@@ -348,8 +349,9 @@ export default function Home() {
       <section id="lead-form" className="py-24 bg-gray-50 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto bg-white p-10 rounded-3xl border border-gray-200 shadow-xl">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4 font-heading">Stop Missing Revenue. Book a Demo.</h2>
-            <p className="text-gray-600">Fill out the form below to see how our AI can handle your calls.</p>
+            <span className="text-[#0A8F5C] font-bold text-sm uppercase tracking-widest mb-3 block">Next Step</span>
+            <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 font-heading tracking-tight">Stop Missing Revenue. Book a Demo.</h2>
+            <p className="text-xl text-gray-600 font-medium max-w-2xl mx-auto">Fill out the form below to see how our AI can handle your calls.</p>
           </div>
           <form className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
