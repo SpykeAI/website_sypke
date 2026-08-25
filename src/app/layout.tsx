@@ -3,6 +3,8 @@ import { League_Spartan, Kumbh_Sans } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import { Mic, MessageCircle, Phone, ArrowRight, PhoneCall } from "lucide-react";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const leagueSpartan = League_Spartan({ 
   subsets: ["latin"],
@@ -142,6 +144,9 @@ export default function RootLayout({
             Book a Call
           </a>
         </div>
+
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
