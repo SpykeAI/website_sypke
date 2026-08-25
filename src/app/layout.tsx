@@ -101,7 +101,7 @@ export default function RootLayout({
                 <ul className="space-y-4 font-medium text-gray-600">
                   <li><Link href="/privacy-policy" className="hover:text-[#00DF81] transition">Privacy Policy</Link></li>
                   <li><Link href="/terms-and-conditions" className="hover:text-[#00DF81] transition">Terms & Conditions</Link></li>
-                  <li><Link href="/refund" className="hover:text-[#00DF81] transition">Refund Policy</Link></li>
+                  <li><Link href="/refund-and-cancellation" className="hover:text-[#00DF81] transition">Refund Policy</Link></li>
                 </ul>
               </div>
             </div>
