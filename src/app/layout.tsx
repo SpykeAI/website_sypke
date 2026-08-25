@@ -41,7 +41,7 @@ export default function RootLayout({
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
               <div className="col-span-1 md:col-span-2">
-                <img src="/logo.png" alt="SpykeAI Logo" className="h-20 md:h-24 w-auto object-contain" style={{ transform: 'scale(1.1)', transformOrigin: 'left center' }} />
+                <img src="/logo.png" alt="SpykeAI Logo" className="h-14 md:h-16 w-auto object-contain" />
                 <p className="mt-6 text-gray-600 max-w-sm leading-relaxed font-medium">
                   Empowering HVAC companies with AI voice agents that never sleep, never drop the ball, and drive better conversions.
                 </p>
