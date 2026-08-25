@@ -107,7 +107,8 @@ export default function LeadForm() {
           limitMaxLength={true}
           numberInputProps={{
             className: "w-full outline-none bg-transparent",
-            required: true
+            required: true,
+            maxLength: 16
           }}
           className="w-full px-4 py-3 rounded-xl border border-gray-300 focus-within:ring-2 focus-within:ring-[#00DF81] focus-within:border-transparent bg-white text-gray-900 flex items-center gap-3"
         />
