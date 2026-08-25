@@ -1,4 +1,4 @@
-import { ArrowRight, Bot, Phone, Clock, Zap, TrendingUp, CheckCircle2, Shield, Play, CalendarCheck, MessageSquare, Wrench, Thermometer, Headset, LineChart, Building, ChevronRight } from "lucide-react";
+import { ArrowRight, Bot, Phone, Clock, Zap, TrendingUp, CheckCircle2, Shield, Play, CalendarCheck, MessageSquare, Wrench, Thermometer, Headset, LineChart, Building, ChevronRight, DollarSign } from "lucide-react";
 import LeadForm from "@/components/LeadForm";
 
 export default function Home() {
