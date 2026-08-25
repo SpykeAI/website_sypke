@@ -1,19 +1,28 @@
 "use client";
 
 import { useState } from "react";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 
 export default function ContactForm() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [phone, setPhone] = useState<string | undefined>();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
+    if (!phone || !isValidPhoneNumber(phone)) {
+        setError("Please enter a valid phone number for the selected country.");
+        setLoading(false);
+        return;
+    }
+
     const formData = new FormData(e.currentTarget);
+    formData.set("Phone Number", phone);
 
     try {
       const res = await fetch("https://formsubmit.co/ajax/Contact@spykeai.com", {
@@ -27,6 +36,7 @@ export default function ContactForm() {
       if (res.ok) {
         setSuccess(true);
         (e.target as HTMLFormElement).reset();
+        setPhone(undefined);
       } else {
         const data = await res.json();
         setError(data.message || "Something went wrong. Please try again.");
@@ -86,6 +96,22 @@ export default function ContactForm() {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
         <input type="email" name="Email" required className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="john@example.com" />
+      </div>
+      <div className="flex flex-col">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+        <PhoneInput
+          international
+          defaultCountry="IN"
+          value={phone}
+          onChange={setPhone}
+          limitMaxLength={true}
+          numberInputProps={{
+            className: "w-full outline-none bg-transparent",
+            required: true,
+            maxLength: 16
+          }}
+          className="w-full px-4 py-3 rounded-xl border border-gray-300 focus-within:ring-2 focus-within:ring-[#00DF81] focus-within:border-transparent bg-white text-gray-900 flex items-center gap-3"
+        />
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
