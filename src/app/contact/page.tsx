@@ -72,7 +72,7 @@ export default function ContactUs() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
                 <textarea rows={4} className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900 resize-none" placeholder="How can we help you?"></textarea>
               </div>
-              <button type="button" className="w-full bg-[#00DF81] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#00c271] transition shadow-lg">
+              <button type="button" className="w-full bg-[#00DF81] text-gray-900 py-4 rounded-xl font-bold text-lg hover:bg-[#00c271] transition shadow-lg">
                 Send Message
               </button>
             </form>

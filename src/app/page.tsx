@@ -19,7 +19,7 @@ export default function Home() {
               Deploy an AI Voice Agent that answers instantly 24/7, qualifies the emergency, and books the appointment directly into your calendar.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <a href="#lead-form" className="bg-[#00DF81] text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#00c271] transition shadow-xl shadow-[#00DF81]/20 flex items-center justify-center">
+              <a href="#lead-form" className="bg-[#00DF81] text-gray-900 px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#00c271] transition shadow-xl shadow-[#00DF81]/20 flex items-center justify-center">
                 Book a Demo <ChevronRight className="ml-2 w-5 h-5" />
               </a>
               <a href="http://wa.link/18sxk1" target="_blank" className="bg-gray-100 text-gray-900 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-200 transition flex items-center justify-center">
@@ -370,7 +370,7 @@ export default function Home() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
               <input type="tel" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="(555) 123-4567" />
             </div>
-            <button type="button" className="w-full bg-[#00DF81] text-white py-4 rounded-xl font-bold text-lg hover:bg-[#00c271] transition shadow-lg">
+            <button type="button" className="w-full bg-[#00DF81] text-gray-900 py-4 rounded-xl font-bold text-lg hover:bg-[#00c271] transition shadow-lg">
               Get Started
             </button>
           </form>
@@ -383,7 +383,7 @@ export default function Home() {
 function ChatBubble({ text, ai = false }: { text: string, ai?: boolean }) {
   return (
     <div className={`flex ${ai ? 'justify-start' : 'justify-end'}`}>
-      <div className={`max-w-[80%] rounded-2xl p-4 ${ai ? 'bg-gray-100 text-gray-800 rounded-tl-sm' : 'bg-[#00DF81] text-white rounded-tr-sm'}`}>
+      <div className={`max-w-[80%] rounded-2xl p-4 ${ai ? 'bg-gray-100 text-gray-800 rounded-tl-sm' : 'bg-[#00DF81] text-gray-900 rounded-tr-sm'}`}>
         <p className="text-sm font-medium">{text}</p>
       </div>
     </div>

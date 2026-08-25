@@ -314,17 +314,17 @@ export default function AboutUs() {
       </section>
 
       {/* CTA Section (UPDATED) */}
-      <section className="py-24 bg-[#00DF81] px-4 sm:px-6 lg:px-8 text-center">
+      <section className="py-24 bg-white px-4 sm:px-6 lg:px-8 text-center border-t border-gray-100">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 font-heading">Let's Build Something With AI</h2>
           <p className="text-xl text-gray-900 mb-10 font-medium leading-relaxed">
             If you're exploring how AI can improve your business, we'd love to understand what you're working on. You don't need to know which AI tool you need. Tell us what you're trying to achieve, and we'll help you figure out where AI can actually make a difference.
           </p>
-          <a href="http://wa.link/18sxk1" target="_blank" className="inline-flex items-center bg-gray-900 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-black transition shadow-2xl mb-12">
+          <a href="http://wa.link/18sxk1" target="_blank" className="inline-flex items-center bg-[#00DF81] text-gray-900 px-8 py-4 rounded-xl font-bold text-lg hover:bg-[#00c271] transition shadow-2xl mb-12">
             Talk to Us on WhatsApp <ArrowRight className="ml-2 w-5 h-5" />
           </a>
           
-          <div className="bg-white rounded-3xl p-8 text-left max-w-xl mx-auto border border-gray-200 shadow-xl">
+          <div className="bg-gray-50 rounded-3xl p-8 text-left max-w-xl mx-auto border border-gray-200 shadow-sm">
             <h3 className="font-bold text-gray-900 text-2xl mb-2">Spyke AI Technologies</h3>
             <p className="text-gray-600 font-medium mb-6">AI Services & Automation Company</p>
             <div className="space-y-3 text-gray-700 font-medium">

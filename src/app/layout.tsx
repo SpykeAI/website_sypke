@@ -47,7 +47,7 @@ export default function RootLayout({
               <div className="hidden md:flex items-center space-x-4">
                 <a
                   href="/#lead-form"
-                  className="bg-[#00DF81] text-white px-6 py-2.5 rounded-full font-bold hover:bg-[#00c271] transition shadow-lg shadow-[#00DF81]/20"
+                  className="bg-[#00DF81] text-gray-900 px-6 py-2.5 rounded-full font-bold hover:bg-[#00c271] transition shadow-lg shadow-[#00DF81]/20"
                 >
                   Book a Call
                 </a>
@@ -117,7 +117,7 @@ export default function RootLayout({
             href="http://wa.link/18sxk1" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="bg-[#25D366] text-white p-4 rounded-full shadow-2xl border-2 border-[#25D366] hover:bg-[#1ebe5d] transition flex items-center justify-center transform hover:scale-105 active:scale-95"
+            className="bg-[#25D366] text-gray-900 p-4 rounded-full shadow-2xl border-2 border-[#25D366] hover:bg-[#1ebe5d] transition flex items-center justify-center transform hover:scale-105 active:scale-95"
             aria-label="Chat on WhatsApp"
           >
             <MessageCircle size={28} />
@@ -126,18 +126,18 @@ export default function RootLayout({
 
         {/* Floating Voice Widget */}
         <div className="fixed bottom-28 md:bottom-8 right-6 z-40 hidden md:block">
-          <button className="bg-[#00DF81] text-white p-4 rounded-full shadow-2xl border-2 border-[#00DF81] hover:bg-[#00c271] transition flex items-center justify-center transform hover:scale-105 active:scale-95 animate-bounce">
+          <button className="bg-[#00DF81] text-gray-900 p-4 rounded-full shadow-2xl border-2 border-[#00DF81] hover:bg-[#00c271] transition flex items-center justify-center transform hover:scale-105 active:scale-95 animate-bounce">
             <Mic size={28} />
           </button>
         </div>
 
         {/* Sticky Bottom Mobile CTA */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50 flex justify-between items-center gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] md:hidden">
-          <a href="http://wa.link/18sxk1" target="_blank" className="flex-1 flex items-center justify-center gap-2 bg-[#25D366] text-white py-3.5 rounded-xl font-bold">
+          <a href="http://wa.link/18sxk1" target="_blank" className="flex-1 flex items-center justify-center gap-2 bg-[#25D366] text-gray-900 py-3.5 rounded-xl font-bold">
             <MessageCircle size={20} />
             WhatsApp
           </a>
-          <a href="#lead-form" className="flex-1 flex items-center justify-center gap-2 bg-[#00DF81] text-white py-3.5 rounded-xl font-bold">
+          <a href="#lead-form" className="flex-1 flex items-center justify-center gap-2 bg-[#00DF81] text-gray-900 py-3.5 rounded-xl font-bold">
             <PhoneCall size={20} />
             Book a Call
           </a>
