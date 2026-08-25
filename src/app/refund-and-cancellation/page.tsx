@@ -218,9 +218,9 @@ export default function RefundPolicy() {
               ))}
             </div>
 
-            {/* 11. Contact Us */}
-            <section className="mt-8 bg-[#00DF81] rounded-3xl p-8 md:p-12 text-center shadow-xl shadow-[#00DF81]/20">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4 font-heading">11. Contact Us</h2>
+            {/* Contact Us */}
+            <section className="mt-16 bg-[#00DF81] rounded-3xl p-8 md:p-12 text-center shadow-xl shadow-[#00DF81]/20">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4 font-heading">Contact Us</h2>
               <p className="text-gray-900/80 mb-8 max-w-xl mx-auto font-medium">
                 For questions regarding refunds, cancellations, or this Policy:
               </p>
