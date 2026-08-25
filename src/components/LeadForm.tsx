@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import PhoneInput from "react-phone-number-input";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 
 export default function LeadForm() {
@@ -15,8 +15,8 @@ export default function LeadForm() {
     setLoading(true);
     setError("");
 
-    if (!phone) {
-        setError("Please enter a valid phone number.");
+    if (!phone || !isValidPhoneNumber(phone)) {
+        setError("Please enter a valid phone number for the selected country.");
         setLoading(false);
         return;
     }
