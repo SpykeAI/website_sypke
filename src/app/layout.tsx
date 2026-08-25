@@ -111,10 +111,23 @@ export default function RootLayout({
           </div>
         </footer>
 
+        {/* Floating Fixed WhatsApp Button (Desktop) */}
+        <div className="fixed bottom-28 md:bottom-8 left-6 z-40 hidden md:block">
+          <a 
+            href="http://wa.link/18sxk1" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="bg-[#25D366] text-white p-4 rounded-full shadow-2xl border-2 border-[#25D366] hover:bg-[#1ebe5d] transition flex items-center justify-center transform hover:scale-105 active:scale-95"
+            aria-label="Chat on WhatsApp"
+          >
+            <MessageCircle size={28} />
+          </a>
+        </div>
+
         {/* Floating Voice Widget */}
         <div className="fixed bottom-28 md:bottom-8 right-6 z-40 hidden md:block">
           <button className="bg-[#00DF81] text-white p-4 rounded-full shadow-2xl border-2 border-[#00DF81] hover:bg-[#00c271] transition flex items-center justify-center transform hover:scale-105 active:scale-95 animate-bounce">
-            <Phone size={28} />
+            <Mic size={28} />
           </button>
         </div>
 
