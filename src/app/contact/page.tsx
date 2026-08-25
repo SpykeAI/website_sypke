@@ -1,5 +1,6 @@
 import { Mail, Phone, MapPin, MessageSquare, Clock } from "lucide-react";
 import ContactForm from "@/components/ContactForm";
+import CalEmbed from "@/components/CalEmbed";
 
 export default function ContactUs() {
   return (
@@ -57,6 +58,20 @@ export default function ContactUs() {
             <ContactForm />
           </div>
         </div>
+
+        {/* Schedule a Meeting Section */}
+        <div className="mt-24 pt-16 border-t border-gray-100">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4 font-heading">Schedule a Meeting</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Pick a time that works for you. Availability is automatically adjusted to your time zone to prevent any double-bookings.
+            </p>
+          </div>
+          <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
+            <CalEmbed link="spykeai-technologies/30min" />
+          </div>
+        </div>
+
       </div>
     </div>
   );
