@@ -74,6 +74,7 @@ export default function LeadForm() {
       <input type="hidden" name="_subject" value="New Demo Request from SpykeAI Homepage!" />
       <input type="hidden" name="_captcha" value="false" />
       <input type="hidden" name="_template" value="table" />
+      <input type="hidden" name="Source Page" value="SpykeAI Homepage (https://spykeai.com/)" />
 
       {error && (
         <div className="p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-3 border border-red-100">

@@ -64,6 +64,7 @@ export default function ContactForm() {
       <input type="hidden" name="_subject" value="New message from SpykeAI Contact Page!" />
       <input type="hidden" name="_captcha" value="false" />
       <input type="hidden" name="_template" value="table" />
+      <input type="hidden" name="Source Page" value="SpykeAI Contact Page (https://spykeai.com/contact)" />
 
       {error && (
         <div className="p-4 bg-red-50 text-red-600 rounded-xl flex items-center gap-3 border border-red-100">
