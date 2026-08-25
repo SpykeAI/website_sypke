@@ -353,26 +353,31 @@ export default function Home() {
             <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 font-heading tracking-tight">Stop Missing Revenue. Book a Demo.</h2>
             <p className="text-xl text-gray-600 font-medium max-w-2xl mx-auto">Fill out the form below to see how our AI can handle your calls.</p>
           </div>
-          <form className="space-y-6">
+          <form action="https://formsubmit.co/Contact@spykeai.com" method="POST" className="space-y-6">
+            {/* FormSubmit Configuration */}
+            <input type="hidden" name="_subject" value="New Demo Request from SpykeAI Homepage!" />
+            <input type="hidden" name="_captcha" value="false" />
+            <input type="hidden" name="_template" value="table" />
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                <input type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="John" />
+                <input type="text" name="First Name" required className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="John" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
-                <input type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="Smith HVAC" />
+                <input type="text" name="Company Name" required className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="Smith HVAC" />
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Work Email</label>
-              <input type="email" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="john@smithhvac.com" />
+              <input type="email" name="Email" required className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="john@smithhvac.com" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-              <input type="tel" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="(555) 123-4567" />
+              <input type="tel" name="Phone Number" required className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="(555) 123-4567" />
             </div>
-            <button type="button" className="w-full bg-[#00DF81] text-gray-900 py-4 rounded-xl font-bold text-lg hover:bg-[#00c271] transition shadow-lg">
+            <button type="submit" className="w-full bg-[#00DF81] text-gray-900 py-4 rounded-xl font-bold text-lg hover:bg-[#00c271] transition shadow-lg">
               Get Started
             </button>
           </form>
