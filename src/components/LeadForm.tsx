@@ -104,6 +104,7 @@ export default function LeadForm() {
           defaultCountry="IN"
           value={phone}
           onChange={setPhone}
+          limitMaxLength={true}
           numberInputProps={{
             className: "w-full outline-none bg-transparent",
             required: true
