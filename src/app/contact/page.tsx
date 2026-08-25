@@ -1,4 +1,5 @@
-import { Mail, Phone, MapPin, MessageSquare } from "lucide-react";
+import { Mail, Phone, MapPin, MessageSquare, Clock } from "lucide-react";
+import ContactForm from "@/components/ContactForm";
 
 export default function ContactUs() {
   return (
@@ -53,34 +54,7 @@ export default function ContactUs() {
           {/* Contact Form */}
           <div className="bg-gray-50 p-10 rounded-3xl border border-gray-200 shadow-lg">
             <h2 className="text-2xl font-bold text-gray-900 mb-6 font-heading">Send us a message</h2>
-            <form action="https://formsubmit.co/Contact@spykeai.com" method="POST" className="space-y-6">
-              {/* FormSubmit Configuration */}
-              <input type="hidden" name="_subject" value="New message from SpykeAI Contact Page!" />
-              <input type="hidden" name="_captcha" value="false" />
-              <input type="hidden" name="_template" value="table" />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                  <input type="text" name="First Name" required className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="John" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                  <input type="text" name="Last Name" required className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="Doe" />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                <input type="email" name="Email" required className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="john@example.com" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
-                <textarea name="Message" required rows={4} className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900 resize-none" placeholder="How can we help you?"></textarea>
-              </div>
-              <button type="submit" className="w-full bg-[#00DF81] text-gray-900 py-4 rounded-xl font-bold text-lg hover:bg-[#00c271] transition shadow-lg">
-                Send Message
-              </button>
-            </form>
+            <ContactForm />
           </div>
         </div>
       </div>
