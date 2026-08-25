@@ -21,7 +21,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-20">
           <div className="flex-shrink-0 flex items-center">
             <Link href="/" onClick={closeMenu}>
-              <img src="/logo.png" alt="SpykeAI Logo" className="h-12 w-auto" />
+              <img src="/logo.png" alt="SpykeAI Logo" className="h-20 md:h-24 w-auto object-contain" style={{ transform: 'scale(1.2)', transformOrigin: 'left center' }} />
             </Link>
           </div>
           
