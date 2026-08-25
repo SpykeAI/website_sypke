@@ -56,7 +56,8 @@ export default function LeadForm() {
         </div>
         <h3 className="text-2xl font-bold text-gray-900 mb-3 font-heading">Request Received!</h3>
         <p className="text-gray-600 font-medium">
-          Thank you for reaching out. A member of our team will contact you shortly to schedule your demo.
+          Thank you for reaching out. <br className="hidden md:block" />
+          A member of our team will contact you shortly to schedule your demo.
         </p>
         <button 
           onClick={() => setSuccess(false)}
