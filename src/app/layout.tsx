@@ -104,12 +104,13 @@ export default function RootLayout({
           </a>
         </div>
 
-        {/* Floating Voice Widget */}
-        <div className="fixed bottom-28 md:bottom-8 right-6 z-40 hidden md:block">
-          <button className="bg-[#00DF81] text-gray-900 p-4 rounded-full shadow-2xl border-2 border-[#00DF81] hover:bg-[#00c271] transition flex items-center justify-center transform hover:scale-105 active:scale-95 animate-bounce">
-            <Mic size={28} />
-          </button>
-        </div>
+        {/* ElevenLabs Conversational AI Voice Widget */}
+        <div dangerouslySetInnerHTML={{
+          __html: `
+            <elevenlabs-convai agent-id="agent_75O1m0z3wa6dea29gmrkbwpgrfv7"></elevenlabs-convai>
+            <script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
+          `
+        }} />
 
         {/* Sticky Bottom Mobile CTA */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50 flex justify-between items-center gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] md:hidden">
