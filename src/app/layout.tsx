@@ -6,6 +6,7 @@ import { Mic, MessageCircle, Phone, ArrowRight, PhoneCall } from "lucide-react";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import Navbar from "@/components/Navbar";
+import Script from "next/script";
 
 const leagueSpartan = League_Spartan({ 
   subsets: ["latin"],
@@ -106,11 +107,9 @@ export default function RootLayout({
 
         {/* ElevenLabs Conversational AI Voice Widget */}
         <div dangerouslySetInnerHTML={{
-          __html: `
-            <elevenlabs-convai agent-id="agent_75O1m0z3wa6dea29gmrkbwpgrfv7"></elevenlabs-convai>
-            <script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
-          `
+          __html: `<elevenlabs-convai agent-id="agent_7501m0z3wa6dea29gmrkbwpgrfv7"></elevenlabs-convai>`
         }} />
+        <Script src="https://elevenlabs.io/convai-widget/index.js" strategy="lazyOnload" />
 
         {/* Sticky Bottom Mobile CTA */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50 flex justify-between items-center gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] md:hidden">
