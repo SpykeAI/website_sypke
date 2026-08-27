@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
-import type { CountryCode } from "react-phone-number-input";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 
 export default function ContactForm() {
@@ -10,14 +9,14 @@ export default function ContactForm() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [phone, setPhone] = useState<string | undefined>();
-  const [country, setCountry] = useState<CountryCode>("IN");
+  const [country, setCountry] = useState<any>("IN");
 
   useEffect(() => {
     fetch("https://ipapi.co/json/")
       .then((res) => res.json())
       .then((data) => {
         if (data && data.country_code) {
-          setCountry(data.country_code as CountryCode);
+          setCountry(data.country_code);
         }
       })
       .catch((err) => console.error("Could not fetch location"));
