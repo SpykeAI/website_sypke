@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import type { CountryCode } from "react-phone-number-input";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 
 export default function LeadForm() {
@@ -9,6 +10,18 @@ export default function LeadForm() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [phone, setPhone] = useState<string | undefined>();
+  const [country, setCountry] = useState<CountryCode>("IN");
+
+  useEffect(() => {
+    fetch("https://ipapi.co/json/")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.country_code) {
+          setCountry(data.country_code as CountryCode);
+        }
+      })
+      .catch((err) => console.error("Could not fetch location"));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -101,7 +114,7 @@ export default function LeadForm() {
         <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
         <PhoneInput
           international
-          defaultCountry="IN"
+          defaultCountry={country}
           value={phone}
           onChange={setPhone}
           limitMaxLength={true}
