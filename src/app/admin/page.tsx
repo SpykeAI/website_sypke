@@ -3,6 +3,7 @@ import { Mic, Calendar, User, Phone, Mail, Clock, CheckCircle2 } from "lucide-re
 import Link from "next/link";
 
 export const revalidate = 0; // Disable caching to always show latest conversations
+export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
   // Fetch all conversations, ordered by newest first

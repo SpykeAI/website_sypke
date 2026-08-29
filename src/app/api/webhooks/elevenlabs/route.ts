@@ -21,13 +21,15 @@ export async function POST(req: Request) {
       formattedTranscript = JSON.stringify(rawTranscript, null, 2);
     }
 
-    // Extract potential variables if ElevenLabs passed them in metadata or extracted parameters
+    // Extract potential variables (handling both standard webhooks and ElevenLabs 'Tool' arguments)
+    const args = payload.arguments || {};
     const metadata = payload.metadata || payload.extracted_data || {};
-    const email = metadata.email || payload.email || "";
-    const phone = metadata.phone || payload.phone || "";
-    const name = metadata.name || metadata.contact_name || payload.name || "";
-    const summary = metadata.summary || payload.summary || "Call completed.";
-    const interest = metadata.interest_level || payload.interest_level || "Pending";
+    
+    const email = args.email || metadata.email || payload.email || "";
+    const phone = args.phone || metadata.phone || payload.phone || "";
+    const name = args.name || metadata.name || metadata.contact_name || payload.name || "Unknown Caller";
+    const summary = args.summary || metadata.summary || payload.summary || "Call completed.";
+    const interest = args.interest_level || metadata.interest_level || payload.interest_level || "Pending";
 
     // Insert into Supabase
     const { error } = await supabase.from("conversations").insert({
