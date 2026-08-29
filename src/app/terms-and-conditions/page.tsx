@@ -219,7 +219,7 @@ export default function TermsConditions() {
               <p className="mb-4">Refunds and cancellations are governed by SpykeAI's Refund Policy, which forms part of these Terms.</p>
               <p className="mb-4">Refund eligibility may depend on the nature of the Service, whether work has already commenced, whether third-party costs have been incurred, and the terms of the applicable commercial agreement.</p>
               <p className="mb-4">Where a Client purchases a custom implementation, development, automation, AI agent, integration, or other bespoke Service, work may begin after payment or approval. Once substantial work has commenced, the applicable fees may be non-refundable except where otherwise required by law or agreed in writing.</p>
-              <p className="mb-4">Refund Policy: <a href="/refund" className="text-[#00DF81] hover:underline font-bold">View Refund Policy</a></p>
+              <p className="mb-4">Refund Policy: <a href="/refund-and-cancellation" className="text-[#00DF81] hover:underline font-bold">View Refund Policy</a></p>
             </Section>
 
             <Section title="Intellectual Property">
