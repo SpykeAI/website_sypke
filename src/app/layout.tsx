@@ -107,9 +107,11 @@ export default function RootLayout({
 
         {/* Telnyx Conversational AI Voice Widget */}
         <div dangerouslySetInnerHTML={{
-          __html: `<telnyx-ai-agent agent-id="assistant-dae12bc4-8cb1-4dc2-8452-824aa18775ea" environment="production"></telnyx-ai-agent>`
+          __html: `
+            <telnyx-ai-agent agent-id="assistant-dae12bc4-8cb1-4dc2-8452-824aa18775ea" environment="production"></telnyx-ai-agent>
+            <script src="https://unpkg.com/@telnyx/ai-agent-widget@next" async defer></script>
+          `
         }} />
-        <Script src="https://unpkg.com/@telnyx/ai-agent-widget@next" strategy="lazyOnload" />
 
         {/* Sticky Bottom Mobile CTA */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50 flex justify-between items-center gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] md:hidden">
