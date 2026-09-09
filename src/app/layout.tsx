@@ -104,6 +104,14 @@ export default function RootLayout({
             </svg>
           </a>
         </div>
+        
+        {/* ElevenLabs Conversational AI Voice Widget */}
+        <div dangerouslySetInnerHTML={{
+          __html: `
+            <elevenlabs-convai agent-id="agent_75O1m0z3wa6dea29gmrkbwpgrfv7"></elevenlabs-convai>
+            <script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
+          `
+        }} />
 
 
         {/* Sticky Bottom Mobile CTA */}
