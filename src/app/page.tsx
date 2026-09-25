@@ -1,6 +1,6 @@
 import { ArrowRight, Bot, Phone, Clock, Zap, TrendingUp, CheckCircle2, Shield, Play, CalendarCheck, MessageSquare, Wrench, Thermometer, Headset, LineChart, Building, ChevronRight, DollarSign } from "lucide-react";
 import LeadForm from "@/components/LeadForm";
-
+import OutboundCallForm from "@/components/OutboundCallForm";
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
@@ -30,32 +30,7 @@ export default function Home() {
           </div>
           <div className="relative hidden lg:block">
             <div className="absolute inset-0 bg-[#00DF81] rounded-full blur-3xl opacity-20 animate-pulse"></div>
-            <div className="relative bg-white border border-gray-200 p-8 rounded-3xl shadow-2xl z-10">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-[#00DF81]/10 rounded-full flex items-center justify-center">
-                    <Phone className="w-6 h-6 text-[#00DF81]" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-gray-900">Incoming Call: Emergency AC</h4>
-                    <p className="text-sm text-gray-500">2:30 AM • Sunday</p>
-                  </div>
-                </div>
-                <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">AI Handled</span>
-              </div>
-              <div className="space-y-4">
-                <ChatBubble ai text="Hi, you've reached Smith HVAC. How can I help you today?" />
-                <ChatBubble text="My AC just broke and it's 90 degrees in the house. I have a newborn." />
-                <ChatBubble ai text="I'm so sorry to hear that. I can get an emergency technician out to you first thing at 7:00 AM. May I have your address?" />
-                <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mt-4 flex items-center space-x-4">
-                  <CalendarCheck className="text-blue-500 w-8 h-8" />
-                  <div>
-                    <h5 className="font-bold text-blue-900 text-sm">Appointment Booked</h5>
-                    <p className="text-blue-700 text-xs">Added to ServiceTitan automatically.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <OutboundCallForm />
           </div>
         </div>
       </section>
