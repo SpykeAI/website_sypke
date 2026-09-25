@@ -107,7 +107,7 @@ export default function RootLayout({
         
         {/* ElevenLabs Conversational AI Voice Widget */}
         <div dangerouslySetInnerHTML={{
-          __html: `<elevenlabs-convai agent-id="agent_7501m0z3wa6dea29gmrkbwpgrfv7" avatar-image-url="/logo.png"></elevenlabs-convai>`
+          __html: `<elevenlabs-convai agent-id="agent_7501m0z3wa6dea29gmrkbwpgrfv7" avatar-image-url="/voice-logo.png"></elevenlabs-convai>`
         }} />
         <Script src="https://elevenlabs.io/convai-widget/index.js" strategy="lazyOnload" />
 
