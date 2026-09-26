@@ -46,7 +46,7 @@ export default function OutboundCallForm() {
          <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-bold mb-4 text-xs uppercase tracking-wide">
            Live Outbound Demo
          </div>
-         <h3 className="text-2xl font-bold text-gray-900 mb-2 font-heading">Experience it instantly</h3>
+         <h3 className="text-2xl font-bold text-gray-900 mb-2 font-heading">Experience Our AI Voice Agent</h3>
          <p className="text-gray-500 text-sm font-medium">Enter your number and our AI will call you right now.</p>
       </div>
 
