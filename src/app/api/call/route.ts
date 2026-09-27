@@ -26,6 +26,10 @@ export async function POST(req: Request) {
           name: name || "Website Visitor",
         },
         phoneNumberId: process.env.VAPI_PHONE_NUMBER_ID, // Your imported Telnyx Number ID
+        assistantOverrides: {
+          firstMessageMode: "assistant-waits-for-user",
+          clientMessages: ["transcript", "hang", "function-call", "speech-update", "metadata", "conversation-update"]
+        }
       }),
     });
 
