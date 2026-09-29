@@ -30,7 +30,6 @@ export async function POST(req: Request) {
           variableValues: {
             customer_phone: phone
           },
-          firstMessageMode: "assistant-waits-for-user",
           clientMessages: ["transcript", "hang", "function-call", "speech-update", "metadata", "conversation-update"]
         }
       }),
