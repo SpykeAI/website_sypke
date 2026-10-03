@@ -48,8 +48,8 @@ export async function POST(req: Request) {
 
       await transporter.sendMail(mailOptions);
     } else {
-      console.warn('WARNING: No SMTP credentials found. Mocking OTP. OTP is:', otp);
-      // We still return success so the flow works in dev without credentials
+      console.error('SERVER ERROR: SMTP credentials are not set in Vercel Environment Variables.');
+      return NextResponse.json({ error: 'System Error: SMTP environment variables are missing on Vercel.' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, hash: hashPayload });
