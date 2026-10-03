@@ -154,21 +154,21 @@ export default function ContactForm() {
       {!otpStep ? (
         <>
           <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl text-blue-800 text-sm font-medium text-center">
-            Note: We will send you an OTP to verify your email address.
+            Note: We will send you an OTP to verify your phone and email address.
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-              <input type="text" name="First Name" required className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="John" />
+              <input type="text" name="First Name" defaultValue={formDataCache?.get("First Name") as string || ""} required className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="John" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-              <input type="text" name="Last Name" required className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="Doe" />
+              <input type="text" name="Last Name" defaultValue={formDataCache?.get("Last Name") as string || ""} required className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="Doe" />
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-            <input type="email" name="Email" required className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="john@example.com" />
+            <input type="email" name="Email" defaultValue={formDataCache?.get("Email") as string || ""} required className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900" placeholder="john@example.com" />
           </div>
           <div className="flex flex-col">
             <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
@@ -188,7 +188,7 @@ export default function ContactForm() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
-            <textarea name="Message" required rows={4} className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900 resize-none" placeholder="How can we help you?"></textarea>
+            <textarea name="Message" defaultValue={formDataCache?.get("Message") as string || ""} required rows={4} className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none bg-white text-gray-900 resize-none" placeholder="How can we help you?"></textarea>
           </div>
         </>
       ) : (

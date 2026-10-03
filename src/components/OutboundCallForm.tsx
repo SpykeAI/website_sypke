@@ -109,7 +109,7 @@ export default function OutboundCallForm() {
         {!otpStep ? (
           <>
             <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg text-blue-800 text-xs font-medium text-center mb-4">
-              Note: We will send you an OTP to verify your email address.
+              Note: We will send you an OTP to verify your phone and email address.
             </div>
             <div>
               <input
