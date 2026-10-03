@@ -2,7 +2,7 @@
 import { useState } from "react";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
-import { PhoneCall, Loader2 } from "lucide-react";
+import { PhoneCall, Loader2, ArrowLeft } from "lucide-react";
 
 export default function OutboundCallForm() {
   const [name, setName] = useState("");
@@ -10,6 +10,11 @@ export default function OutboundCallForm() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+
+  // OTP States
+  const [otpStep, setOtpStep] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [hashPayload, setHashPayload] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,23 +25,67 @@ export default function OutboundCallForm() {
     setStatus("loading");
     setErrorMessage("");
 
-    try {
-      const res = await fetch("/api/call", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, phone, email }),
-      });
-      
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to trigger call");
+    if (!otpStep) {
+      if (!email) {
+        setErrorMessage("Please enter a valid email");
+        setStatus("idle");
+        return;
       }
-      
-      setStatus("success");
-    } catch (err: any) {
-      setStatus("error");
-      setErrorMessage(err.message || "An error occurred");
+      try {
+        const otpRes = await fetch("/api/send-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+
+        const otpData = await otpRes.json();
+        
+        if (otpRes.ok && otpData.success) {
+          setHashPayload(otpData.hash);
+          setOtpStep(true);
+          setStatus("idle");
+        } else {
+          setErrorMessage(otpData.error || "Failed to send OTP");
+          setStatus("error");
+        }
+      } catch (err) {
+        setErrorMessage("Network error. Could not send OTP.");
+        setStatus("error");
+      }
+    } else {
+      try {
+        const verifyRes = await fetch("/api/verify-otp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, otp, hashPayload }),
+        });
+
+        const verifyData = await verifyRes.json();
+
+        if (verifyRes.ok && verifyData.success) {
+          // Trigger actual call
+          const res = await fetch("/api/call", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, phone, email }),
+          });
+          
+          const data = await res.json();
+          
+          if (!res.ok) {
+            throw new Error(data.error || "Failed to trigger call");
+          }
+          
+          setStatus("success");
+          setOtpStep(false);
+        } else {
+          setErrorMessage(verifyData.error || "Invalid OTP");
+          setStatus("error");
+        }
+      } catch (err: any) {
+        setStatus("error");
+        setErrorMessage(err.message || "An error occurred");
+      }
     }
   };
 
@@ -47,74 +96,94 @@ export default function OutboundCallForm() {
            Live Outbound Demo
          </div>
          <h3 className="text-2xl font-bold text-gray-900 mb-2 font-heading">Experience Our AI Voice Agent</h3>
-         <p className="text-gray-500 text-sm font-medium">Enter your number and our AI will call you right now.</p>
+         <p className="text-gray-500 text-sm font-medium">Enter your details and our AI will call you right now.</p>
       </div>
 
-      {status === "success" ? (
-         <div className="bg-[#E8FBF1] text-green-900 p-8 rounded-2xl text-center border border-[#00DF81]/20">
-            <PhoneCall className="w-16 h-16 mx-auto mb-4 text-[#00DF81] animate-pulse" />
-            <h4 className="font-bold text-xl mb-2 font-heading">Calling you now!</h4>
-            <p className="text-sm font-medium text-green-700">Please answer your phone to talk to our AI agent.</p>
-            <button onClick={() => setStatus("idle")} className="mt-6 text-sm font-bold text-[#0A8F5C] hover:underline">Test another number</button>
-         </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1.5">Your Name</label>
-            <input 
-              type="text" 
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00DF81] bg-gray-50/50 transition-all font-medium"
-              placeholder="John Doe"
-            />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {errorMessage && (
+          <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm mb-4">
+            {errorMessage}
           </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1.5">Phone Number</label>
-            <div className="phone-input-wrapper">
+        )}
+
+        {!otpStep ? (
+          <>
+            <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg text-blue-800 text-xs font-medium text-center mb-4">
+              Note: We will send you an OTP to verify your email address.
+            </div>
+            <div>
+              <input
+                type="text"
+                placeholder="Your Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none"
+                required
+              />
+            </div>
+            <div>
+              <input
+                type="email"
+                placeholder="Your Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none"
+                required
+              />
+            </div>
+            <div className="flex flex-col">
               <PhoneInput
                 international
                 defaultCountry="US"
                 value={phone}
-                onChange={setPhone as any}
-                className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus-within:ring-2 focus-within:ring-[#00DF81] bg-gray-50/50 transition-all font-medium [&>input]:bg-transparent [&>input]:outline-none [&>input]:w-full [&>input]:ml-3"
-                placeholder="(555) 000-0000"
+                onChange={(v) => setPhone(v || "")}
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus-within:ring-2 focus-within:ring-[#00DF81] focus-within:border-transparent flex items-center gap-3"
               />
             </div>
+          </>
+        ) : (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 text-center">
+             <button 
+                type="button" 
+                onClick={() => { setOtpStep(false); setStatus("idle"); setErrorMessage(""); }}
+                className="text-gray-500 hover:text-gray-900 mb-4 flex items-center text-sm font-medium mx-auto"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1" /> Back
+              </button>
+              <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg text-blue-800 text-sm font-medium text-center mb-4">
+                We've sent a code to <strong>{email}</strong>
+              </div>
+              <input 
+                type="text" 
+                required 
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent outline-none text-center tracking-[0.5em] text-xl font-bold mb-4" 
+                placeholder="------" 
+              />
           </div>
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-1.5">Email Address</label>
-            <input 
-              type="email" 
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#00DF81] bg-gray-50/50 transition-all font-medium"
-              placeholder="john@example.com"
-            />
-          </div>
-          
-          {status === "error" && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-bold border border-red-100 text-center">
-              {errorMessage}
-            </div>
-          )}
+        )}
 
-          <button 
-            type="submit" 
-            disabled={status === "loading"}
-            className="w-full bg-[#00DF81] text-gray-900 px-6 py-4 rounded-xl font-bold hover:bg-[#00c271] transition flex items-center justify-center gap-2 disabled:opacity-70 mt-4 shadow-xl shadow-[#00DF81]/20"
-          >
-            {status === "loading" ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
+        <button
+          type="submit"
+          disabled={status === "loading" || status === "success"}
+          className="w-full bg-[#00DF81] text-gray-900 py-4 rounded-xl font-bold text-lg hover:bg-[#00c271] transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+          {status === "loading" ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : status === "success" ? (
+            "Call Initiated! 📞"
+          ) : otpStep ? (
+            "Verify & Call Me Now"
+          ) : (
+            <>
               <PhoneCall className="w-5 h-5" />
-            )}
-            Test Live Demo Now
-          </button>
-        </form>
-      )}
+              Get OTP
+            </>
+          )}
+        </button>
+      </form>
     </div>
   );
 }
