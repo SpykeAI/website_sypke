@@ -104,6 +104,12 @@ export default function RootLayout({
             </svg>
           </a>
         </div>
+        
+        {/* ElevenLabs Conversational AI Voice Widget (No Pulse Animation) */}
+        <div dangerouslySetInnerHTML={{
+          __html: `<elevenlabs-convai agent-id="agent_7501m0z3wa6dea29gmrkbwpgrfv7" avatar-image-url="/voice-widget.gif" avatar-orb-color-1="#00DF81" avatar-orb-color-2="#0A8F5C"></elevenlabs-convai>`
+        }} />
+        <Script src="https://elevenlabs.io/convai-widget/index.js" strategy="lazyOnload" />
 
         {/* Sticky Bottom Mobile CTA */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50 flex justify-between items-center gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] md:hidden">
