@@ -48,9 +48,12 @@ export async function sendTelnyxSms(params: SendSmsParams): Promise<{
   data?: any;
   error?: string;
 }> {
-  const apiKey = process.env.TELNYX_API_KEY;
-  const fromNumber = params.from || process.env.TELNYX_FROM_NUMBER;
-  const messagingProfileId = params.messagingProfileId || process.env.TELNYX_MESSAGING_PROFILE_ID;
+  const rawKey = process.env.TELNYX_API_KEY || '';
+  const apiKey = rawKey.trim().replace(/^["']|["']$/g, '');
+  const rawFrom = params.from || process.env.TELNYX_FROM_NUMBER || '';
+  const fromNumber = rawFrom.trim().replace(/^["']|["']$/g, '');
+  const rawProfile = params.messagingProfileId || process.env.TELNYX_MESSAGING_PROFILE_ID || '';
+  const messagingProfileId = rawProfile.trim().replace(/^["']|["']$/g, '');
 
   if (!apiKey) {
     return { ok: false, error: 'TELNYX_API_KEY is not configured in server environment' };
