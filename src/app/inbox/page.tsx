@@ -80,7 +80,9 @@ export default function SmsInboxPage() {
       if (data.ok) {
         setConversations(data.conversations || []);
         if (!activeConvId && data.conversations?.length > 0 && !silent) {
-          setActiveConvId(data.conversations[0].id);
+          if (typeof window !== "undefined" && window.innerWidth >= 768) {
+            setActiveConvId(data.conversations[0].id);
+          }
         }
       }
     } catch (err) {
@@ -296,10 +298,12 @@ export default function SmsInboxPage() {
   });
 
   return (
-    <div className="flex h-full w-full bg-white text-slate-800 font-sans antialiased overflow-hidden select-none">
+    <div className="flex h-full w-full bg-white text-slate-800 font-sans antialiased overflow-hidden">
       
       {/* LEFT SIDEBAR: CONVERSATIONS LIST */}
-      <div className="w-80 md:w-96 border-r border-slate-200 flex flex-col bg-slate-50 shrink-0 h-full">
+      <div className={`${
+        activeConvId ? "hidden md:flex" : "flex"
+      } w-full md:w-80 lg:w-96 border-r border-slate-200 flex-col bg-slate-50 shrink-0 h-full`}>
         {/* Top Header */}
         <div className="p-4 border-b border-slate-200 bg-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -426,29 +430,40 @@ export default function SmsInboxPage() {
       </div>
 
       {/* RIGHT MAIN CHAT AREA */}
-      <div className="flex-1 min-w-0 flex flex-col bg-white h-full relative overflow-hidden">
+      <div className={`${
+        !activeConvId ? "hidden md:flex" : "flex"
+      } flex-1 min-w-0 flex-col bg-white h-full relative overflow-hidden`}>
         {activeConv ? (
           <>
             {/* Header */}
-            <div className="p-3.5 px-6 border-b border-slate-200 bg-white flex items-center justify-between shadow-xs z-10 shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-100/80 border border-emerald-200 flex items-center justify-center text-emerald-800 font-bold text-sm">
+            <div className="p-3 md:p-3.5 md:px-6 border-b border-slate-200 bg-white flex items-center justify-between shadow-xs z-10 shrink-0 gap-2">
+              <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                {/* Mobile Back Button to Return to Conversation List */}
+                <button
+                  onClick={() => setActiveConvId(null)}
+                  className="md:hidden p-1.5 -ml-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer shrink-0"
+                  title="Back to conversations"
+                >
+                  <ArrowLeft size={18} />
+                </button>
+
+                <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-emerald-100/80 border border-emerald-200 flex items-center justify-center text-emerald-800 font-bold text-xs md:text-sm shrink-0">
                   {activeConv.contacts?.display_name && activeConv.contacts.display_name !== activeConv.contacts.phone_e164
                     ? activeConv.contacts.display_name.charAt(0).toUpperCase()
-                    : <Phone size={16} />}
+                    : <Phone size={15} />}
                 </div>
-                <div>
-                  <h2 className="text-sm font-bold text-slate-900">
+                <div className="min-w-0">
+                  <h2 className="text-xs md:text-sm font-bold text-slate-900 truncate">
                     {activeConv.contacts?.display_name || activeConv.contacts?.phone_e164}
                   </h2>
-                  <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
-                    <span>{activeConv.contacts?.phone_e164}</span>
+                  <div className="flex items-center gap-1.5 md:gap-2 text-[11px] md:text-xs text-slate-500 font-medium">
+                    <span className="truncate">{activeConv.contacts?.phone_e164}</span>
                     <span className="text-slate-300">•</span>
                     <div className="relative inline-flex items-center">
                       <select
                         value={activeConv.interest_level || "cold outreach"}
                         onChange={(e) => handleUpdateStatus(activeConv.id, e.target.value)}
-                        className={`text-[10px] font-bold uppercase tracking-wider pl-2.5 pr-6 py-0.5 rounded border cursor-pointer outline-none transition-all appearance-none shadow-2xs ${
+                        className={`text-[9px] md:text-[10px] font-bold uppercase tracking-wider pl-2 pr-5 md:pl-2.5 md:pr-6 py-0.5 rounded border cursor-pointer outline-none transition-all appearance-none shadow-2xs ${
                           activeConv.interest_level === "lead"
                             ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100"
                             : activeConv.interest_level === "prospect"
@@ -461,16 +476,17 @@ export default function SmsInboxPage() {
                         <option value="cold outreach">Cold Outreach</option>
                         <option value="lead">Lead</option>
                       </select>
-                      <ChevronDown size={11} className="pointer-events-none absolute right-1.5 text-slate-500" />
+                      <ChevronDown size={10} className="pointer-events-none absolute right-1 md:right-1.5 text-slate-500" />
                     </div>
                   </div>
                 </div>
               </div>
 
               {activeConv.contacts?.do_not_text && (
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-xs font-semibold">
-                  <ShieldAlert size={15} />
-                  <span>Contact Opted Out</span>
+                <div className="flex items-center gap-1 px-2 py-0.5 md:px-3 md:py-1 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-[10px] md:text-xs font-semibold shrink-0">
+                  <ShieldAlert size={14} />
+                  <span className="hidden sm:inline">Contact Opted Out</span>
+                  <span className="sm:hidden">Opted Out</span>
                 </div>
               )}
             </div>
@@ -494,7 +510,7 @@ export default function SmsInboxPage() {
             {/* Messages Scroll Area - FIXED INTERNAL SCROLLING */}
             <div 
               ref={messagesContainerRef}
-              className="flex-1 overflow-y-auto p-6 space-y-3.5 bg-slate-50/50"
+              className="flex-1 overflow-y-auto p-3.5 md:p-6 space-y-3.5 bg-slate-50/50"
             >
               {loadingMessages ? (
                 <div className="h-full flex items-center justify-center text-slate-400 text-xs">
@@ -515,13 +531,13 @@ export default function SmsInboxPage() {
                       className={`flex flex-col ${isOutbound ? "items-end" : "items-start"}`}
                     >
                       <div
-                        className={`max-w-[70%] md:max-w-[55%] rounded-2xl px-4 py-2.5 text-xs md:text-sm leading-relaxed ${
+                        className={`max-w-[85%] sm:max-w-[70%] md:max-w-[55%] rounded-2xl px-3.5 py-2 md:px-4 md:py-2.5 text-xs md:text-sm leading-relaxed ${
                           isOutbound
                             ? "bg-emerald-600 text-white rounded-br-xs shadow-xs"
                             : "bg-white text-slate-800 rounded-bl-xs border border-slate-200/80 shadow-xs"
                         }`}
                       >
-                        <p className="whitespace-pre-wrap break-all [overflow-wrap:anywhere]">{msg.body}</p>
+                        <p className="whitespace-pre-wrap break-all [overflow-wrap:anywhere] select-text">{msg.body}</p>
                       </div>
 
                       {/* Timestamp & Status */}
@@ -549,7 +565,7 @@ export default function SmsInboxPage() {
             </div>
 
             {/* Composer Bar */}
-            <div className="p-4 bg-white border-t border-slate-200 shrink-0">
+            <div className="p-3 md:p-4 bg-white border-t border-slate-200 shrink-0">
               <form onSubmit={handleSendMessage} className="space-y-2">
                 <div className="relative">
                   <textarea
@@ -568,29 +584,29 @@ export default function SmsInboxPage() {
                         handleSendMessage(e);
                       }
                     }}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs md:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white resize-none transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 md:p-3 text-xs md:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white resize-none transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                   {/* Chars, Segments & Cost Indicators */}
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 bg-slate-100 rounded text-[11px] font-semibold text-slate-600 border border-slate-200">
+                  <div className="flex flex-wrap items-center gap-1.5 text-[10px] sm:text-[11px]">
+                    <span className="px-1.5 sm:px-2 py-0.5 bg-slate-100 rounded font-semibold text-slate-600 border border-slate-200">
                       {charCount} chars
                     </span>
-                    <span className="px-2 py-0.5 bg-slate-100 rounded text-[11px] font-semibold text-slate-600 border border-slate-200">
-                      {segmentCount} {segmentCount === 1 ? "segment" : "segments"}
+                    <span className="px-1.5 sm:px-2 py-0.5 bg-slate-100 rounded font-semibold text-slate-600 border border-slate-200">
+                      {segmentCount} {segmentCount === 1 ? "seg" : "segs"}
                     </span>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-800 rounded text-[11px] font-bold border border-emerald-200">
-                      <Coins size={12} className="text-emerald-600" />
-                      Est. Cost: ~${estCost}
+                    <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 bg-emerald-50 text-emerald-800 rounded font-bold border border-emerald-200">
+                      <Coins size={11} className="text-emerald-600" />
+                      ~${estCost}
                     </span>
                   </div>
 
                   <button
                     type="submit"
                     disabled={!inputText.trim() || sending || activeConv.contacts?.do_not_text}
-                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+                    className="px-4 sm:px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer ml-auto"
                   >
                     <Send size={13} />
                     <span>{sending ? "Sending..." : "Send SMS"}</span>
@@ -600,7 +616,7 @@ export default function SmsInboxPage() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-slate-400 text-sm bg-slate-50/40">
+          <div className="flex-1 flex flex-col items-center justify-center text-slate-400 text-sm bg-slate-50/40 p-6 text-center">
             <MessageSquare size={44} className="text-slate-300 mb-2" />
             <p className="font-semibold text-slate-600">Select a conversation or start a new one</p>
             <p className="text-xs text-slate-400 mt-0.5">Two-way manual SMS via Telnyx</p>
@@ -610,8 +626,8 @@ export default function SmsInboxPage() {
 
       {/* NEW CONVERSATION MODAL */}
       {showNewModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-5 sm:p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150">
             <h3 className="text-base font-bold text-slate-900 mb-1">Start New SMS Conversation</h3>
             <p className="text-xs text-slate-500 mb-4">Enter a recipient number in international/US format (e.g. +12025550143)</p>
 

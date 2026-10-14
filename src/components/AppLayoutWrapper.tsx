@@ -13,7 +13,7 @@ export default function AppLayoutWrapper({ children }: { children: React.ReactNo
   // If inside /inbox or /phone, render clean full-screen app without marketing navbar/footer/widgets
   if (isInboxOrPhone) {
     return (
-      <main className="h-screen w-full overflow-hidden flex flex-col bg-white">
+      <main className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col bg-white">
         {children}
       </main>
     );
