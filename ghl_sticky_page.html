@@ -1,0 +1,2779 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
+<title>Spyke HVAC Call Agent</title>
+<!--
+  SPYKE AI — HVAC landing page (v7 with Compact 2-Step OTP Form & Direct Vapi Call Integration)
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700;800;900&family=Kumbh+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: light conversion page. White ground, mint-tint section bands, one dark closing block.
+   Color rule: solid brand green (#00FF89) = CTA buttons only. Deep green text + light mint tints = highlights. Amber = money + guarantee. */
+.spk{
+  --bg:#FFFFFF;
+  --soft:#F3FAF6;          /* alternate section band (mint-grey) */
+  --card:#FFFFFF;
+  --card-2:#F2F6F4;        /* inner chips, inputs */
+  --line:#E1E9E4;
+  --text:#121212;          /* brand near-black */
+  --muted:#56625B;
+  --cta:#00FF89;           /* brand green — buttons only */
+  --cta-edge:#00D877;
+  --on-cta:#06130C;
+  --accent:#00804A;        /* deep green: highlighted words, icons */
+  --accent-fill:#0B7A46;   /* filled chips / bubbles with white text */
+  --tint:#E6FBF0;          /* light mint */
+  --tint-2:#D0F5E2;
+  --tint-line:#A8E8C7;
+  --money:#A86400;         /* amber-brown text, readable on white */
+  --amber:#FFC050;
+  --amber-soft:#FFF4DB;
+  --dark:#121212;
+  --shadow:0 1px 2px rgba(18,18,18,.05),0 12px 32px -14px rgba(18,18,18,.18);
+  --f-display:"League Spartan","Arial Narrow",Arial,sans-serif;
+  --f-body:"Kumbh Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:16px; --r-lg:22px;
+  color-scheme:light;
+}
+body, html { background: #FFFFFF !important; color: #121212; margin: 0; }
+.spk{font-family:var(--f-body);font-size:17px;line-height:1.65;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.spk *,.spk *::before,.spk *::after{box-sizing:border-box}
+.spk h1,.spk h2,.spk h3,.spk h4{font-family:var(--f-display);line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.015em;color:var(--text)}
+.spk p{margin:0}
+.spk ul{margin:0;padding:0;list-style:none}
+.spk a{color:inherit}
+.spk svg{display:block}
+.spk .wrap{max-width:1140px;margin:0 auto;padding-inline:20px}
+.spk .sec{padding-block:68px}
+.spk .soft{background:var(--soft);border-block:1px solid var(--line)}
+.spk .hl{color:var(--accent);background:linear-gradient(transparent 62%,var(--tint-2) 62%);padding:0 .08em}
+.spk .money{color:var(--money)}
+
+/* Section heads */
+.spk .head{display:grid;gap:12px;justify-items:center;text-align:center;max-width:760px;margin:0 auto 40px}
+.spk .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);background:var(--tint);border:1px solid var(--tint-line);padding:5px 12px;border-radius:999px}
+.spk .head h2{font-size:clamp(30px,6.2vw,48px)}
+.spk .lede{color:var(--muted);font-size:18px;max-width:58ch}
+
+/* Buttons — the only solid brand green */
+.spk .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:58px;padding:0 30px;border-radius:999px;font-family:var(--f-display);font-weight:800;font-size:19px;text-decoration:none;cursor:pointer;border:0;transition:transform .15s ease,box-shadow .15s ease,border-color .15s,color .15s;text-align:center;line-height:1.1}
+.spk .btn-primary{background:var(--cta);color:var(--on-cta);box-shadow:inset 0 0 0 1px var(--cta-edge),0 8px 20px -8px rgba(0,190,100,.55)}
+.spk .btn-primary:hover{transform:translateY(-2px);box-shadow:inset 0 0 0 1px var(--cta-edge),0 14px 30px -10px rgba(0,190,100,.7)}
+.spk .btn-ghost{background:var(--card);color:var(--text);border:2px solid var(--line)}
+.spk .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.spk .btn svg{width:20px;height:20px;flex:none}
+.spk .btn-sm{min-height:42px;padding:0 18px;font-size:15px}
+.spk .btn:focus-visible,.spk summary:focus-visible,.spk input:focus-visible,.spk .video:focus-visible,.spk .six a:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.spk .note{font-size:14px;color:var(--muted);display:flex;align-items:center;gap:8px;justify-content:center;text-align:center}
+.spk .note svg{width:16px;height:16px;color:var(--money);flex:none}
+
+/* Top */
+.spk .announce{background:var(--dark);color:#fff;text-align:center;font-weight:600;font-size:14px;padding:10px 16px;line-height:1.35}
+@media (max-width:420px){.spk .announce{font-size:12.5px;padding:8px 12px}}
+.spk .announce b{color:var(--amber)}
+.spk .top{padding-block:14px;border-bottom:1px solid var(--line);background:var(--bg)}
+.spk .top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.spk .logo{font-family:var(--f-display);font-weight:900;font-size:22px;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+.spk .logo{text-decoration:none;color:var(--text)}
+.spk .logo img{width:34px;height:34px;border-radius:99px;display:block}
+/* Sticky header: fixed so it works inside the GHL code element */
+.spk .stickyhead{position:fixed;top:0;left:0;right:0;z-index:9990;background:#fff;transition:box-shadow .2s}
+.spk .stickyhead.scrolled{box-shadow:0 6px 20px -10px rgba(18,18,18,.25)}
+.spk .head-spacer{height:var(--hh,108px)}
+.spk section,.spk [id]{scroll-margin-top:calc(var(--hh,108px) + 8px)}
+.spk .hide-sm{display:none}
+/* Hero offer */
+.spk .attn{font-family:var(--f-display);font-weight:800;font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--dark);padding:7px 14px;border-radius:8px}
+.spk .hero h1.offer{font-size:clamp(34px,7.6vw,66px);font-weight:900;max-width:19ch;line-height:1.04}
+.spk .hl-money{color:var(--money);background:linear-gradient(transparent 62%,#FFE3A6 62%);padding:0 .08em;white-space:nowrap}
+.spk .nopay{display:block;margin-top:.18em;text-decoration:underline;text-decoration-color:var(--amber);text-decoration-thickness:.12em;text-underline-offset:.14em}
+.spk .without{font-family:var(--f-display);font-weight:800;font-size:clamp(20px,4.4vw,28px);line-height:1.2;color:var(--text);background:#fff;border:2px solid var(--tint-line);border-radius:14px;padding:10px 18px}
+.spk .note a{color:inherit}
+/* Reality letter */
+.spk .letter{max-width:720px;margin:0 auto;display:grid;gap:16px;font-size:18px}
+.spk .letter p b{color:var(--text)}
+.spk .letter .big-line{font-family:var(--f-display);font-weight:800;font-size:clamp(22px,4.6vw,30px);line-height:1.2}
+.spk .math{background:var(--amber-soft);border:1px solid #F1D39A;border-radius:var(--r);padding:18px 20px;display:grid;gap:6px}
+.spk .math b.m{font-family:var(--f-display);font-size:clamp(26px,6vw,36px);color:var(--money);font-variant-numeric:tabular-nums}
+.spk .xlist{display:grid;gap:10px;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px 20px}
+.spk .xlist li{display:flex;gap:12px;align-items:flex-start;font-weight:600}
+.spk .xlist li span.x{flex:none;width:24px;height:24px;border-radius:50%;background:#FDE7E4;color:#B3261E;display:grid;place-items:center;font-size:12px;font-weight:900;margin-top:2px}
+.spk .loop3{display:grid;gap:10px}
+.spk .lp{display:flex;gap:14px;align-items:flex-start;background:#fff;border:1px solid var(--tint-line);border-radius:var(--r);padding:16px}
+.spk .lp .n{flex:none;width:40px;height:40px;border-radius:12px;background:var(--accent-fill);color:#fff;display:grid;place-items:center;font-family:var(--f-display);font-weight:900}
+.spk .lp b{display:block;font-family:var(--f-display);font-size:19px}
+.spk .lp span{color:var(--muted);font-size:15px}
+.spk .letter-cta{display:grid;gap:10px;justify-items:center;margin-top:8px}
+.spk .letter-cta .btn{width:100%;max-width:420px}
+
+/* WHITE OUTER CARD CONTAINER FOR DEMO FORM (IMAGE 1) */
+.spk .embed-card {
+  background: #FFFFFF;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 24px 20px;
+  display: grid;
+  gap: 14px;
+  box-shadow: 0 1px 2px rgba(18,18,18,.05), 0 12px 32px -14px rgba(18,18,18,.18);
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+.spk .embed-card h3 {
+  font-family: var(--f-display);
+  font-size: 24px;
+  font-weight: 800;
+  color: #121212;
+  margin: 0;
+  padding-inline: 4px;
+}
+.spk .embed-card .sub {
+  font-size: 14.5px;
+  color: var(--muted);
+  margin-top: -6px;
+  margin-bottom: 4px;
+  padding-inline: 4px;
+}
+
+/* COMPACT OTP FORM CARD (DARK SLATE THEME MATCHING IMAGE 1 & IMAGE 2) */
+.embed-card-compact {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  background: #131927;
+  border-radius: 18px;
+  padding: 24px 22px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-sizing: border-box;
+}
+.embed-card-compact .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.embed-card-compact .form-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.embed-card-compact .form-field label { font-size: 13px; font-weight: 700; color: #FFC050; }
+.embed-card-compact .form-field input, .embed-card-compact .form-field select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #A8E8C7;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #121212;
+  background: #E6FBF0;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+.embed-card-compact .form-field input::placeholder { color: #56625B; opacity: 0.85; }
+.embed-card-compact .form-field input:focus, .embed-card-compact .form-field select:focus {
+  border-color: #00FF89;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(0, 255, 137, 0.3);
+}
+
+/* EMAIL FIELD WITH INTEGRATED SVG ICON (IMAGE 1 & 2) */
+.embed-card-compact .input-icon-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+.embed-card-compact .input-icon-wrapper svg {
+  position: absolute;
+  left: 12px;
+  width: 18px;
+  height: 18px;
+  color: #56625B;
+  pointer-events: none;
+  z-index: 2;
+}
+.embed-card-compact .input-icon-wrapper input {
+  padding-left: 38px !important;
+}
+
+/* UNIFIED PHONE FIELD WITH INTEGRATED SVG FLAG PICKER (IMAGE 1 & 2) */
+.embed-card-compact .phone-group {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  width: 100% !important;
+  background: #E6FBF0 !important;
+  border: 1.5px solid #A8E8C7 !important;
+  border-radius: 10px !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
+  position: relative !important;
+}
+.embed-card-compact .phone-group:focus-within {
+  border-color: #00FF89 !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 0 0 3px rgba(0, 255, 137, 0.3) !important;
+}
+.embed-card-compact .flag-picker-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+.embed-card-compact .flag-picker-btn {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: transparent !important;
+  border: none !important;
+  border-right: 1px solid rgba(168, 232, 199, 0.8) !important;
+  padding: 10px 10px !important;
+  cursor: pointer !important;
+  outline: none !important;
+  height: 100% !important;
+}
+.embed-card-compact .flag-picker-btn img {
+  width: 22px;
+  height: 15px;
+  border-radius: 2px;
+  object-fit: cover;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  display: block;
+}
+.embed-card-compact .flag-arrow {
+  font-size: 9px;
+  color: #56625B;
+}
+.embed-card-compact .flag-options-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 99999;
+  background: #FFFFFF;
+  border: 1.5px solid #A8E8C7;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  width: 170px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+.embed-card-compact .flag-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #121212;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.embed-card-compact .flag-opt:hover {
+  background: #E6FBF0;
+  color: #00804A;
+}
+.embed-card-compact .flag-opt img {
+  width: 20px;
+  height: 14px;
+  border-radius: 2px;
+  object-fit: cover;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+.embed-card-compact .phone-group input {
+  flex: 1 1 auto !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  padding: 10px 12px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* CONSENT CHECKBOX & SUBMIT BUTTON MATCHING IMAGE 1 & 2 */
+.embed-card-compact .form-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 14px 0 16px 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #FFFFFF;
+  font-weight: 600;
+}
+.embed-card-compact .form-consent input[type="checkbox"] {
+  margin-top: 3px;
+  accent-color: #00FF89;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.embed-card-compact .form-submit-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #00FF89;
+  color: #06130C;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 20px;
+  font-family: var(--f-display);
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 255, 137, 0.4);
+}
+.embed-card-compact .form-submit-btn:hover {
+  background: #00E67A;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 255, 137, 0.5);
+}
+
+/* GHL POPUP FORM MODAL CLOSE BUTTON & CONTAINER OVERRIDES */
+.hl-popup-container, .form-builder-popup, [class*="popup-wrapper"], [class*="modal-container"], .lead-connector-popup, div[id*="popup"], div[class*="popup"] {
+  position: relative !important;
+  max-width: 440px !important;
+  width: 90% !important;
+  margin: 0 auto !important;
+  border-radius: 18px !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6) !important;
+  overflow: visible !important;
+}
+
+.hl-popup-container iframe, .form-builder-popup iframe, iframe[src*="form"] {
+  max-width: 440px !important;
+  border-radius: 18px !important;
+}
+
+/* Floating High-Contrast Red Cross Close Button (Viewport Fixed & Absolute) */
+.ghl-popup-close-btn, .ghl-popup-close-btn-fixed {
+  position: fixed !important;
+  top: 18px !important;
+  right: 22px !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background: #FF3B30 !important;
+  color: #FFFFFF !important;
+  border: 2.5px solid #FFFFFF !important;
+  font-size: 24px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 9999999999 !important;
+  pointer-events: auto !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5) !important;
+  transition: all 0.2s ease !important;
+}
+
+.ghl-popup-close-btn:hover, .ghl-popup-close-btn-fixed:hover {
+  background: #D70000 !important;
+  transform: scale(1.15) !important;
+}
+.spk .cal-card iframe{display:block;width:100%;min-height:720px;border:0}
+.spk .book-checks{display:flex;flex-wrap:wrap;justify-content:center;gap:10px 22px;font-size:15px;color:#D5DCD8}
+.spk .book-checks span{display:inline-flex;align-items:center;gap:8px}
+.spk .book-checks svg{width:18px;height:18px;color:var(--cta)}
+
+/* Guarantee terms */
+.spk .terms{margin-top:6px;background:var(--soft);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;font-size:14px;color:var(--muted);display:grid;gap:8px;text-align:left}
+.spk .terms b{color:var(--text)}
+.spk .terms ul{display:grid;gap:4px;padding-left:18px;list-style:disc}
+
+/* Hero */
+.spk .hero{padding-block:36px 56px;position:relative;text-align:center;background:linear-gradient(180deg,var(--tint) 0%,#fff 70%)}
+.spk .hero .wrap{position:relative;display:grid;gap:22px;justify-items:center}
+.spk .pill{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;background:#fff;border:1px solid var(--tint-line);font-size:13px;font-weight:600;color:var(--accent);box-shadow:var(--shadow)}
+.spk .pill i{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:spk-blink 1.6s infinite}
+@keyframes spk-blink{50%{opacity:.3}}
+.spk .hero h1{font-size:clamp(38px,8.8vw,74px);font-weight:900;max-width:15ch}
+.spk .hero .lede{text-align:center}
+
+/* Video */
+.spk .video{position:relative;width:100%;max-width:880px;aspect-ratio:16/9;border-radius:var(--r-lg);overflow:hidden;background:linear-gradient(135deg,#1a1f1c,#121212 65%);cursor:pointer;box-shadow:0 30px 70px -30px rgba(18,18,18,.55),0 0 0 8px #fff,0 0 0 9px var(--line);text-align:left}
+.spk .video iframe,.spk .video video{position:absolute;inset:0;width:100%;height:100%;border:0}
+.spk .hero-ctas{display:grid;gap:12px;width:100%;max-width:560px}
+
+/* Trust bar */
+.spk .trustbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%;max-width:900px}
+.spk .tb{display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;background:#fff;border:1px solid var(--line);text-align:left;font-size:14px;font-weight:600;line-height:1.3}
+.spk .tb .ic{width:34px;height:34px;border-radius:10px}
+.spk .tb .ic svg{width:17px;height:17px}
+
+/* Icon tile */
+.spk .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--tint);color:var(--accent);flex:none}
+.spk .ic svg{width:22px;height:22px}
+
+/* Checks */
+.spk .checks{display:grid;gap:10px}
+.spk .checks li{display:flex;gap:12px;align-items:flex-start;font-weight:500}
+.spk .checks li svg{width:22px;height:22px;flex:none;padding:4px;border-radius:50%;background:var(--tint-2);color:var(--accent);margin-top:2px}
+
+/* Demo form */
+.spk .demo{display:grid;gap:30px;align-items:center}
+.spk .demo-copy{display:grid;gap:16px}
+.spk .demo-copy .eyebrow{justify-self:start}
+.spk .demo-copy h2{font-size:clamp(30px,6.2vw,46px)}
+.spk .demo-steps{display:grid;gap:12px}
+.spk .demo-steps li{display:flex;gap:14px;align-items:center;font-weight:500}
+.spk .demo-steps b{width:32px;height:32px;border-radius:50%;flex:none;display:grid;place-items:center;background:var(--tint-2);color:var(--accent);font-family:var(--f-display);font-size:15px}
+
+/* 6-systems overview */
+.spk .six{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.spk .six a{display:grid;gap:10px;align-content:start;padding:18px;border-radius:var(--r);background:var(--card);border:1px solid var(--line);text-decoration:none;transition:border-color .15s,transform .15s,box-shadow .15s}
+.spk .six a:hover{border-color:var(--tint-line);transform:translateY(-2px);box-shadow:var(--shadow)}
+.spk .six small{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.spk .six h3{font-size:19px}
+.spk .six p{font-size:14.5px;color:var(--muted);line-height:1.45}
+.spk .six .go{font-size:13px;font-weight:700;color:var(--accent)}
+
+/* Problem + calculator */
+.spk .calc{display:grid;gap:26px;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:24px;box-shadow:var(--shadow)}
+.spk .calc h3{font-size:24px}
+.spk .field{display:grid;gap:10px}
+.spk .field-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.spk .field label{font-weight:600}
+.spk .field output{font-family:var(--f-display);font-weight:800;font-size:22px;font-variant-numeric:tabular-nums}
+.spk input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:99px;background:var(--tint-2);outline:none}
+.spk input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--accent);border:4px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer}
+.spk input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--accent);border:4px solid #fff;cursor:pointer}
+.spk .result{display:grid;gap:8px;padding:22px;border-radius:var(--r);background:var(--amber-soft);border:1px solid #F1D39A}
+.spk .result small{color:var(--muted);font-size:14px}
+.spk .result .big{font-family:var(--f-display);font-weight:900;font-size:clamp(42px,10vw,62px);color:var(--money);line-height:1;font-variant-numeric:tabular-nums}
+.spk .loss{display:grid;gap:10px}
+.spk .loss-y{background:#fff;border:2px solid var(--amber);border-radius:14px;padding:16px;display:grid;gap:4px}
+.spk .loss-m{background:rgba(255,255,255,.6);border:1px solid #F1D39A;border-radius:14px;padding:12px 16px;display:grid;gap:2px}
+.spk .hint{font-size:13px;color:var(--muted);line-height:1.45;margin-top:-4px}
+.spk .loss span{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--money)}
+.spk .loss em{font-style:normal;font-size:14px;color:var(--muted)}
+.spk .loss em b{color:var(--text)}
+.spk .result .big2{font-family:var(--f-display);font-weight:900;font-size:clamp(30px,7vw,40px);color:var(--text);line-height:1.05;font-variant-numeric:tabular-nums}
+.spk .result .sub{color:var(--muted);font-size:15px}
+.spk .result .sub b{color:var(--text)}
+.spk .result .btn{margin-top:10px;width:100%}
+.spk .fine{font-size:12.5px;color:var(--muted)}
+
+/* System blocks */
+.spk .sys{display:grid;gap:26px;align-items:center;padding-block:52px;border-bottom:1px solid var(--line)}
+.spk .sys-copy{display:grid;gap:16px;min-width:0}
+.spk .sys-tag{display:flex;align-items:center;gap:12px}
+.spk .sys-tag .num{font-family:var(--f-display);font-weight:900;font-size:15px;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--dark);color:#fff}
+.spk .sys-tag span{font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.spk .sys-copy h3{font-size:clamp(28px,5.6vw,40px)}
+.spk .sys-copy .why{color:var(--muted);font-size:17px}
+.spk .outcome{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--amber-soft);border:1px solid #F1D39A;font-size:15px;font-weight:600}
+.spk .outcome svg{width:20px;height:20px;color:var(--money);flex:none}
+
+/* Scene container */
+.spk .scene{background:linear-gradient(160deg,var(--tint) 0%,#fff 70%);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;min-width:0;box-shadow:var(--shadow)}
+.spk .scene-label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.spk .step-l{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--accent);margin-bottom:8px}
+.spk .step-l b{width:22px;height:22px;border-radius:50%;background:var(--accent-fill);color:#fff;display:grid;place-items:center;font-size:12px}
+.spk .panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;min-width:0}
+.spk .connector{display:grid;place-items:center;height:28px;color:var(--accent)}
+.spk .connector svg{width:20px;height:20px;transform:rotate(90deg)}
+
+/* Scene 1: call desk */
+.spk .s1{display:grid;gap:0}
+.spk .incall{background:var(--dark);color:#fff;border-radius:18px;padding:16px;display:grid;gap:10px}
+.spk .incall small{font-size:12px;color:#9BA59F}
+.spk .incall b{font-family:var(--f-display);font-size:20px;display:block}
+.spk .wave{display:flex;align-items:center;gap:3px;height:28px}
+.spk .wave i{flex:1;background:var(--cta);border-radius:2px;animation:spk-wave 1s ease-in-out infinite}
+.spk .wave i:nth-child(odd){animation-delay:.2s}.spk .wave i:nth-child(3n){animation-delay:.4s}.spk .wave i:nth-child(4n){animation-delay:.6s}
+@keyframes spk-wave{0%,100%{height:20%}50%{height:100%}}
+.spk .incall .who{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#C9D1CC}
+.spk .incall .who em{font-style:normal;color:var(--cta);font-weight:700}
+.spk .facts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.spk .fact{background:var(--card-2);border-radius:10px;padding:8px 10px}
+.spk .fact small{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.spk .fact b{font-size:14px}
+.spk .calmini{display:grid;grid-template-columns:44px 1fr;gap:6px;font-size:12px}
+.spk .calmini .t{color:var(--muted);font-variant-numeric:tabular-nums;padding-top:6px}
+.spk .calmini .slot{height:34px;border-radius:8px;background:var(--card-2)}
+.spk .calmini .slot.bk{background:var(--tint-2);border:1px solid var(--tint-line);height:auto;padding:6px 10px;font-weight:600;color:var(--accent)}
+.spk .calmini .slot.bk span{display:block;font-weight:500;color:var(--muted);font-size:11.5px}
+.spk .calhead{display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin-bottom:8px}
+.spk .calhead span{color:var(--muted);font-weight:500}
+.spk .toast{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow)}
+.spk .toast .ic{width:36px;height:36px;border-radius:10px;background:var(--accent-fill);color:#fff}
+.spk .toast .ic svg{width:18px;height:18px}
+.spk .toast b{display:block;font-size:14px}
+.spk .toast span{font-size:12.5px;color:var(--muted)}
+
+/* Bubbles */
+.spk .bub{font-size:13.5px;line-height:1.4;padding:8px 12px;border-radius:16px;max-width:88%}
+.spk .bub.in{background:var(--card-2);justify-self:start;border-bottom-left-radius:4px}
+.spk .bub.out{background:var(--accent-fill);color:#fff;justify-self:end;border-bottom-right-radius:4px}
+.spk .won{justify-self:center;display:inline-flex;gap:6px;align-items:center;font-size:12.5px;font-weight:700;background:var(--amber);color:#2a1a00;padding:5px 12px;border-radius:999px}
+
+/* Scene 3: estimates board */
+.spk .board{display:grid;gap:12px}
+.spk .col{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:8px;align-content:start}
+.spk .col h4{font-size:14px;display:flex;justify-content:space-between;align-items:center}
+.spk .col h4 span{font-family:var(--f-body);font-size:12px;font-weight:700;background:var(--card-2);border-radius:999px;padding:2px 8px;color:var(--muted)}
+.spk .est{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:13px}
+.spk .est b{font-size:14px}
+.spk .est .amt{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.spk .est .age{color:var(--muted)}
+.spk .est .st{justify-self:end;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--card-2);color:var(--muted)}
+.spk .est.win{background:var(--tint);border-color:var(--tint-line)}
+.spk .est.win .st{background:var(--accent-fill);color:#fff}
+.spk .est.fade{opacity:.55}
+.spk .mid{display:grid;justify-items:center;gap:6px;text-align:center;font-size:12.5px;font-weight:700;color:var(--accent)}
+.spk .mid .ic{width:40px;height:40px;background:var(--accent-fill);color:#fff;border-radius:50%}
+.spk .mid .ic svg{width:18px;height:18px}
+.spk .mid .arrow-down svg{width:18px;height:18px;transform:rotate(90deg)}
+.spk .sms-peek{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;display:grid;gap:6px}
+
+/* Scene 4: reviews */
+.spk .s4{display:grid;gap:12px}
+.spk .rate-ask{display:grid;gap:8px}
+.spk .stars-pick{display:flex;gap:6px}
+.spk .stars-pick i{width:32px;height:32px;border-radius:8px;background:var(--amber);display:grid;place-items:center;color:#2a1a00}
+.spk .stars-pick i svg{width:18px;height:18px}
+.spk .gprof{display:grid;gap:10px}
+.spk .gprof-h{display:flex;gap:12px;align-items:center}
+.spk .gprof-h .av{width:44px;height:44px;border-radius:12px;background:var(--dark);color:#fff;display:grid;place-items:center;font-family:var(--f-display);font-weight:800}
+.spk .gprof-h b{display:block;font-size:15px}
+.spk .gprof-h span{font-size:13px;color:var(--muted)}
+.spk .rating{display:flex;align-items:center;gap:8px;font-weight:700}
+.spk .rating .st{color:#E8A10E;letter-spacing:1px}
+.spk .rating .up{font-size:12px;font-weight:700;color:var(--accent);background:var(--tint);padding:2px 8px;border-radius:999px}
+.spk .newrev{border-top:1px solid var(--line);padding-top:10px;font-size:13.5px}
+.spk .newrev b{font-size:13.5px}
+.spk .newrev .st{color:#E8A10E}
+.spk .newrev em{font-style:normal;font-size:11px;font-weight:700;color:var(--accent);margin-left:6px}
+.spk .private{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;border:1px dashed #E3C27F;background:var(--amber-soft);font-size:13px}
+.spk .private svg{width:18px;height:18px;color:var(--money);flex:none}
+.spk .branch{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center;font-size:12px;font-weight:700;color:var(--muted)}
+.spk .branch i{font-style:normal;padding:2px 8px;border-radius:999px;background:var(--tint);color:var(--accent)}
+.spk .branch i.w{background:var(--amber-soft);color:var(--money)}
+
+/* Scene 5: referral street */
+.spk .street{width:100%;height:auto}
+.spk .ref-grid{display:grid;gap:12px}
+
+/* Scene 6: maintenance year */
+.spk .year{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.spk .mo{border-radius:10px;background:#fff;border:1px solid var(--line);padding:6px 4px;text-align:center;font-size:11.5px;font-weight:700;color:var(--muted);display:grid;gap:4px;justify-items:center;min-height:62px;align-content:start}
+.spk .mo svg{width:18px;height:18px}
+.spk .mo.ac{background:var(--tint);border-color:var(--tint-line);color:var(--accent)}
+.spk .mo.ht{background:var(--amber-soft);border-color:#F1D39A;color:var(--money)}
+.spk .yr-legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:12.5px;color:var(--muted);margin-top:10px}
+.spk .yr-legend span{display:inline-flex;align-items:center;gap:6px}
+.spk .yr-legend i{width:12px;height:12px;border-radius:3px;background:var(--tint-2);border:1px solid var(--tint-line)}
+.spk .yr-legend i.h{background:var(--amber-soft);border-color:#F1D39A}
+.spk .member{margin-top:14px;border-radius:16px;padding:16px;background:linear-gradient(135deg,#121212,#24302A);color:#fff;display:grid;gap:10px}
+.spk .member-top{display:flex;justify-content:space-between;align-items:center}
+.spk .member-top b{font-family:var(--f-display);font-size:18px}
+.spk .member-top span{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--amber)}
+.spk .member ul{display:grid;gap:4px;font-size:13px;color:#D5DCD8}
+.spk .member li::before{content:"✓ ";color:var(--cta)}
+.spk .replace{margin-top:10px;display:flex;gap:10px;align-items:center;font-size:13px;font-weight:600;padding:10px 12px;border-radius:12px;background:#fff;border:1px solid var(--line)}
+.spk .replace .ic{width:32px;height:32px;border-radius:99px}
+.spk .replace .ic svg{width:16px;height:16px}
+
+/* CTA band */
+.spk .band{margin-block:12px;padding:28px 22px;border-radius:var(--r-lg);background:linear-gradient(135deg,var(--tint-2),var(--tint) 45%,#fff);border:1px solid var(--tint-line);display:grid;gap:16px;text-align:center;justify-items:center}
+.spk .band h3{font-size:clamp(24px,5vw,32px)}
+.spk .band p{color:var(--muted)}
+.spk .band .btn{width:100%;max-width:420px}
+
+/* Human vs AI comparison */
+.spk .cmp{max-width:1000px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow)}
+.spk .cmp-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid var(--line)}
+.spk .cmp-row:first-child{border-top:0}
+.spk .cmp-label{grid-column:1/-1;padding:12px 14px 4px;font-weight:700;font-size:14.5px}
+.spk .cmp-label span{display:block;font-weight:500;font-size:12.5px;color:var(--muted)}
+.spk .cmp-cell{padding:6px 10px 14px;font-size:13px;line-height:1.35;display:grid;gap:4px;align-content:start;min-width:0}
+.spk .cmp-cell.ai{background:var(--tint);font-weight:600}
+.spk .mk{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:900;line-height:1}
+.spk .mk.y{background:var(--accent-fill);color:#fff}
+.spk .mk.n{background:#FDE7E4;color:#B3261E}
+.spk .mk.m{background:var(--amber-soft);color:var(--money)}
+.spk .cmp-head{background:var(--dark);color:#fff;border-top:0}
+.spk .cmp-head .cmp-cell{padding:14px 10px;font-family:var(--f-display);font-weight:800;font-size:15px;line-height:1.15}
+.spk .cmp-head .cmp-cell small{display:block;font-family:var(--f-body);font-weight:500;font-size:11.5px;color:#AEB8B2;margin-top:3px}
+.spk .cmp-head .cmp-cell.ai{background:var(--accent-fill);color:#fff}
+.spk .cmp-head .cmp-cell.ai small{color:#D9F5E7}
+.spk .cmp-head .cmp-label{display:none}
+.spk .cmp-cost .cmp-cell{font-size:14px}
+.spk .cmp-cost b{font-family:var(--f-display);font-size:18px;display:block}
+.spk .cmp-foot{padding:18px;display:grid;gap:14px;justify-items:center;text-align:center;background:var(--soft);border-top:1px solid var(--line)}
+.spk .cmp-foot p{font-weight:600;max-width:52ch}
+.spk .cmp-foot .btn{width:100%;max-width:420px}
+.spk .src{font-size:11.5px;color:var(--muted);text-align:center;margin-top:14px}
+.spk .src a{color:var(--muted)}
+.spk .hours{display:grid;gap:14px;max-width:760px;margin:0 auto 32px}
+.spk .hours-bar{display:grid;gap:6px}
+.spk .hours-bar .lbl{display:flex;justify-content:space-between;font-size:14px;font-weight:600}
+.spk .hours-bar .lbl span{color:var(--muted);font-weight:500}
+.spk .track{height:14px;border-radius:99px;background:var(--card-2);overflow:hidden}
+.spk .track i{display:block;height:100%;border-radius:99px}
+
+/* Who it's for */
+.spk .fit{display:grid;gap:14px;max-width:1000px;margin:0 auto}
+.spk .fit-card{border-radius:var(--r-lg);padding:22px;border:1px solid var(--line);background:#fff;display:grid;gap:12px;align-content:start}
+.spk .fit-card.yes{border-color:var(--tint-line);background:linear-gradient(160deg,var(--tint),#fff 70%)}
+.spk .fit-card h3{font-size:22px}
+.spk .fit-card li{display:flex;gap:10px;align-items:flex-start;padding:6px 0}
+.spk .fit-card .mk{margin-top:3px;flex:none}
+
+/* Stack */
+.spk .stack{max-width:780px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:24px;overflow:hidden;box-shadow:var(--shadow)}
+.spk .stack-h{padding:18px 22px;background:var(--dark);color:#fff;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.spk .stack-h b{font-family:var(--f-display);font-size:20px}
+.spk .stack-h span{font-size:13px;font-weight:700;color:var(--dark);background:var(--amber);padding:5px 10px;border-radius:999px}
+.spk .stack ul{padding:6px 22px}
+.spk .stack li{display:flex;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.spk .stack li:last-child{border-bottom:0}
+.spk .stack li .ic{width:40px;height:40px;border-radius:11px}
+.spk .stack li .ic svg{width:20px;height:20px}
+.spk .stack li b{display:block;font-size:17px;line-height:1.3}
+.spk .stack li span{font-size:14px;color:var(--muted)}
+.spk .stack li em{font-style:normal;font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--money);margin-left:8px;vertical-align:middle}
+.spk .stack-f{padding:22px;border-top:1px solid var(--line);display:grid;gap:12px;justify-items:center;text-align:center;background:var(--soft)}
+.spk .stack-f .btn{width:100%;max-width:420px}
+
+/* Guarantee */
+.spk .guar{display:grid;gap:24px;align-items:center;justify-items:center;text-align:center;max-width:900px;margin:0 auto}
+.spk .seal{width:150px;height:150px;border-radius:50%;background:var(--amber-soft);border:3px solid var(--amber);display:grid;place-items:center;text-align:center;position:relative;flex:none}
+.spk .seal::before{content:"";position:absolute;inset:8px;border-radius:50%;border:1px dashed #E3B55A}
+.spk .seal div{font-family:var(--f-display);color:var(--money);line-height:1}
+.spk .seal b{display:block;font-size:46px;font-weight:900}
+.spk .seal span{font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.spk .guar-copy{display:grid;gap:14px;justify-items:center}
+.spk .guar h2{font-size:clamp(30px,6.2vw,48px)}
+.spk .guar p{color:var(--muted);max-width:56ch}
+
+/* Founder */
+.spk .founder{display:grid;gap:20px;align-items:center;max-width:900px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:24px;box-shadow:var(--shadow)}
+.spk .founder .av{width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,var(--tint-2),var(--tint));border:3px solid #fff;box-shadow:0 0 0 1px var(--tint-line);display:grid;place-items:center;font-family:var(--f-display);font-weight:900;font-size:38px;color:var(--accent);overflow:hidden}
+.spk .founder .av img{width:100%;height:100%;object-fit:cover}
+.spk .founder q{font-size:18px;line-height:1.55;quotes:"\201C" "\201D"}
+.spk .founder b{display:block;margin-top:10px}
+.spk .founder span{font-size:14px;color:var(--muted)}
+
+/* Steps */
+.spk .steps{display:grid;gap:12px}
+.spk .step{display:flex;gap:16px;align-items:flex-start;padding:20px;border-radius:var(--r);border:1px solid var(--line);background:#fff}
+.spk .step .n{width:44px;height:44px;flex:none;border-radius:50%;background:var(--dark);color:#fff;display:grid;place-items:center;font-family:var(--f-display);font-weight:900;font-size:19px}
+.spk .step h4{font-size:20px;margin-bottom:4px}
+.spk .step p{color:var(--muted);font-size:15px}
+.spk .step .when{display:inline-block;margin-top:8px;font-size:12.5px;font-weight:700;color:var(--accent);background:var(--tint);padding:3px 10px;border-radius:999px}
+
+/* FAQ */
+.spk .faq{display:grid;gap:10px;max-width:820px;margin:0 auto}
+.spk details{border:1px solid var(--line);border-radius:var(--r);background:#fff}
+.spk details[open]{border-color:var(--tint-line);box-shadow:var(--shadow)}
+.spk summary{list-style:none;cursor:pointer;padding:18px 54px 18px 20px;font-weight:600;font-size:17px;position:relative;border-radius:var(--r)}
+.spk summary::-webkit-details-marker{display:none}
+.spk summary::after{content:"";position:absolute;right:22px;top:50%;width:10px;height:10px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:translateY(-70%) rotate(45deg);transition:transform .2s}
+.spk details[open] summary::after{transform:translateY(-30%) rotate(-135deg)}
+.spk details p{padding:0 20px 18px;color:var(--muted)}
+
+/* Final (dark closer) */
+.spk .final{background:var(--dark);color:#fff;text-align:center}
+.spk .final .wrap{display:grid;gap:20px;justify-items:center}
+.spk .final h2{font-size:clamp(34px,7.2vw,60px);max-width:17ch;color:#fff}
+.spk .final h2 .hl2{color:var(--cta)}
+.spk .final .lede{color:#B9C2BD}
+.spk .final .eyebrow{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#fff}
+.spk .final .btn-ghost{background:transparent;color:#fff;border-color:#3A423E}
+.spk .final .note{color:#B9C2BD}
+.spk .final .note svg{color:var(--amber)}
+.spk .final-ctas{display:grid;gap:12px;width:100%;max-width:520px}
+
+.spk footer{background:var(--dark);border-top:1px solid #2A302D;padding-block:26px 120px;color:#9BA59F;font-size:12.5px}
+.spk footer .wrap{display:grid;gap:10px}
+.spk footer .links{display:flex;flex-wrap:wrap;gap:6px 18px}
+.spk footer a{text-decoration:none}
+.spk footer a:hover{color:#fff}
+
+/* Sticky CTA */
+.spk .sbar{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(255,255,255,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);box-shadow:0 -8px 24px -12px rgba(18,18,18,.2);transform:translateY(110%);transition:transform .25s ease}
+.spk .sbar.show{transform:none}
+.spk .sbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-inline:0}
+.spk .sbar p{display:none;font-size:15px;color:var(--muted)}
+.spk .sbar p b{color:var(--text)}
+.spk .sbar .btn{width:100%;min-height:52px;font-size:18px}
+
+/* Wider screens */
+@media (min-width:640px){
+  .spk .row2{grid-template-columns:1fr 1fr}
+  .spk .hero-ctas,.spk .final-ctas{grid-template-columns:1.25fr 1fr}
+  .spk .trustbar{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .spk .six{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .spk .moments{grid-template-columns:repeat(3,1fr)}
+  .spk .moment{flex-direction:column;align-items:flex-start;gap:8px}
+  .spk .year{grid-template-columns:repeat(12,1fr)}
+  .spk .rev-grid{grid-template-columns:repeat(2,1fr)}
+  .spk .founder{grid-template-columns:auto 1fr;padding:32px}
+  .spk .sbar p{display:block}
+  .spk .sbar .btn{width:auto}
+  .spk .fit{grid-template-columns:1fr 1fr}
+  .spk .hide-sm{display:inline}
+  .spk .loop3{grid-template-columns:repeat(3,1fr)}
+  .spk .s1-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .spk .s1-grid .connector{display:none}
+  .spk .board{grid-template-columns:1fr auto 1fr;align-items:center}
+  .spk .mid .arrow-down svg{transform:none}
+}
+@media (min-width:900px){
+  .spk .sec{padding-block:92px}
+  .spk .demo{grid-template-columns:1.05fr 0.95fr;gap:48px}
+  .spk .calc{grid-template-columns:1fr 1fr;padding:36px;align-items:center}
+  .spk .sys{grid-template-columns:1fr 1.1fr;gap:56px;padding-block:76px}
+  .spk .sys.flip .sys-copy{order:2}
+  .spk .steps{grid-template-columns:repeat(3,1fr)}
+  .spk .band{grid-template-columns:1fr auto;text-align:left;justify-items:start;padding:32px 36px}
+  .spk .band .btn{width:auto}
+  .spk .guar{grid-template-columns:auto 1fr;text-align:left;justify-items:start;gap:48px}
+  .spk .guar-copy{justify-items:start}
+  .spk .rev-grid{grid-template-columns:repeat(3,1fr)}
+  .spk .cmp-row{grid-template-columns:1.25fr repeat(3,minmax(0,1fr))}
+  .spk .cmp-label{grid-column:auto;padding:16px 18px}
+  .spk .cmp-cell{padding:16px 14px;font-size:14.5px;grid-template-columns:auto 1fr;align-items:start;gap:8px}
+  .spk .cmp-head .cmp-label{display:block}
+  .spk .cmp-head .cmp-cell{display:block;font-size:18px;padding:18px 14px}
+  .spk .cmp-cost .cmp-cell{display:block}
+  .spk footer{padding-bottom:100px}
+}
+@media (prefers-reduced-motion:reduce){.spk *{animation:none!important;transition:none!important}}
+
+/* ===== v7: mobile-first polish ===== */
+.spk .announce .a1{color:#fff}
+.spk .six a .thumb{width:100%;height:auto;border-radius:10px;display:block}
+.spk .six a .ic{display:none}
+.spk .hero-sub{font-size:17px;max-width:34ch}
+@media (max-width:639px){
+  .spk{font-size:16px}
+  .spk .announce{font-size:12.5px;padding:7px 12px;line-height:1.3}
+  .spk .announce .a1{display:block;font-weight:700}
+  .spk .announce .sep{display:none}
+  .spk .top{padding-block:10px}
+  .spk .sec{padding-block:52px}
+  .spk .head{margin-bottom:26px;gap:10px}
+  .spk .head h2{font-size:28px}
+  .spk .lede{font-size:16px}
+  .spk .hero{padding-block:22px 44px}
+  .spk .hero .wrap{gap:16px}
+  .spk .attn{font-size:12.5px;padding:6px 12px}
+  .spk .hero h1.offer{font-size:34px}
+  .spk .without{font-size:18px;padding:8px 14px}
+  .spk .btn{min-height:54px;font-size:18px}
+  .spk .btn.btn-sm{min-height:40px;font-size:14.5px;padding:0 16px}
+  .spk .tb{flex-direction:column;text-align:center;justify-content:center}
+  .spk .tb{font-size:13px;padding:10px;gap:8px}
+  .spk .tb .ic{width:30px;height:30px}
+  .spk .six{gap:10px}
+  .spk .six a{padding:10px;gap:6px}
+  .spk .six h3{font-size:16px}
+  .spk .six p{font-size:13px}
+  .spk .six small{font-size:10.5px}
+  .spk .letter{font-size:16px;gap:14px}
+  .spk .sys{padding-block:40px;gap:20px}
+  .spk .sys-copy h3{font-size:27px}
+  .spk .sys-copy .why{font-size:16px}
+  .spk .checks li{font-size:15px}
+  .spk .scene{padding:14px}
+  .spk .site{min-height:410px}
+  .spk .band{padding:22px 18px}
+  .spk .calc{padding:18px}
+  .spk .moment{padding:14px}
+  .spk .final h2{font-size:32px}
+  .spk .cal-card{padding:4px}
+  .spk summary{font-size:16px;padding:16px 48px 16px 16px}
+  .spk footer{padding-bottom:28px}
+}
+@media (min-width:640px){ .spk footer{padding-bottom:28px} }
+
+/* ===== Results: case studies + testimonials ===== */
+.spk .cases{display:grid;gap:16px;max-width:1000px;margin:0 auto}
+.spk .case{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow)}
+.spk .case-h{background:var(--dark);color:#fff;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.spk .case-h b{font-family:var(--f-display);font-size:21px;line-height:1.1;display:block}
+.spk .case-h span{font-size:13px;color:#B9C4BE}
+.spk .case-h em{font-style:normal;font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--dark);background:var(--amber);padding:4px 10px;border-radius:999px}
+.spk .case-stats{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}
+.spk .cs{padding:16px 18px;display:grid;gap:2px;background:var(--amber-soft)}
+.spk .cs+.cs{border-left:1px solid #F1D39A}
+.spk .cs b{font-family:var(--f-display);font-weight:900;font-size:clamp(28px,7vw,38px);color:var(--money);line-height:1;font-variant-numeric:tabular-nums}
+.spk .cs span{font-size:13.5px;font-weight:600;line-height:1.3}
+.spk .case-b{padding:18px;display:grid;gap:14px}
+.spk .case-b h4{font-size:13px;font-family:var(--f-body);font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.spk .case-b p{font-size:15.5px;color:var(--muted)}
+.spk .case-q{margin:0;padding:14px 16px;border-radius:14px;background:var(--tint);border:1px solid var(--tint-line);font-family:var(--f-display);font-weight:700;font-size:18px;line-height:1.3;quotes:"\201C" "\201D"}
+.spk .tst-wrap{margin-top:40px}
+.spk .tst-title{text-align:center;font-family:var(--f-display);font-size:24px;margin-bottom:16px}
+.spk .tst{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 14px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.spk .tcard{flex:0 0 86%;scroll-snap-align:start;margin:0;background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;display:grid;gap:14px;align-content:space-between;box-shadow:var(--shadow)}
+.spk .tcard q{font-size:16px;line-height:1.55;quotes:"\201C" "\201D"}
+.spk .tcard q::before{content:open-quote;font-family:var(--f-display);font-size:44px;line-height:0;vertical-align:-.38em;color:var(--accent);margin-right:2px}
+.spk .tcard q::after{content:close-quote}
+.spk .tcard figcaption{display:flex;gap:12px;align-items:center}
+.spk .tcard .av{width:42px;height:42px;border-radius:50%;background:var(--tint-2);color:var(--accent);display:grid;place-items:center;font-family:var(--f-display);font-weight:800;flex:none}
+.spk .tcard b{display:block;font-size:15px}
+.spk .tcard span{font-size:13px;color:var(--muted)}
+.spk .swipe{text-align:center;font-size:12.5px;color:var(--muted);margin-top:2px}
+.spk .results-cta{display:grid;justify-items:center;gap:10px;margin-top:30px}
+.spk .results-cta .btn{width:100%;max-width:420px}
+@media (min-width:900px){
+  .spk .cases{grid-template-columns:1fr 1fr}
+  .spk .tst{display:grid;grid-template-columns:repeat(2,1fr);overflow:visible;padding:0}
+  .spk .swipe{display:none}
+}
+
+/* ===== Testimonials (dark band) ===== */
+.spk .tsec{background:radial-gradient(600px 300px at 15% 0%,rgba(0,255,137,.10),transparent 70%),var(--dark)}
+.spk .tsec .eyebrow{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.18);color:#fff}
+.spk .tsec .head h2{color:#fff}
+.spk .tsec .hl2{color:var(--cta)}
+.spk .tq-row{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.spk .tq-row::-webkit-scrollbar{display:none}
+.spk .tq{flex:0 0 86%;scroll-snap-align:center;margin:0;background:#fff;border-radius:22px;padding:22px 20px;display:grid;gap:16px;align-content:space-between;position:relative;overflow:hidden}
+.spk .tq::after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:linear-gradient(90deg,var(--accent-fill),#7BE7B0)}
+.spk .tq-top{display:flex;justify-content:space-between;align-items:flex-start}
+.spk .tq-mark{font-family:Georgia,serif;font-size:72px;line-height:.6;color:var(--accent-fill);height:34px}
+.spk .tq-tag{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--tint);border:1px solid var(--tint-line);padding:4px 10px;border-radius:999px}
+.spk .tq blockquote{margin:0;font-size:16.5px;line-height:1.6;color:#2B302D}
+.spk .tq mark{background:linear-gradient(transparent 55%,#C9F5DD 55%);color:var(--text);font-weight:700;padding:0 .05em}
+.spk .tq figcaption{display:flex;gap:12px;align-items:center;padding-top:14px;border-top:1px solid var(--line)}
+.spk .tq .av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--accent-fill),#22B573);color:#fff;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:16px;flex:none;box-shadow:0 0 0 3px var(--tint)}
+.spk .tq b{display:block;font-size:16px}
+.spk .tq figcaption span{font-size:13px;color:var(--muted)}
+.spk .tq-dots{display:flex;justify-content:center;gap:8px;margin-top:18px}
+.spk .tq-dots i{width:8px;height:8px;border-radius:99px;background:#3A423E;transition:width .2s,background .2s}
+.spk .tq-dots i.on{width:22px;background:var(--cta)}
+@media (min-width:900px){
+  .spk .tq-row{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;overflow:visible}
+  .spk .tq{padding:28px}
+  .spk .tq blockquote{font-size:17.5px}
+  .spk .tq-dots{display:none}
+}
+
+/* ===== v11: reality bullets ===== */
+.spk .leaks{display:grid;gap:10px}
+.spk .leaks li{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);border-left:4px solid #E5484D;border-radius:12px;padding:12px 14px;font-weight:600;font-size:16px;line-height:1.35}
+.spk .lk{flex:none;width:36px;height:36px;border-radius:10px;background:#FDECEC;color:#C2332B;display:grid;place-items:center}
+.spk .lk svg{width:18px;height:18px}
+.spk .math{text-align:center;justify-items:center}
+.spk .xchips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.spk .xchips li{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-weight:700;font-size:15px}
+.spk .xchips .x{width:20px;height:20px;border-radius:50%;background:#FDE7E4;color:#B3261E;display:grid;place-items:center;font-size:10px;font-weight:900}
+.spk .letter .big-line{text-align:center}
+@media (min-width:640px){ .spk .leaks{grid-template-columns:1fr 1fr} }
+
+/* ===== v11: consistency system (one scale for the whole page) ===== */
+.spk .sec{padding-block:88px}
+.spk .head{margin-bottom:40px}
+.spk .head h2,.spk .guar h2,.spk .final h2,.spk .demo-copy h2{font-size:clamp(30px,4.4vw,46px);line-height:1.08}
+.spk .sys-copy h3{font-size:clamp(26px,3.4vw,36px)}
+.spk .lede{font-size:18px}
+.spk .band h3{font-size:clamp(22px,3vw,30px)}
+.spk .step h4,.spk .fit-card h3,.spk .calc h3{font-size:22px}
+.spk .btn{min-height:56px;font-size:18px}
+.spk .btn.btn-sm{min-height:42px;font-size:15px;padding:0 18px}
+.spk .scene,.spk .calc,.spk .stack,.spk .cmp,.spk .case,.spk .fit-card,.spk .band{border-radius:20px}
+.spk .sbar{z-index:9980}
+.spk footer{padding-bottom:110px}
+@media (max-width:639px){
+  .spk .sec{padding-block:56px}
+  .spk .head{margin-bottom:28px}
+  .spk .head h2,.spk .guar h2,.spk .final h2,.spk .demo-copy h2{font-size:28px}
+  .spk .sys-copy h3{font-size:26px}
+  .spk .lede{font-size:16px}
+  .spk .band h3{font-size:22px}
+  .spk .step h4,.spk .fit-card h3,.spk .calc h3{font-size:20px}
+  .spk .btn{min-height:54px;font-size:17px}
+  .spk .btn.btn-sm{min-height:40px;font-size:14.5px;padding:0 16px}
+  .spk .sbar{padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+  .spk .sbar .btn{min-height:50px}
+  .spk .leaks li{font-size:15px;padding:10px 12px}
+  .spk .guar p,.spk .terms{font-size:14px}
+  .spk footer{padding-bottom:100px}
+}
+
+.spk .note{display:block;text-align:center;text-wrap:balance}
+.spk .note svg{display:inline-block;vertical-align:-3px;margin-right:6px}
+
+/* ===== Recovery Loop strip + stage chips ===== */
+.spk .rloop{--g:18px;list-style:none;margin:0 auto 22px;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:var(--g);max-width:840px}
+.spk .rloop li{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;background:linear-gradient(160deg,var(--tint),#fff);border:1px solid var(--tint-line);border-radius:14px;padding:12px 8px}
+.spk .rloop li:not(:last-child)::after{content:"";position:absolute;top:50%;right:calc(var(--g) / -2 - 7px);width:14px;height:14px;transform:translateY(-50%);background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230B7A46' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 4.5l7.5 7.5-7.5 7.5'/%3E%3C/svg%3E") center/contain no-repeat}
+.spk .rloop b{width:28px;height:28px;border-radius:50%;background:var(--accent-fill);color:#fff;display:grid;place-items:center;font-family:var(--f-display);font-size:14px}
+.spk .rloop strong{display:block;font-family:var(--f-display);font-size:17px;line-height:1.1}
+.spk .rloop span{display:block;font-size:12px;color:var(--muted);line-height:1.3;margin-top:2px}
+.spk .six .stage{justify-self:start;font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#fff;background:var(--accent-fill);padding:3px 8px;border-radius:999px}
+.spk .six .stage.conv{background:#121212}
+.spk .six .stage.rec{background:var(--amber);color:#2a1a00}
+@media (min-width:640px){
+  .spk .rloop{--g:30px}
+  .spk .rloop li{flex-direction:row;text-align:left;padding:14px 16px;gap:12px}
+  .spk .rloop strong{font-size:19px}
+  .spk .rloop span{font-size:13px}
+}
+</style>
+
+<!-- Icon sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-phone" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+    <symbol id="i-revive" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 8v4l3 2"/></g></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></symbol>
+    <symbol id="i-starf" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></g></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></g></symbol>
+    <symbol id="i-calok" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M9 16l2 2 4-4"/></g></symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="13" rx="4"/><path d="M12 3v4M9 13h.01M15 13h.01M9.5 16.5h5"/></g></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H5.2L4 17.2z"/><path d="M12 8v3M12 13.5h.01"/></g></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M5 12l5 5L20 7"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></g></symbol>
+    <symbol id="i-dollar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 6.5c-1-1.2-2.8-2-5-2-2.8 0-4.5 1.4-4.5 3.3 0 4.7 9.5 2.3 9.5 7.5 0 2-1.9 3.4-5 3.4-2.3 0-4.2-.9-5.2-2.2"/></g></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 6-7"/></g></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></g></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5"/></g></symbol>
+    <symbol id="i-headset" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2" y="14" width="5" height="7" rx="2"/><rect x="17" y="14" width="5" height="7" rx="2"/></g></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></symbol>
+    <symbol id="i-snow" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M4.9 7l14.2 10M4.9 17L19.1 7"/></g></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></g></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></g></symbol>
+  </defs>
+</svg>
+
+<div class="spk">
+
+  <!-- ================= STICKY HEADER ================= -->
+  <div class="stickyhead" id="stickyhead">
+    <div class="announce"><span class="a1">For U.S. HVAC Contractors</span><span class="sep"> · </span><b>20% More Booked Jobs in 90 Days or You Don't Pay</b></div>
+    <header class="top">
+      <div class="wrap">
+        <a class="logo" href="#top"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAQzUlEQVR42u2deZBc1XXGf+e+1+v0bC1ppBFCGzIgJBljICLGCBwch4BjE2QMTlE28hInZKlUXCkndiq2y2XHqbLDXwllHK8VV9jsJDgkIWy2sQI4MQ6bQDISaIEZkNQ9a3e/7Z788V7P9CgaTQtG0x2mT1WXSqWnlub77v3Oeu8TmgMHeOq/6e/v3yIil6vqJcBGERkECoDL4rAQmFDVIWCXiDusqg+Wy+WnZsNsNpM5/twACujg4GDe87zrgQ8BW0UkA6CqLGYTiSFU1RrwGPDtTCZz+9DQUCVBVwD7WgiYYrBYLO4APiUiGxpAtwk5pkky32hWX3k2+dlNAxm/AL5YKpW+NddumA00Fwj7+vrWGGNuEZFfT744amBV6NixhNhkVzgJXveo6u+Wy+WDdUybIcAFwt7e3sscx/kHEVmhqmGy0k0H56bMAlZEXFUdstZePzIy8uPjkSDHA7+/v/8qEfm+iKQT8N0Opq/NWSckeKq6vVwu33MsCXKs5vf3979dRB4AUgmTTgfH12VRgqGvqpeXy+WfNPoEaYx2isXiSuBxERlQVduRnPkjQUQcVX0VeGupVHq5Hh01RjCqqt9MwA874M+rOaoaJth+I3HYUpcdF4iKxeIHjTGf6Gj+KTMDhMaYN+Xz+b3VavUJwBVABgcHc57nPQucfkxs37F5jo5ERFT1QD6f33jo0KGaAdTzvPeLyOrE6XbAP4W7QFWtiKypVCrXAloH+6MNmV3HFiZp+yiA9Pf3bxKRnydhZ8cWznzgLQa4QkRSNFG569i8hqVp4NcMcEkHjxbpkOolBtiYVDc7zndhQ1KAjQYYPE5ZomOnfvUjIoNGRLo6cCy41Rd7oVNibq25HfBbzcD/zw0sYGR2r6WAavLpEDB/qukYsAq1EKmFENljJFVjchyBtIOm3elNbhNCOgS8RqX0IqRcgaxLtL5ItHmAaEMRu7wLci4EFhnzMIcrmP0jOHvLmAMjSKkCImp+BRk3JinSDgHNRcsSL+ojFexgAe/G8/Dft4nwrYNoPsd0s04bdkLSGw88nBdHcB87ROo/9pL6yX7MgRFwDNqdiUOPNiBCisWituuql8kAUGofvYDqH1+MXb00BpcArI1lZTbijGG63aHIkVHS9+0jc9uTpB7cB36E9mbj79EOAf8X/HKNaEM/k3/zHoJ3nAX4EAXxKj+RAz6eIwZwXCANRLiP7Cf/pR+R+sEetDcT+wztEDANfqlKcOkaJr57HXZ5L4TVGCR5Hcm6arxjRMBkACXzzZ/S9akHwAun5K5VNYn2AX+kRnDZWsbv/iB2eSEG3zWvD/x66OqYGOigClYJrjwTBKSFVZj2IcAIUgmI1vczftt1cdQS+acmVzQCxiX/Fw+iQxP4IogudgIAQsvk316FLumF0I9X7HybVTAZnN2HcG5/mt5V3Zy7Jo8X2KlB28VHgBNLj7/9HIJ3nA1hZe6Vr8SJWGSnM16r8e/DE0RIqiAO+a88QjRao7snxZtW5vFDpQX4t0keoAopQ/X3LkwAauJ5MeDkEybCJAs2DT9SCDaInzUmGYNKVv+uA6TveAavJ0fkWypehGmRG2g9AYn2h5uXE164Kg43TyQ9qiAp8Hwytz1G6qEXMC+PI36EdqeJ1vQRXngawba12HXLkk3uQZR0XI0h9+VHkEmfqCtDIWtYN5gjtNoSV9wWBFALCX95Fbg5iCqzE2Bj8M2LZbo/cDupRw+hromfT1Z4KrRwy3+hS/MEF6/Gv24L/m+chebj3eI8eYD0XbuQ/izeWMDGNV287+3L+MpdB1qSCrSJBEG0eWBmVeEEO6Bw0z/jPnoQO9gNYUOyJUyHq0FE+l92k777OaKzl1H7w4uoffgicl/+T6TiI4UurFUu3tTHeZv6WL0sw+HRgJQrC1qza70TVgVXsCu7Ex0/UfSSxtk9jLvzILq0C7wodro2SbIijR1waMEI2pdFl+RxXizTddMP6L3sFlL37cX0ZfGqIactyfDui5ZiCi7XbhtgbCIkvcAtEtMOqx9j0Hy6oaA2y3MIUqoiQcScXlPjYpuEFnIpWJIn/cQw6dASWBgdDfjMB9czuCqPHfX5xAfWsmldF8MlH9cRXEfiikfD541JgCS7IIg4oQYZQEOic5ZjV3Yj4z6k5v7v+6Hi+RHVSsjRUHhlNCCfMdzyJ+fwsXtOx06GEClL+9Pc/cW38M7zi5THQ14d8RmrRHi+xQviz6mQptbXglyDHKkw8Y334n3oohPnAEkYmbp/N93X3YGM+2h/dlqCjmPLelM4jtCVddi4pou3berjqouWsmpVHjsZTm0ktYpkHTRU7v/ZUe5/vMQTz09w6Ig35WMOjwYE85wvOLlc7rPtEIba1X0EV5wNGswuLyJgQ+wZK/Cv2oCz5wjOM6/GZYSse9wNdMFZPZy2LMtbzihww7sGuXrbAD3LszAe1EdDkq8WIt9iuhzOOKObzSu7yLgGL7AM9KcZLGZ46YiHF1jMPDLQ+h1gBKmGRBv6GX3s42janNAVQJIBO0lF87Ynyf71TtzHz4F0d8A47nAdx/dxzdA33dK8n2JqE1K0w521990Jv2oA19266e75S5wQ+jSboKjD11d/w6w+m3v019sD5V6852f1P37Cd9yF9mbeuD+k761p0EIdb6hM3nO77gDPhE494s313r333r6f0lQfA1x9nbd+b+/D4k2q/c2J4L3075j2D5tN2q1Jd0s3eB1e4d3X636C+3sI3/D584vjJt234uV1r4A+/D370A1JNm/2H2Vb/6XvS95z1oPj+n0+66405786W3jB5e7vN+Jz8j1gK5r2627s7oB4T7eC5f3lA+tnd0/7u130k/66V+7z/0g339L9+Fz699u2/3/x+xQZg7l2F0IAAAAAElFTkSuQmCC" alt="Spyke AI logo" width="34" height="34">Spyke AI</a>
+        <a class="btn btn-primary btn-sm js-book" href="#book">Book a 1:1 Call</a>
+      </div>
+    </header>
+  </div>
+  <div class="head-spacer" id="top"></div>
+
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <div class="wrap">
+      <p class="attn">Attention: HVAC Company Owners</p>
+      <h1 class="offer">Book <span class="hl">20% More HVAC Jobs</span> &amp; Recover <span class="hl-money">$10,000+</span> in 90 Days. <span class="nopay">Or You Don't Pay Us.</span></h1>
+      <p class="without">👉 Without Buying New Leads or Hiring More Staff</p>
+      <p class="lede hero-sub">Our AI answers every call 24/7 and books the job for you.</p>
+
+      <div class="hero-ctas">
+        <a class="btn btn-primary js-book" href="#book">Book a 1:1 Call <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a class="btn btn-ghost" href="#demo">Get a demo call</a>
+      </div>
+      <p class="note" style="margin-top:-8px">Free 30-min call · No obligation</p>
+
+      <div class="trustbar">
+        <div class="tb"><div class="ic"><svg aria-hidden="true"><use href="#i-shield"/></svg></div>90-Day Money-Back Guarantee</div>
+        <div class="tb"><div class="ic"><svg aria-hidden="true"><use href="#i-phone"/></svg></div>Try the AI Free</div>
+        <div class="tb"><div class="ic"><svg aria-hidden="true"><use href="#i-mic"/></svg></div>Every Call Recorded</div>
+        <div class="tb"><div class="ic"><svg aria-hidden="true"><use href="#i-check"/></svg></div>Live in 2 Weeks</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= HERE'S THE REALITY ================= -->
+  <section class="sec" id="reality">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">Here's the reality</div>
+        <h2>You don't have a lead problem. <span class="hl">You have a leak problem.</span></h2>
+      </div>
+      <div class="letter">
+        <ul class="leaks">
+          <li><span class="lk"><svg aria-hidden="true"><use href="#i-phone"/></svg></span>Calls go to voicemail when your team is busy</li>
+          <li><span class="lk"><svg aria-hidden="true"><use href="#i-snow"/></svg></span>After-hours and weekend calls go unanswered</li>
+          <li><span class="lk"><svg aria-hidden="true"><use href="#i-revive"/></svg></span>New leads wait hours for a call back</li>
+          <li><span class="lk"><svg aria-hidden="true"><use href="#i-alert"/></svg></span>Estimates never get a follow-up</li>
+          <li><span class="lk"><svg aria-hidden="true"><use href="#i-users"/></svg></span>Old leads sit untouched in your CRM</li>
+          <li><span class="lk"><svg aria-hidden="true"><use href="#i-dollar"/></svg></span>You keep buying leads while these slip away</li>
+        </ul>
+        <p class="big-line">We plug the leaks for you:</p>
+        <ul class="xchips">
+          <li><span class="x">✕</span>No new leads</li>
+          <li><span class="x">✕</span>No new staff</li>
+          <li><span class="x">✕</span>No software to learn</li>
+        </ul>
+        <div class="letter-cta">
+          <a class="btn btn-primary js-book" href="#book">Book a 1:1 Call</a>
+          <p class="note"><svg aria-hidden="true"><use href="#i-shield"/></svg>20% more booked jobs in 90 days, or you don't pay us</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PROBLEM + CALCULATOR ================= -->
+  <section class="sec soft" id="calculator">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">Run your numbers</div>
+        <h2>Every missed call is a check you're handing to <span class="hl">your competitor.</span></h2>
+        <p class="lede">Homeowners don't leave voicemails. They call the next HVAC company on Google.</p>
+      </div>
+      <div class="calc">
+        <div style="display:grid;gap:24px">
+          <h3>How much is voicemail costing you?</h3>
+          <div class="field">
+            <div class="field-top"><label for="c-calls">Calls missed per day</label><output id="o-calls">1</output></div>
+            <input id="c-calls" type="range" min="1" max="100" value="1">
+          </div>
+          <div class="field">
+            <div class="field-top"><label for="c-rate">% of missed calls you'd have booked</label><output id="o-rate">30%</output></div>
+            <p class="hint">Out of every 10 missed calls, how many would have turned into a paid job? 3 out of 10 = 30%.</p>
+            <input id="c-rate" type="range" min="10" max="80" step="5" value="30">
+          </div>
+          <div class="field">
+            <div class="field-top"><label for="c-ticket">Average ticket</label><output id="o-ticket">$750</output></div>
+            <input id="c-ticket" type="range" min="200" max="12000" step="50" value="750">
+          </div>
+        </div>
+        <div class="result" aria-live="polite">
+          <small>Money you're handing competitors</small>
+          <div class="loss">
+            <div class="loss-y"><span>Every year</span><div class="big" id="o-year">$81,000</div><em><b id="o-jobs">108</b> jobs lost a year</em></div>
+            <div class="loss-m"><span>Every month</span><div class="big2" id="o-month">$6,750</div><em><b id="o-jobs-m">9</b> jobs lost a month</em></div>
+          </div>
+          <a class="btn btn-primary js-book" href="#book">Book a 1:1 Call</a>
+          <p class="fine">Estimate based on your inputs and 30 days a month. Not a guarantee of results.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 6 SYSTEMS OVERVIEW ================= -->
+  <section class="sec" id="inside">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">The HVAC Revenue Recovery Loop™</div>
+        <h2>6 systems that turn lost money into <span class="hl">booked jobs.</span></h2>
+        <p class="lede">One method, 3 steps. Every system has a job in it.</p>
+      </div>
+      <ol class="rloop" aria-label="The HVAC Revenue Recovery Loop">
+        <li><b>1</b><div><strong>Capture</strong><span>Every call answered</span></div></li>
+        <li><b>2</b><div><strong>Convert</strong><span>Qualified &amp; booked</span></div></li>
+        <li><b>3</b><div><strong>Recover</strong><span>Old leads won back</span></div></li>
+      </ol>
+      <div class="six">
+        <a href="#s1"><svg class="thumb" viewBox="0 0 200 120" aria-hidden="true"><rect width="200" height="120" rx="12" fill="#E6FBF0"/><path d="M52 44a40 40 0 0 0 0 32M40 36a54 54 0 0 0 0 48M148 44a40 40 0 0 1 0 32M160 36a54 54 0 0 1 0 48" fill="none" stroke="#0B7A46" stroke-width="3" stroke-linecap="round"/><rect x="72" y="10" width="56" height="100" rx="11" fill="#121212"/><rect x="77" y="20" width="46" height="74" rx="5" fill="#22302A"/><text x="100" y="38" text-anchor="middle" font-family="Kumbh Sans,Arial,sans-serif" font-size="8" fill="#B9C4BE">Incoming call</text><text x="100" y="52" text-anchor="middle" font-family="Kumbh Sans,Arial,sans-serif" font-size="9.5" font-weight="700" fill="#fff">AI answering</text><circle cx="100" cy="76" r="10" fill="#0B7A46"/><path d="M96 73c1 4 3 6 7 7l2-2-3-2-1 1c-1 0-2-1-3-3l1-1-2-3z" fill="#fff"/><rect x="140" y="8" width="48" height="22" rx="11" fill="#FFC050"/><text x="164" y="23" text-anchor="middle" font-family="Kumbh Sans,Arial,sans-serif" font-size="11" font-weight="800" fill="#2a1a00">24/7</text></svg><div class="ic"><svg aria-hidden="true"><use href="#i-headset"/></svg></div><small>System 01</small><em class="stage">Capture</em><h3>AI Receptionist</h3><p>Answers every call 24/7 and books the job.</p><span class="go">See how →</span></a>
+        <a href="#s2"><svg class="thumb" viewBox="0 0 200 120" aria-hidden="true"><rect width="200" height="120" rx="12" fill="#E6FBF0"/><rect x="14" y="12" width="172" height="96" rx="9" fill="#fff" stroke="#C9D6CF" stroke-width="1.5"/><rect x="14" y="12" width="172" height="14" rx="9" fill="#EEF3F0"/><circle cx="24" cy="19" r="2.5" fill="#C9D6CF"/><circle cx="32" cy="19" r="2.5" fill="#C9D6CF"/><rect x="24" y="36" width="60" height="7" rx="3" fill="#DCE3EA"/><rect x="24" y="48" width="46" height="5" rx="2.5" fill="#E8EDF1"/><rect x="24" y="58" width="52" height="5" rx="2.5" fill="#E8EDF1"/><rect x="92" y="34" width="86" height="68" rx="9" fill="#fff" stroke="#C9D6CF"/><rect x="92" y="34" width="86" height="14" rx="9" fill="#121212"/><text x="100" y="44" font-family="Kumbh Sans,Arial,sans-serif" font-size="7.5" font-weight="700" fill="#fff">AI calling lead</text><rect x="98" y="54" width="54" height="13" rx="6" fill="#EEF3F0"/><text x="102" y="63" font-family="Kumbh Sans,Arial,sans-serif" font-size="7" fill="#121212">New web lead</text><rect x="114" y="71" width="58" height="13" rx="6" fill="#0B7A46"/><text x="118" y="80" font-family="Kumbh Sans,Arial,sans-serif" font-size="7" fill="#fff">Hi Jen, it's AI…</text><rect x="104" y="88" width="62" height="10" rx="5" fill="#FFC050"/><text x="135" y="95.5" text-anchor="middle" font-family="Kumbh Sans,Arial,sans-serif" font-size="6.5" font-weight="800" fill="#2a1a00">✓ BOOKED</text></svg><div class="ic"><svg aria-hidden="true"><use href="#i-chat"/></svg></div><small>System 02</small><em class="stage conv">Convert</em><h3>AI Voice Assistant</h3><p>Calls new leads in 60 seconds and books them.</p><span class="go">See how →</span></a>
+        <a href="#s3"><svg class="thumb" viewBox="0 0 200 120" aria-hidden="true"><rect width="200" height="120" rx="12" fill="#E6FBF0"/><rect x="12" y="16" width="78" height="88" rx="8" fill="#fff" stroke="#C9D6CF"/><text x="20" y="31" font-family="Kumbh Sans,Arial,sans-serif" font-size="8" font-weight="700" fill="#121212">Old leads</text><g font-family="Kumbh Sans,Arial,sans-serif" font-size="7"><rect x="20" y="38" width="62" height="16" rx="4" fill="#F2F6F4"/><text x="24" y="49" fill="#56625B">Sarah · $8.9K</text><rect x="20" y="58" width="62" height="16" rx="4" fill="#F2F6F4"/><text x="24" y="69" fill="#56625B">David · $11K</text><rect x="20" y="78" width="62" height="16" rx="4" fill="#F2F6F4"/><text x="24" y="89" fill="#56625B">Linda · $6.2K</text></g><path d="M94 60h18" stroke="#0B7A46" stroke-width="3" stroke-linecap="round"/><path d="M107 54l7 6-7 6" fill="none" stroke="#0B7A46" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><rect x="118" y="30" width="70" height="60" rx="8" fill="#fff" stroke="#A8E8C7" stroke-width="1.5"/><circle cx="153" cy="50" r="11" fill="#0B7A46"/><path d="M148 50l4 4 7-7" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><text x="153" y="74" text-anchor="middle" font-family="Kumbh Sans,Arial,sans-serif" font-size="8.5" font-weight="800" fill="#121212">Job booked</text><text x="153" y="84" text-anchor="middle" font-family="Kumbh Sans,Arial,sans-serif" font-size="7.5" fill="#A86400" font-weight="700">$8,900</text></svg><div class="ic"><svg aria-hidden="true"><use href="#i-revive"/></svg></div><small>System 03</small><em class="stage rec">Recover</em><h3>Old Lead Reactivation</h3><p>Calls your old leads and books new jobs.</p><span class="go">See how →</span></a>
+        <a href="#s4"><svg class="thumb" viewBox="0 0 200 120" aria-hidden="true"><rect width="200" height="120" rx="12" fill="#E6FBF0"/><rect x="26" y="18" width="148" height="84" rx="10" fill="#fff" stroke="#C9D6CF"/><rect x="36" y="28" width="22" height="22" rx="6" fill="#121212"/><text x="47" y="43" text-anchor="middle" font-family="Kumbh Sans,Arial,sans-serif" font-size="9" font-weight="800" fill="#fff">CB</text><text x="64" y="37" font-family="Kumbh Sans,Arial,sans-serif" font-size="8.5" font-weight="700" fill="#121212">Your HVAC Company</text><text x="64" y="47" font-family="Kumbh Sans,Arial,sans-serif" font-size="7" fill="#56625B">Google profile</text><text x="36" y="72" font-family="Kumbh Sans,Arial,sans-serif" font-size="20" font-weight="800" fill="#121212">4.9</text><text x="72" y="71" font-family="Kumbh Sans,Arial,sans-serif" font-size="15" fill="#E8A10E" letter-spacing="1">★★★★★</text><rect x="36" y="80" width="76" height="14" rx="7" fill="#D0F5E2"/><text x="74" y="90" text-anchor="middle" font-family="Kumbh Sans,Arial,sans-serif" font-size="7.5" font-weight="800" fill="#0B7A46">+1 new review</text></svg><div class="ic"><svg aria-hidden="true"><use href="#i-star"/></svg></div><small>System 04</small><em class="stage rec">Recover</em><h3>Google Review Booster</h3><p>Gets you more 5-star Google reviews.</p><span class="go">See how →</span></a>
+        <a href="#s5"><svg class="thumb" viewBox="0 0 200 120" aria-hidden="true"><rect width="200" height="120" rx="12" fill="#E6FBF0"/><rect x="0" y="96" width="200" height="24" fill="#D7E6DE"/><rect x="18" y="62" width="54" height="34" rx="3" fill="#fff" stroke="#C9D6CF" stroke-width="1.5"/><path d="M12 66 45 40l33 26" fill="#D0F5E2" stroke="#0B7A46" stroke-width="3" stroke-linejoin="round"/><rect x="38" y="76" width="14" height="20" fill="#0B7A46"/><rect x="128" y="62" width="54" height="34" rx="3" fill="#fff" stroke="#C9D6CF" stroke-width="1.5"/><path d="M122 66 155 40l33 26" fill="#FFF4DB" stroke="#A86400" stroke-width="3" stroke-linejoin="round"/><rect x="148" y="76" width="14" height="20" fill="#A86400"/><path d="M72 42C90 14 110 14 128 42" fill="none" stroke="#0B7A46" stroke-width="2.5" stroke-dasharray="5 5"/><path d="M121 37l7 5-8 2" fill="none" stroke="#0B7A46" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="80" y="10" width="40" height="18" rx="9" fill="#FFC050"/><text x="100" y="22.5" text-anchor="middle" font-family="Kumbh Sans,Arial,sans-serif" font-size="9.5" font-weight="800" fill="#2a1a00">$50</text></svg><div class="ic"><svg aria-hidden="true"><use href="#i-home"/></svg></div><small>System 05</small><em class="stage rec">Recover</em><h3>Refer-a-Neighbor Rewards</h3><p>Customers send you their neighbors.</p><span class="go">See how →</span></a>
+        <a href="#s6"><svg class="thumb" viewBox="0 0 200 120" aria-hidden="true"><rect width="200" height="120" rx="12" fill="#E6FBF0"/><rect x="22" y="14" width="156" height="92" rx="10" fill="#fff" stroke="#C9D6CF"/><rect x="22" y="14" width="156" height="18" rx="10" fill="#121212"/><text x="100" y="26.5" text-anchor="middle" font-family="Kumbh Sans,Arial,sans-serif" font-size="8.5" font-weight="700" fill="#fff">Tune-up reminders</text><g font-family="Kumbh Sans,Arial,sans-serif" font-size="7" font-weight="700" text-anchor="middle"><rect x="32" y="40" width="40" height="28" rx="6" fill="#D0F5E2"/><text x="52" y="51" fill="#0B7A46">SPRING</text><text x="52" y="62" fill="#0B7A46">AC ☀</text><rect x="80" y="40" width="40" height="28" rx="6" fill="#F2F6F4"/><text x="100" y="57" fill="#9AA59F">SUMMER</text><rect x="128" y="40" width="40" height="28" rx="6" fill="#FFF4DB"/><text x="148" y="51" fill="#A86400">FALL</text><text x="148" y="62" fill="#A86400">HEAT ❄</text></g><rect x="32" y="76" width="136" height="20" rx="6" fill="#0B7A46"/><text x="100" y="89" text-anchor="middle" font-family="Kumbh Sans,Arial,sans-serif" font-size="8" font-weight="700" fill="#fff">"Time for your tune-up. Book?"</text></svg><div class="ic"><svg aria-hidden="true"><use href="#i-cal"/></svg></div><small>System 06</small><em class="stage rec">Recover</em><h3>Tune-Up Reminders</h3><p>Brings customers back every season.</p><span class="go">See how →</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= DEMO FORM ================= -->
+  <section class="sec soft" id="demo">
+    <div class="wrap demo">
+      <div class="demo-copy">
+        <div class="eyebrow">Try it yourself</div>
+        <h2>Don't take our word for it. <span class="hl">Take the call.</span></h2>
+        <p class="lede">Our AI calls you in 60 seconds. Try to stump it. If it can't book you, don't hire us.</p>
+        <ul class="demo-steps">
+          <li><b>1</b>Enter your name, email &amp; cell number</li>
+          <li><b>2</b>Enter the 4-digit OTP code sent to you</li>
+          <li><b>3</b>Our HVAC AI calls you right away</li>
+        </ul>
+      </div>
+
+      <!-- INLINE DEMO FORM CARD (MATCHING IMAGE 2) -->
+      <div class="embed-card">
+        <h3>Hear it live on your phone</h3>
+        <p class="sub">Free. 2 minutes. No sales pitch on this call.</p>
+        
+        <div class="embed-card-compact" id="demo-card-container">
+          <form id="demo-phone-form" novalidate>
+            <!-- STEP 1: LEAD DETAILS -->
+            <div id="otp-step-1">
+              <div class="form-field">
+                <label>Full Name <span style="color:#FFC050;">*</span></label>
+                <input type="text" id="fn" placeholder="Mike" required />
+                <div class="form-err-msg" id="fn-err" style="display:none;font-size:11.5px;color:#FF6B6B;margin-top:2px;">Please enter your full name.</div>
+              </div>
+
+              <!-- PHONE NUMBER FIELD WITH INTEGRATED SVG FLAG PICKER (IMAGE 1 & 2) -->
+              <div class="form-field">
+                <label>Phone <span style="color:#FFC050;">*</span></label>
+                <div class="phone-group">
+                  <div class="flag-picker-dropdown">
+                    <button type="button" class="flag-picker-btn" id="flag-picker-trigger" title="Select Country Code">
+                      <img id="selected-flag-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='6.67' fill='%23FF9933'/%3E%3Crect y='6.67' width='30' height='6.67' fill='%23FFFFFF'/%3E%3Crect y='13.33' width='30' height='6.67' fill='%23138808'/%3E%3Ccircle cx='15' cy='10' r='2.2' fill='%23000080'/%3E%3C/svg%3E" alt="India Flag" />
+                      <span class="flag-arrow">▼</span>
+                    </button>
+                    <div class="flag-options-menu" id="flag-picker-menu" style="display:none;">
+                      <div class="flag-opt" data-cc="+91" data-flag="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='6.67' fill='%23FF9933'/%3E%3Crect y='6.67' width='30' height='6.67' fill='%23FFFFFF'/%3E%3Crect y='13.33' width='30' height='6.67' fill='%23138808'/%3E%3Ccircle cx='15' cy='10' r='2.2' fill='%23000080'/%3E%3C/svg%3E">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='6.67' fill='%23FF9933'/%3E%3Crect y='6.67' width='30' height='6.67' fill='%23FFFFFF'/%3E%3Crect y='13.33' width='30' height='6.67' fill='%23138808'/%3E%3Ccircle cx='15' cy='10' r='2.2' fill='%23000080'/%3E%3C/svg%3E" alt="India" />
+                        <span>India (+91)</span>
+                      </div>
+                      <div class="flag-opt" data-cc="+1" data-flag="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='20' fill='%23B22234'/%3E%3Cpath d='M0 3h30M0 7h30M0 11h30M0 15h30M0 19h30' stroke='%23fff' stroke-width='1.5'/%3E%3Crect width='12' height='11' fill='%233C3B6E'/%3E%3C/svg%3E">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='20' fill='%23B22234'/%3E%3Cpath d='M0 3h30M0 7h30M0 11h30M0 15h30M0 19h30' stroke='%23fff' stroke-width='1.5'/%3E%3Crect width='12' height='11' fill='%233C3B6E'/%3E%3C/svg%3E" alt="USA" />
+                        <span>USA (+1)</span>
+                      </div>
+                      <div class="flag-opt" data-cc="+1" data-flag="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='20' fill='%23FF0000'/%3E%3Crect x='7.5' width='15' height='20' fill='%23FFFFFF'/%3E%3Cpath d='M15 4l1.5 3 3-1-1.5 3.5 3.5 1-3.5 1.5 1 3.5-3.5-2-3.5 2 1-3.5-3.5-1.5 3.5-1-1.5-3.5 3 1z' fill='%23FF0000'/%3E%3C/svg%3E">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='20' fill='%23FF0000'/%3E%3Crect x='7.5' width='15' height='20' fill='%23FFFFFF'/%3E%3Cpath d='M15 4l1.5 3 3-1-1.5 3.5 3.5 1-3.5 1.5 1 3.5-3.5-2-3.5 2 1-3.5-3.5-1.5 3.5-1-1.5-3.5 3 1z' fill='%23FF0000'/%3E%3C/svg%3E" alt="Canada" />
+                        <span>Canada (+1)</span>
+                      </div>
+                      <div class="flag-opt" data-cc="+44" data-flag="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='20' fill='%23012169'/%3E%3Cpath d='M0 0l30 20M30 0L0 20' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M0 0l30 20M30 0L0 20' stroke='%23C8102E' stroke-width='2'/%3E%3Cpath d='M15 0v20M0 10h30' stroke='%23fff' stroke-width='6'/%3E%3Cpath d='M15 0v20M0 10h30' stroke='%23C8102E' stroke-width='3.5'/%3E%3C/svg%3E">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='20' fill='%23012169'/%3E%3Cpath d='M0 0l30 20M30 0L0 20' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M0 0l30 20M30 0L0 20' stroke='%23C8102E' stroke-width='2'/%3E%3Cpath d='M15 0v20M0 10h30' stroke='%23fff' stroke-width='6'/%3E%3Cpath d='M15 0v20M0 10h30' stroke='%23C8102E' stroke-width='3.5'/%3E%3C/svg%3E" alt="UK" />
+                        <span>UK (+44)</span>
+                      </div>
+                    </div>
+                  </div>
+                  <input type="hidden" id="cc" value="+91" />
+                  <input type="tel" id="pn" placeholder="(555) 123-4567" required />
+                </div>
+                <div class="form-err-msg" id="pn-err" style="display:none;font-size:11.5px;color:#FF6B6B;margin-top:2px;">Please enter a valid phone number.</div>
+              </div>
+
+              <!-- MANDATORY EMAIL FIELD WITH INTEGRATED ENVELOPE ICON (IMAGE 1 & 2) -->
+              <div class="form-field">
+                <label>Email <span style="color:#FFC050;">*</span></label>
+                <div class="input-icon-wrapper">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                  </svg>
+                  <input type="email" id="em" placeholder="mike@coolbreezehvac.com" required />
+                </div>
+                <div class="form-err-msg" id="em-err" style="display:none;font-size:11.5px;color:#FF6B6B;margin-top:2px;">Please enter a valid email address.</div>
+              </div>
+
+              <!-- COMPANY NAME FIELD -->
+              <div class="form-field">
+                <label>Company Name <span style="color:#FFC050;">*</span></label>
+                <input type="text" id="cn" placeholder="Cool Breeze HVAC" />
+              </div>
+
+              <!-- CONSENT CHECKBOX MATCHING IMAGE 2 -->
+              <label class="form-consent">
+                <input type="checkbox" id="consent-chk" required checked />
+                <span>I agree to receive an AI demo call and texts from Spyke AI at this number</span>
+              </label>
+              <div class="form-err-msg" id="chk-err" style="display:none;font-size:11.5px;color:#FF6B6B;margin-bottom:8px;">Please check consent.</div>
+
+              <!-- SUBMIT BUTTON MATCHING IMAGE 2 -->
+              <button type="button" id="btn-send-otp" class="form-submit-btn">
+                <span>Call Me Now 📞 &rarr;</span>
+              </button>
+            </div>
+
+            <!-- STEP 2: OTP VERIFICATION CODE INPUT -->
+            <div id="otp-step-2" style="display:none;">
+              <div style="background:rgba(0,255,137,0.1); border:1px solid rgba(0,255,137,0.3); border-radius:10px; padding:12px; margin-bottom:12px; text-align:center;">
+                <div style="margin-bottom:4px; display:flex; align-items:center; justify-content:center;">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00FF89" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                  </svg>
+                </div>
+                <h4 style="margin:0 0 4px 0; font-family:var(--f-display); font-size:15px; font-weight:700; color:#00FF89;">Enter 4-Digit OTP Code</h4>
+                <p style="font-size:12.5px; color:#A8E8C7; margin:0;" id="otp-sent-info">We sent an OTP code to your email.</p>
+              </div>
+
+              <div class="form-field" style="text-align:center;">
+                <label style="font-size:13px; font-weight:700; color:#FFC050; display:block; margin-bottom:6px;">Verification Code (OTP) <span style="color:#FFC050;">*</span></label>
+                <input type="text" id="otp-code" maxlength="4" placeholder="• • • •" style="width:150px; margin:0 auto; font-size:22px; font-weight:800; letter-spacing:6px; text-align:center; padding:8px 10px; background:#E6FBF0; color:#121212; border:2px solid #00FF89; border-radius:10px; outline:none;" />
+                <div class="form-err-msg" id="otp-err" style="display:none;font-size:11.5px;color:#FF6B6B;text-align:center;margin-top:6px;">Invalid OTP code. Please try again.</div>
+              </div>
+
+              <button type="button" id="btn-verify-otp" class="form-submit-btn" style="margin-top:12px;">
+                <span>Verify OTP &amp; Call Me Now 📞</span>
+              </button>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:12px;">
+                <button type="button" id="btn-back-step1" style="background:none; border:none; color:#CBD5E1; text-decoration:underline; cursor:pointer; font-weight:600; padding:0;">← Change Details</button>
+                <button type="button" id="btn-resend-otp" style="background:none; border:none; color:#00FF89; text-decoration:underline; cursor:pointer; font-weight:700; padding:0;">Resend OTP</button>
+              </div>
+            </div>
+
+            <!-- FINAL SUCCESS MESSAGE -->
+            <div id="demo-form-msg" style="display:none;margin-top:10px;padding:14px;background:rgba(0,255,137,0.15);border:1.5px solid #00FF89;border-radius:12px;color:#E6FBF0;text-align:center;font-weight:700;">
+              <div style="font-size:26px;margin-bottom:2px;">✅</div>
+              <div style="font-size:16px;font-family:var(--f-display);color:#00FF89;">OTP Verified Successfully!</div>
+              <div style="font-size:13.5px;font-weight:600;margin-top:2px;color:#A8E8C7;">Calling your phone right now...</div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SYSTEMS DETAIL ================= -->
+  <section id="systems">
+    <div class="wrap">
+
+      <!-- 01 AI Receptionist -->
+      <article class="sys" id="s1">
+        <div class="sys-copy">
+          <div class="sys-tag"><div class="num">01</div><span>AI Receptionist</span></div>
+          <h3>Answer every call in 2 rings. Even at 2AM.</h3>
+          <p class="why">Never sleeps, never calls in sick. Books the job straight to your schedule.</p>
+          <ul class="checks">
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Asks the right questions: symptoms, system age, ZIP</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>No-heat, no-cool and gas calls go to your on-call tech</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Every caller logged in your pipeline</li>
+          </ul>
+          <div class="outcome"><svg aria-hidden="true"><use href="#i-dollar"/></svg>Every call answered means every job stays in play</div>
+        </div>
+        <div class="scene">
+          <div class="scene-label">A 9:47PM call, start to finish</div>
+          <div class="s1-grid">
+            <div>
+              <div class="step-l"><b>1</b>Homeowner calls after hours</div>
+              <div class="incall">
+                <div class="who"><span>Incoming · (713) 555-0148</span><em>AI answering</em></div>
+                <b>Tue · 9:47PM</b>
+                <div class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                <small>"My AC is blowing warm air and it's 84 inside."</small>
+              </div>
+            </div>
+            <div class="connector"><svg aria-hidden="true"><use href="#i-arrow"/></svg></div>
+            <div>
+              <div class="step-l"><b>2</b>AI qualifies the job</div>
+              <div class="panel facts">
+                <div class="fact"><small>Issue</small><b>No cooling</b></div>
+                <div class="fact"><small>System</small><b>11 yrs old</b></div>
+                <div class="fact"><small>ZIP</small><b>77008</b></div>
+                <div class="fact"><small>Priority</small><b>Next day</b></div>
+              </div>
+            </div>
+            <div class="connector"><svg aria-hidden="true"><use href="#i-arrow"/></svg></div>
+            <div>
+              <div class="step-l"><b>3</b>Books it on your schedule</div>
+              <div class="panel">
+                <div class="calhead">Wed <span>Tech: Carlos</span></div>
+                <div class="calmini">
+                  <span class="t">7AM</span><div class="slot"></div>
+                  <span class="t">8AM</span><div class="slot bk">Martinez · No cool<span>8–10AM · 77008</span></div>
+                  <span class="t">10AM</span><div class="slot"></div>
+                </div>
+              </div>
+            </div>
+            <div class="connector"><svg aria-hidden="true"><use href="#i-arrow"/></svg></div>
+            <div>
+              <div class="step-l"><b>4</b>You get a text</div>
+              <div class="toast">
+                <div class="ic"><svg aria-hidden="true"><use href="#i-calok"/></svg></div>
+                <div><b>New job booked</b><span>Martinez · Wed 8–10AM · No cool, 11-yr system. Likely replacement lead.</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 02 AI Voice Assistant -->
+      <article class="sys flip" id="s2">
+        <div class="sys-copy">
+          <div class="sys-tag"><div class="num">02</div><span>AI Voice Assistant</span></div>
+          <h3>Call every new lead back in 60 seconds.</h3>
+          <p class="why">Talks to your web and ad leads like a real person and books the job.</p>
+          <ul class="checks">
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Calls every form, ad and missed-call lead fast</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Answers pricing and service questions</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Books the job before they call a competitor</li>
+          </ul>
+          <div class="outcome"><svg aria-hidden="true"><use href="#i-dollar"/></svg>More jobs from the leads you already pay for</div>
+        </div>
+        <div class="scene">
+          <div class="scene-label">A new web lead at 11:32PM</div>
+          <div class="s1-grid">
+            <div>
+              <div class="step-l"><b>1</b>Homeowner fills your website form</div>
+              <div class="panel" style="display:grid;gap:8px">
+                <div class="fact"><small>Name</small><b>Jen Alvarez</b></div>
+                <div class="fact"><small>Request</small><b>Furnace making noise</b></div>
+                <div class="won" style="justify-self:start">Submitted · 11:32PM</div>
+              </div>
+            </div>
+            <div class="connector"><svg aria-hidden="true"><use href="#i-arrow"/></svg></div>
+            <div>
+              <div class="step-l"><b>2</b>AI calls her back in 60 seconds</div>
+              <div class="incall">
+                <div class="who"><span>Calling · Jen Alvarez</span><em>AI talking</em></div>
+                <b>11:33PM</b>
+                <div class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+                <small>"Hi Jen, it's Cool Breeze. I saw your furnace request. Is it making a rattling or a squealing sound?"</small>
+              </div>
+            </div>
+            <div class="connector"><svg aria-hidden="true"><use href="#i-arrow"/></svg></div>
+            <div>
+              <div class="step-l"><b>3</b>Answers her questions</div>
+              <div class="panel" style="display:grid;gap:8px">
+                <div class="bub in">How much is a service call?</div>
+                <div class="bub out">It's $89, and that goes toward the repair if you go ahead.</div>
+              </div>
+            </div>
+            <div class="connector"><svg aria-hidden="true"><use href="#i-arrow"/></svg></div>
+            <div>
+              <div class="step-l"><b>4</b>Job booked before she calls anyone else</div>
+              <div class="toast">
+                <div class="ic"><svg aria-hidden="true"><use href="#i-calok"/></svg></div>
+                <div><b>New job booked</b><span>Alvarez · Thu 10AM · Furnace noise. Booked 2 minutes after the form.</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <div class="band">
+        <div style="display:grid;gap:6px">
+          <h3>Every call. Every lead. Every job.</h3>
+          <p>See a live demo and get your questions answered on a free 30-min call.</p>
+        </div>
+        <a class="btn btn-primary js-book" href="#book">Book a 1:1 Call</a>
+      </div>
+
+      <!-- 03 Old Lead Reactivation -->
+      <article class="sys" id="s3">
+        <div class="sys-copy">
+          <div class="sys-tag"><div class="num">03</div><span>Old Lead Reactivation</span></div>
+          <h3>Turn your old leads into new jobs.</h3>
+          <p class="why">Our AI calls every old lead and past customer in your database, and books the ones ready to buy.</p>
+          <ul class="checks">
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>AI calls old leads, unsold estimates and past customers</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Books repairs, tune-ups and replacements</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Texts anyone who doesn't pick up</li>
+          </ul>
+          <div class="outcome"><svg aria-hidden="true"><use href="#i-dollar"/></svg>New jobs from leads you already paid for</div>
+        </div>
+        <div class="scene">
+          <div class="scene-label">Your old database, before and after</div>
+          <div class="board">
+            <div class="col">
+              <h4>Old leads <span>312</span></h4>
+              <div class="est"><b>Sarah K.</b><span class="amt">$8,900</span><span class="age">3-ton AC · 8 mo</span><span class="st">Cold</span></div>
+              <div class="est"><b>David R.</b><span class="amt">$11,400</span><span class="age">Heat pump · 5 mo</span><span class="st">Cold</span></div>
+              <div class="est fade"><b>Linda M.</b><span class="amt">$6,200</span><span class="age">Furnace · 1 yr</span><span class="st">Cold</span></div>
+            </div>
+            <div class="mid">
+              <div class="ic"><svg aria-hidden="true"><use href="#i-phone"/></svg></div>
+              AI calls them
+              <span class="arrow-down"><svg aria-hidden="true"><use href="#i-arrow"/></svg></span>
+            </div>
+            <div class="col">
+              <h4>Booked jobs <span>+2 this week</span></h4>
+              <div class="est win"><b>Sarah K.</b><span class="amt">$8,900</span><span class="age">Install Thu 8AM</span><span class="st">Won</span></div>
+              <div class="est win"><b>David R.</b><span class="amt">$11,400</span><span class="age">Install Mon 9AM</span><span class="st">Won</span></div>
+              <div class="sms-peek">
+                <div class="scene-label" style="margin:0">On the call</div>
+                <div class="bub out">Hi Sarah, it's Cool Breeze. You got an estimate for a new AC last spring. We have install slots next week. Still interested?</div>
+                <div class="bub in">Yes! The old one is acting up again.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 04 Google Review Booster -->
+      <article class="sys flip" id="s4">
+        <div class="sys-copy">
+          <div class="sys-tag"><div class="num">04</div><span>Google Review Booster</span></div>
+          <h3>Own the Google Map pack in your town.</h3>
+          <p class="why">Asks every happy customer for a Google review. More stars, more calls.</p>
+          <ul class="checks">
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Happy customers go to your Google page</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Unhappy ones reach you privately first</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Runs after every completed job</li>
+          </ul>
+          <div class="outcome"><svg aria-hidden="true"><use href="#i-dollar"/></svg>More calls from Google, at no ad cost</div>
+        </div>
+        <div class="scene">
+          <div class="scene-label">After every completed job</div>
+          <div class="s4">
+            <div>
+              <div class="step-l"><b>1</b>Customer gets a text</div>
+              <div class="panel rate-ask">
+                <div class="bub out" style="max-width:100%">Thanks for choosing Cool Breeze, Mike! How did Carlos do today?</div>
+                <div class="stars-pick" aria-label="5 stars"><i><svg><use href="#i-starf"/></svg></i><i><svg><use href="#i-starf"/></svg></i><i><svg><use href="#i-starf"/></svg></i><i><svg><use href="#i-starf"/></svg></i><i><svg><use href="#i-starf"/></svg></i></div>
+              </div>
+            </div>
+            <div class="branch"><i>4–5★</i>Sent to your Google profile</div>
+            <div class="panel gprof">
+              <div class="gprof-h"><div class="av">CB</div><div><b>Cool Breeze Heating &amp; Air</b><span>HVAC contractor · Houston, TX</span></div></div>
+              <div class="rating">4.9 <span class="st">★★★★★</span><span class="up">+1 new review</span></div>
+              <div class="newrev"><b>Mike T.</b> <span class="st">★★★★★</span><em>Just now</em><br>Carlos showed up on time and had our AC running in an hour.</div>
+            </div>
+            <div class="branch"><i class="w">1–3★</i>Kept private</div>
+            <div class="private"><svg aria-hidden="true"><use href="#i-alert"/></svg>Sent to you as a private note, so you can make it right before it hits Google.</div>
+          </div>
+        </div>
+      </article>
+
+      <div class="band">
+        <div style="display:grid;gap:6px">
+          <h3>More stars. More calls. More jobs.</h3>
+          <p>We set it all up. You keep doing great work.</p>
+        </div>
+        <a class="btn btn-primary js-book" href="#book">Book a 1:1 Call</a>
+      </div>
+
+      <!-- 05 Refer-a-Neighbor Rewards -->
+      <article class="sys" id="s5">
+        <div class="sys-copy">
+          <div class="sys-tag"><div class="num">05</div><span>Refer-a-Neighbor Rewards</span></div>
+          <h3>Turn every happy customer into a salesperson.</h3>
+          <p class="why">Rewards customers for sending you their neighbors. New jobs, no ad spend.</p>
+          <ul class="checks">
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Asks right after a 5-star review</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Tracks who referred whom</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Referrals close faster than any ad lead</li>
+          </ul>
+          <div class="outcome"><svg aria-hidden="true"><use href="#i-dollar"/></svg>New customers for the price of a reward</div>
+        </div>
+        <div class="scene">
+          <div class="scene-label">One happy customer, one new job</div>
+          <div class="ref-grid">
+            <svg class="street" viewBox="0 0 340 170" role="img" aria-label="A happy customer's house refers the neighbor's house, and the neighbor books a job">
+              <rect x="0" y="140" width="340" height="30" fill="#E6EDE9"/>
+              <path d="M0 150h340" stroke="#fff" stroke-width="3" stroke-dasharray="14 10"/>
+              <!-- house A -->
+              <rect x="26" y="78" width="86" height="62" rx="4" fill="#FFFFFF" stroke="#C9D6CF" stroke-width="2"/>
+              <path d="M16 84 69 40l53 44" fill="#E6FBF0" stroke="#00804A" stroke-width="3" stroke-linejoin="round"/>
+              <rect x="58" y="104" width="22" height="36" rx="2" fill="#00804A"/>
+              <rect x="34" y="92" width="16" height="14" rx="2" fill="#D0F5E2"/>
+              <rect x="88" y="92" width="16" height="14" rx="2" fill="#D0F5E2"/>
+              <rect x="116" y="116" width="20" height="24" rx="3" fill="#DDE5E1"/>
+              <path d="M119 122h14M119 127h14M119 132h14" stroke="#B5C3BC" stroke-width="1.5"/>
+              <text x="69" y="30" text-anchor="middle" font-family="Kumbh Sans,Arial,sans-serif" font-size="12" font-weight="700" fill="#121212">★★★★★ Mike</text>
+              <!-- house B -->
+              <rect x="228" y="78" width="86" height="62" rx="4" fill="#FFFFFF" stroke="#C9D6CF" stroke-width="2"/>
+              <path d="M218 84 271 40l53 44" fill="#FFF4DB" stroke="#A86400" stroke-width="3" stroke-linejoin="round"/>
+              <rect x="260" y="104" width="22" height="36" rx="2" fill="#A86400"/>
+              <rect x="236" y="92" width="16" height="14" rx="2" fill="#FFE6B0"/>
+              <rect x="290" y="92" width="16" height="14" rx="2" fill="#FFE6B0"/>
+              <text x="271" y="30" text-anchor="middle" font-family="Kumbh Sans,Arial,sans-serif" font-size="12" font-weight="700" fill="#121212">Neighbor Jen</text>
+              <!-- arc -->
+              <path d="M112 58 C150 8, 190 8, 222 58" fill="none" stroke="#00804A" stroke-width="2.5" stroke-dasharray="6 6"/>
+              <path d="M214 52l9 7-11 2" fill="none" stroke="#00804A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="136" y="16" width="68" height="22" rx="11" fill="#FFC050"/>
+              <text x="170" y="31" text-anchor="middle" font-family="Kumbh Sans,Arial,sans-serif" font-size="11.5" font-weight="800" fill="#2a1a00">$50 each</text>
+            </svg>
+            <div class="panel" style="display:grid;gap:8px">
+              <div class="bub out" style="max-width:100%">Thanks for the 5 stars, Mike! Know a neighbor who needs HVAC help? Send them our way and you both get $50.</div>
+              <div class="bub in">Sending you my neighbor Jen. Her furnace is 20 years old.</div>
+              <div class="won">✓ Jen booked · Furnace estimate Fri</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 06 Tune-Up Reminders -->
+      <article class="sys flip" id="s6" style="border-bottom:0">
+        <div class="sys-copy">
+          <div class="sys-tag"><div class="num">06</div><span>Tune-Up Reminders</span></div>
+          <h3>Get paid all year, not just in peak season.</h3>
+          <p class="why">Texts every customer when their tune-up is due, so they book with you.</p>
+          <ul class="checks">
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Spring AC and fall furnace tune-up reminders</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Maintenance agreement offers and renewals</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Replacement offers as systems age</li>
+          </ul>
+          <div class="outcome"><svg aria-hidden="true"><use href="#i-dollar"/></svg>Steady work in the shoulder season</div>
+        </div>
+        <div class="scene">
+          <div class="scene-label">One customer's year, on autopilot</div>
+          <div class="year" aria-label="Tune-up reminders in March to May and September to October">
+            <div class="mo">Jan</div><div class="mo">Feb</div>
+            <div class="mo ac">Mar<svg aria-hidden="true"><use href="#i-sun"/></svg></div>
+            <div class="mo ac">Apr<svg aria-hidden="true"><use href="#i-sun"/></svg></div>
+            <div class="mo ac">May<svg aria-hidden="true"><use href="#i-sun"/></svg></div>
+            <div class="mo">Jun</div><div class="mo">Jul</div><div class="mo">Aug</div>
+            <div class="mo ht">Sep<svg aria-hidden="true"><use href="#i-snow"/></svg></div>
+            <div class="mo ht">Oct<svg aria-hidden="true"><use href="#i-snow"/></svg></div>
+            <div class="mo">Nov</div><div class="mo">Dec</div>
+          </div>
+          <div class="yr-legend"><span><i></i>AC tune-up texts</span><span><i class="h"></i>Furnace tune-up texts</span></div>
+          <div class="member">
+            <div class="member-top"><b>Comfort Plan</b><span>MEMBER</span></div>
+            <ul><li>2 tune-ups a year</li><li>Priority scheduling</li><li>15% off repairs</li></ul>
+          </div>
+          <div class="replace"><div class="ic"><svg aria-hidden="true"><use href="#i-home"/></svg></div>Year 10+: replacement estimate sent. You're the first call, not a stranger.</div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ================= REAL RESULTS ================= -->
+  <section class="sec soft" id="results">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">Real results</div>
+        <h2>HVAC companies already <span class="hl">booking more jobs.</span></h2>
+        <p class="lede">Same calls. Same leads. More booked jobs.</p>
+      </div>
+      <div class="cases">
+        <article class="case">
+          <div class="case-h"><div><b>Jacob Star Comfort</b><span>Residential HVAC · Houston, TX</span></div><em>CASE STUDY</em></div>
+          <div class="case-stats">
+            <div class="cs"><b>+22%</b><span>Booked jobs from inbound calls</span></div>
+            <div class="cs"><b>$12.8K</b><span>Revenue from the extra jobs</span></div>
+          </div>
+          <div class="case-b">
+            <div><h4>The problem</h4><p>2 CSRs and a dispatcher still missed calls during dispatch rushes, lunch, after hours and weekends. Estimates went cold after the first conversation.</p></div>
+            <div><h4>What changed</h4><p>The Spyke AI answers first, checks the issue and service area, books qualified calls and transfers urgent ones to the team. Old estimates get followed up automatically.</p></div>
+            <blockquote class="case-q"><q>The biggest difference wasn't more leads. It was finally getting value from the calls we were already paying to generate.</q></blockquote>
+          </div>
+        </article>
+        <article class="case">
+          <div class="case-h"><div><b>Summit Air &amp; Heat</b><span>Residential HVAC · Phoenix, AZ</span></div><em>CASE STUDY</em></div>
+          <div class="case-stats">
+            <div class="cs"><b>31</b><span>Old estimates reactivated</span></div>
+            <div class="cs"><b>$15.4K</b><span>Extra revenue generated</span></div>
+          </div>
+          <div class="case-b">
+            <div><h4>The problem</h4><p>The owner wanted more replacement jobs without buying more leads. Old estimates and customers due for maintenance were piling up.</p></div>
+            <div><h4>What changed</h4><p>Old estimates got calls and text follow-up. Finished jobs triggered review requests, and tune-up reminders went out by service history. Many old leads joined maintenance plans, and their Google rating went up.</p></div>
+            <blockquote class="case-q"><q>Instead of asking the office to remember every follow-up, we gave the follow-up a system.</q></blockquote>
+          </div>
+        </article>
+      </div>
+
+      <div class="results-cta">
+        <a class="btn btn-primary js-book" href="#book">Book a 1:1 Call</a>
+        <p class="fine">Results vary by company. Real Spyke AI clients, shared with permission.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= HUMAN VS AI ================= -->
+  <section class="sec" id="compare">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">Human vs AI</div>
+        <h2>A full-time CSR covers <span class="hl">40 of the 168 hours</span> in a week. Your phone rings in all of them.</h2>
+        <p class="lede">Here's how your options stack up when a homeowner calls.</p>
+      </div>
+
+      <div class="hours" aria-label="Hours of phone coverage per week">
+        <div class="hours-bar"><div class="lbl">In-house CSR <span>40 hrs / week · 24%</span></div><div class="track"><i style="width:24%;background:#C9D3CE"></i></div></div>
+        <div class="hours-bar"><div class="lbl">Spyke AI <span>168 hrs / week · 100%</span></div><div class="track"><i style="width:100%;background:var(--accent-fill)"></i></div></div>
+      </div>
+
+      <div class="cmp" role="table" aria-label="In-house CSR vs answering service vs Spyke AI">
+        <div class="cmp-row cmp-head" role="row">
+          <div class="cmp-label" role="columnheader"></div>
+          <div class="cmp-cell" role="columnheader">In-house CSR<small>Full-time hire</small></div>
+          <div class="cmp-cell" role="columnheader">Answering service<small>Live operators</small></div>
+          <div class="cmp-cell ai" role="columnheader">Spyke AI<small>+ your team</small></div>
+        </div>
+        <div class="cmp-row" role="row">
+          <div class="cmp-label" role="rowheader">Hours covered<span>When calls get answered</span></div>
+          <div class="cmp-cell" role="cell"><i class="mk n">✕</i>Office hours only</div>
+          <div class="cmp-cell" role="cell"><i class="mk y">✓</i>24/7</div>
+          <div class="cmp-cell ai" role="cell"><i class="mk y">✓</i>24/7/365, holidays too</div>
+        </div>
+        <div class="cmp-row" role="row">
+          <div class="cmp-label" role="rowheader">Heat-wave call spikes<span>10 calls at once on a 100° Saturday</span></div>
+          <div class="cmp-cell" role="cell"><i class="mk n">✕</i>One call at a time. The rest hit voicemail.</div>
+          <div class="cmp-cell" role="cell"><i class="mk m">~</i>Callers wait on hold</div>
+          <div class="cmp-cell ai" role="cell"><i class="mk y">✓</i>Answers many calls at once</div>
+        </div>
+        <div class="cmp-row" role="row">
+          <div class="cmp-label" role="rowheader">Books the job<span>Or just takes a message?</span></div>
+          <div class="cmp-cell" role="cell"><i class="mk y">✓</i>Yes, when they're free</div>
+          <div class="cmp-cell" role="cell"><i class="mk m">~</i>Basic plans take a message</div>
+          <div class="cmp-cell ai" role="cell"><i class="mk y">✓</i>Books straight to your schedule</div>
+        </div>
+        <div class="cmp-row" role="row">
+          <div class="cmp-label" role="rowheader">Knows HVAC<span>No-cool vs no-heat, system age, urgency</span></div>
+          <div class="cmp-cell" role="cell"><i class="mk m">~</i>After weeks of training</div>
+          <div class="cmp-cell" role="cell"><i class="mk n">✕</i>Generic scripts</div>
+          <div class="cmp-cell ai" role="cell"><i class="mk y">✓</i>Trained on HVAC + your company from day one</div>
+        </div>
+        <div class="cmp-row" role="row">
+          <div class="cmp-label" role="rowheader">Follows up on estimates<span>The money you already paid to create</span></div>
+          <div class="cmp-cell" role="cell"><i class="mk m">~</i>When they remember</div>
+          <div class="cmp-cell" role="cell"><i class="mk n">✕</i>Not included</div>
+          <div class="cmp-cell ai" role="cell"><i class="mk y">✓</i>Automatic, every estimate</div>
+        </div>
+        <div class="cmp-row" role="row">
+          <div class="cmp-label" role="rowheader">Sick days, turnover, bad days<span>Consistency on every call</span></div>
+          <div class="cmp-cell" role="cell"><i class="mk n">✕</i>Vacations, sick days, quits</div>
+          <div class="cmp-cell" role="cell"><i class="mk m">~</i>Different operator each call</div>
+          <div class="cmp-cell ai" role="cell"><i class="mk y">✓</i>Same quality, every call</div>
+        </div>
+        <div class="cmp-row" role="row">
+          <div class="cmp-label" role="rowheader">Upset or complex callers<span>Where people still win</span></div>
+          <div class="cmp-cell" role="cell"><i class="mk y">✓</i>Best at this</div>
+          <div class="cmp-cell" role="cell"><i class="mk m">~</i>Depends on the operator</div>
+          <div class="cmp-cell ai" role="cell"><i class="mk y">✓</i>Transfers to your team</div>
+        </div>
+        <div class="cmp-row cmp-cost" role="row">
+          <div class="cmp-label" role="rowheader">What it costs<span>Typical U.S. pricing</span></div>
+          <div class="cmp-cell" role="cell"><b>$38,010/yr</b>Median wage, before taxes, benefits and training</div>
+          <div class="cmp-cell" role="cell"><b>$135–$400+/mo</b>Goes up with every minute you use</div>
+          <div class="cmp-cell ai" role="cell"><b>1 simple plan</b>All 6 systems. Priced on your 1:1 call.</div>
+        </div>
+        <div class="cmp-foot">
+          <p>The winning setup: AI answers every call first. Your team handles the jobs, not the phone.</p>
+          <a class="btn btn-primary js-book" href="#book">Book a 1:1 Call</a>
+        </div>
+      </div>
+      <p class="src">Sources: U.S. Bureau of Labor Statistics, receptionists median pay (May 2025) · Housecall Pro, answering service cost guide (2026)</p>
+    </div>
+  </section>
+
+  <!-- ================= STACK ================= -->
+  <section class="sec soft" id="stack">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">Everything included</div>
+        <h2>Everything you need to book more jobs. <span class="hl">Done for you.</span></h2>
+      </div>
+      <div class="stack">
+        <div class="stack-h"><b>All 6 systems + setup</b><span>One simple plan</span></div>
+        <ul>
+          <li><div class="ic"><svg aria-hidden="true"><use href="#i-headset"/></svg></div><div><b>AI Receptionist</b><span>Answers, qualifies and books every call</span></div></li>
+          <li><div class="ic"><svg aria-hidden="true"><use href="#i-mic"/></svg></div><div><b>AI Voice Assistant</b><span>Calls new leads in 60 seconds and books them</span></div></li>
+          <li><div class="ic"><svg aria-hidden="true"><use href="#i-revive"/></svg></div><div><b>Old Lead Reactivation</b><span>AI calls your old leads and books new jobs</span></div></li>
+          <li><div class="ic"><svg aria-hidden="true"><use href="#i-star"/></svg></div><div><b>Google Review Booster</b><span>More 5-star reviews after every job</span></div></li>
+          <li><div class="ic"><svg aria-hidden="true"><use href="#i-home"/></svg></div><div><b>Refer-a-Neighbor Rewards</b><span>New customers without ad spend</span></div></li>
+          <li><div class="ic"><svg aria-hidden="true"><use href="#i-cal"/></svg></div><div><b>Tune-Up Reminders</b><span>Tune-ups, agreements and change-outs</span></div></li>
+          <li><div class="ic"><svg aria-hidden="true"><use href="#i-gear"/></svg></div><div><b>Done-for-you setup</b><span>We build, train and test it with you</span></div></li>
+          <li><div class="ic"><svg aria-hidden="true"><use href="#i-chart"/></svg></div><div><b>All-in-One Dashboard <em>INCLUDED</em></b><span>Every lead, call, conversation and booking in one place</span></div></li>
+        </ul>
+        <div class="stack-f">
+          <a class="btn btn-primary js-book" href="#book">Book a 1:1 Call</a>
+          <p class="note"><svg aria-hidden="true"><use href="#i-shield"/></svg>Backed by our 90-day guarantee</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= GUARANTEE ================= -->
+  <section class="sec" id="guarantee">
+    <div class="wrap">
+      <div class="guar">
+        <div class="seal"><div><b>90</b><span>Day<br>Guarantee</span></div></div>
+        <div class="guar-copy">
+          <div class="eyebrow">Zero risk</div>
+          <h2>Book <span class="money">20% more HVAC jobs</span> &amp; recover $10,000+ in 90 days, or you don't pay us.</h2>
+          <p>We measure your booked jobs against the 90 days before launch. If we miss the target, you get your monthly fee back.</p>
+          <div class="terms">
+            <b>Fair terms, agreed in writing before launch:</b>
+            <ul>
+              <li>A minimum agreed call and lead volume</li>
+              <li>Open appointment capacity on your schedule</li>
+              <li>All agents fully set up and live</li>
+              <li>Access to your CRM or dispatch system</li>
+              <li>Your team follows the agreed escalation process</li>
+              <li>"Qualified booked job" is defined together up front</li>
+              <li>The guarantee covers the monthly retainer. The one-time setup fee is non-refundable.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TESTIMONIALS ================= -->
+  <section class="sec tsec" id="testimonials">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">What HVAC owners say</div>
+        <h2>Real owners. <span class="hl2">Real words.</span></h2>
+      </div>
+      <div class="tq-row" id="tq-row">
+          <figure class="tq">
+            <div class="tq-top"><span class="tq-mark" aria-hidden="true">&ldquo;</span><span class="tq-tag">Calls answered</span></div>
+            <blockquote>We didn't need another lead source. We needed to stop losing the calls already coming in. <mark>Having the AI answer while my dispatcher is buried has made a noticeable difference.</mark></blockquote>
+            <figcaption><div class="av">MR</div><div><b>Marcus Reed</b><span>HVAC Owner · Spyke AI client</span></div></figcaption>
+          </figure>
+          <figure class="tq">
+            <div class="tq-top"><span class="tq-mark" aria-hidden="true">&ldquo;</span><span class="tq-tag">Smart handoff</span></div>
+            <blockquote>The part I like most is the handoff. Routine calls get handled automatically, but <mark>anything outside the script can come straight to my team.</mark> It feels practical, not gimmicky.</blockquote>
+            <figcaption><div class="av">JT</div><div><b>Jason Turner</b><span>HVAC Owner · Spyke AI client</span></div></figcaption>
+          </figure>
+          <figure class="tq">
+            <div class="tq-top"><span class="tq-mark" aria-hidden="true">&ldquo;</span><span class="tq-tag">Old estimates revived</span></div>
+            <blockquote>We had a pile of old estimates sitting in the CRM. <mark>The follow-up system gave those homeowners another reason to talk to us</mark> instead of letting the opportunities disappear.</blockquote>
+            <figcaption><div class="av">DW</div><div><b>Daniel Walker</b><span>HVAC Manager · Spyke AI client</span></div></figcaption>
+          </figure>
+          <figure class="tq">
+            <div class="tq-top"><span class="tq-mark" aria-hidden="true">&ldquo;</span><span class="tq-tag">No more voicemail</span></div>
+            <blockquote>We were losing calls simply because the team was busy and they ended up in voicemails. <mark>Now every call gets answered, even when nobody is at the desk.</mark> That's been a game changer for us.</blockquote>
+            <figcaption><div class="av">MR</div><div><b>Mike R.</b><span>HVAC Owner · Spyke AI client</span></div></figcaption>
+          </figure>
+      </div>
+      <div class="tq-dots" id="tq-dots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i></div>
+    </div>
+  </section>
+
+  <!-- ================= HOW IT WORKS ================= -->
+  <section class="sec">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">How it works</div>
+        <h2>Live in 2 weeks. <span class="hl">We do the work.</span></h2>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><div><h4>Book a 1:1 call</h4><p>30 minutes. Live demo, your questions answered, and a plan for your company.</p><span class="when">Today</span></div></div>
+        <div class="step"><div class="n">2</div><div><h4>We build everything</h4><p>Your SOPs, pricing and scripts. We set up every agent, test it, and get your sign-off.</p><span class="when">Weeks 1–2</span></div></div>
+        <div class="step"><div class="n">3</div><div><h4>Go live in phases</h4><p>Agents go live one at a time. We test and improve each one as it runs.</p><span class="when">Week 3 onward</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= WHO IT'S FOR ================= -->
+  <section class="sec soft">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">Is this for you?</div>
+        <h2>Built for busy HVAC owners. <span class="hl">Not for everyone.</span></h2>
+      </div>
+      <div class="fit">
+        <div class="fit-card yes">
+          <h3>This is for you if…</h3>
+          <ul>
+            <li><i class="mk y">✓</i>You run an HVAC company in the U.S.</li>
+            <li><i class="mk y">✓</i>Calls slip to voicemail after hours, on weekends or in the rush</li>
+            <li><i class="mk y">✓</i>You have unsold estimates sitting in your system</li>
+            <li><i class="mk y">✓</i>You want more jobs without hiring another CSR</li>
+          </ul>
+        </div>
+        <div class="fit-card">
+          <h3>This is not for you if…</h3>
+          <ul>
+            <li><i class="mk n">✕</i>You already answer 100% of calls, 24/7</li>
+            <li><i class="mk n">✕</i>Your schedule is full and you don't want more work</li>
+            <li><i class="mk n">✕</i>You can't spare 30 minutes to get started</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FAQ ================= -->
+  <section class="sec">
+    <div class="wrap">
+      <div class="head">
+        <div class="eyebrow">FAQ</div>
+        <h2>Questions HVAC owners ask</h2>
+      </div>
+      <div class="faq">
+        <details><summary>Will callers know it's AI?</summary><p>It sounds natural and answers in real time. If asked, it says it's your virtual assistant and can transfer the caller to a person.</p></details>
+        <details><summary>Does it replace my CSRs or dispatcher?</summary><p>No. It covers what your team can't: after hours, weekends, lunch breaks and busy days.</p></details>
+        <details><summary>What about emergency calls?</summary><p>You set the rules. No-heat, no-cool, gas smell or water leak calls go straight to your on-call tech.</p></details>
+        <details><summary>Does it work with ServiceTitan, Housecall Pro or Jobber?</summary><p>It books into your calendar. Tell us what you use on the call and we'll confirm how it connects.</p></details>
+        <details><summary>What if the AI says something wrong?</summary><p>You approve its script and answers before launch. Every call is recorded and transcribed, so you can check any call, and we fix issues fast.</p></details>
+        <details><summary>Am I locked into a contract?</summary><p>No long-term contract. Stay because it books you jobs, not because you signed something.</p></details>
+        <details><summary>What does setup cost?</summary><p>There's a one-time setup fee. It covers building, training and testing every agent. You'll get the exact number on your 1:1 call.</p></details>
+        <details><summary>Can the AI use my own phone number?</summary><p>Yes, through call forwarding. This depends on approval from your phone carrier and may add extra charges.</p></details>
+        <details><summary>How much does it cost?</summary><p>It depends on your call volume. You'll get a clear price on the 1:1 call, backed by the 90-day guarantee.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= BOOK A 1:1 CALL (GHL calendar) ================= -->
+  <section class="sec final" id="book">
+    <div class="wrap">
+      <div class="eyebrow">Book your free 1:1 call</div>
+      <h2>Your next missed call is <span class="hl2">someone else's job.</span></h2>
+      <p class="lede">30 minutes with our team. Ask anything, see a live demo, get your plan.</p>
+      <div class="book-checks">
+        <span><svg aria-hidden="true"><use href="#i-check"/></svg>Live demo on a real HVAC call</span>
+        <span><svg aria-hidden="true"><use href="#i-check"/></svg>All your questions answered</span>
+        <span><svg aria-hidden="true"><use href="#i-check"/></svg>A clear plan and price for your company</span>
+      </div>
+      <div class="cal-card">
+        <iframe src="https://services.spykeai.com/widget/booking/g0LZcwYFZtukvDW3HUaZ" allow="payment" style="width: 100%;border:none;overflow: hidden;" scrolling="no" id="g0LZcwYFZtukvDW3HUaZ_1791449085532" title="Book a 1:1 call"></iframe>
+      </div>
+      <p class="note"><svg aria-hidden="true"><use href="#i-shield"/></svg>20% more booked jobs in 90 days, or you don't pay us</p>
+      <a class="btn btn-ghost" href="#demo">Not ready? Get a demo call first</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <div class="links"><span>© 2026 Spyke AI Technologies</span><a href="https://spykeaitech.com/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a><a href="https://spykeaitech.com/terms" target="_blank" rel="noopener">Terms</a></div>
+      <p>Results vary by business. The calculator and the scenes on this page are illustrations, not promises of specific earnings. This site is not part of or endorsed by Facebook or Meta.</p>
+    </div>
+  </footer>
+
+  <!-- ================= POPUP MODAL WITH 2-STEP OTP & VAPI CALL ================= -->
+  <div id="spk-popup-overlay" style="display:none; position:fixed; inset:0; z-index:999999999; background:rgba(18,18,18,0.8); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:16px; overflow-y:auto;">
+    <div style="position:relative; width:100%; max-width:460px; margin:auto;">
+      <button type="button" id="spk-popup-close-btn" class="ghl-popup-close-btn-fixed" title="Close Popup" style="position:absolute !important; top:-18px !important; right:-18px !important; cursor:pointer;">&times;</button>
+
+      <div class="embed-card-compact" style="box-shadow:0 25px 60px rgba(0,0,0,0.6);">
+        <div style="text-align:center; margin-bottom:14px;">
+          <h3 style="font-family:var(--f-display); font-size:22px; font-weight:800; color:#FFFFFF; margin:0 0 4px 0;">Hear it live on your phone</h3>
+          <p style="font-size:13px; color:#A8E8C7; margin:0;">Free. 2 minutes. No sales pitch on this call.</p>
+        </div>
+
+        <form id="popup-demo-phone-form" novalidate>
+          <!-- STEP 1: LEAD DETAILS -->
+          <div id="pop-otp-step-1">
+            <div class="form-field">
+              <label>Full Name <span style="color:#FFC050;">*</span></label>
+              <input type="text" id="pop-fn" placeholder="Mike" required />
+              <div class="form-err-msg" id="pop-fn-err" style="display:none;font-size:11.5px;color:#FF6B6B;margin-top:2px;">Please enter your full name.</div>
+            </div>
+
+            <!-- PHONE NUMBER FIELD WITH INTEGRATED SVG FLAG PICKER -->
+            <div class="form-field">
+              <label>Phone <span style="color:#FFC050;">*</span></label>
+              <div class="phone-group">
+                <div class="flag-picker-dropdown">
+                  <button type="button" class="flag-picker-btn" id="pop-flag-picker-trigger" title="Select Country Code">
+                    <img id="pop-selected-flag-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='6.67' fill='%23FF9933'/%3E%3Crect y='6.67' width='30' height='6.67' fill='%23FFFFFF'/%3E%3Crect y='13.33' width='30' height='6.67' fill='%23138808'/%3E%3Ccircle cx='15' cy='10' r='2.2' fill='%23000080'/%3E%3C/svg%3E" alt="India Flag" />
+                    <span class="flag-arrow">▼</span>
+                  </button>
+                  <div class="flag-options-menu" id="pop-flag-picker-menu" style="display:none;">
+                    <div class="flag-opt pop-flag-opt" data-cc="+91" data-flag="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='6.67' fill='%23FF9933'/%3E%3Crect y='6.67' width='30' height='6.67' fill='%23FFFFFF'/%3E%3Crect y='13.33' width='30' height='6.67' fill='%23138808'/%3E%3Ccircle cx='15' cy='10' r='2.2' fill='%23000080'/%3E%3C/svg%3E">
+                      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='6.67' fill='%23FF9933'/%3E%3Crect y='6.67' width='30' height='6.67' fill='%23FFFFFF'/%3E%3Crect y='13.33' width='30' height='6.67' fill='%23138808'/%3E%3Ccircle cx='15' cy='10' r='2.2' fill='%23000080'/%3E%3C/svg%3E" alt="India" />
+                      <span>India (+91)</span>
+                    </div>
+                    <div class="flag-opt pop-flag-opt" data-cc="+1" data-flag="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='20' fill='%23B22234'/%3E%3Cpath d='M0 3h30M0 7h30M0 11h30M0 15h30M0 19h30' stroke='%23fff' stroke-width='1.5'/%3E%3Crect width='12' height='11' fill='%233C3B6E'/%3E%3C/svg%3E">
+                      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='20' fill='%23B22234'/%3E%3Cpath d='M0 3h30M0 7h30M0 11h30M0 15h30M0 19h30' stroke='%23fff' stroke-width='1.5'/%3E%3Crect width='12' height='11' fill='%233C3B6E'/%3E%3C/svg%3E" alt="USA" />
+                      <span>USA (+1)</span>
+                    </div>
+                    <div class="flag-opt pop-flag-opt" data-cc="+1" data-flag="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='20' fill='%23FF0000'/%3E%3Crect x='7.5' width='15' height='20' fill='%23FFFFFF'/%3E%3Cpath d='M15 4l1.5 3 3-1-1.5 3.5 3.5 1-3.5 1.5 1 3.5-3.5-2-3.5 2 1-3.5-3.5-1.5 3.5-1-1.5-3.5 3 1z' fill='%23FF0000'/%3E%3C/svg%3E">
+                      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='20' fill='%23FF0000'/%3E%3Crect x='7.5' width='15' height='20' fill='%23FFFFFF'/%3E%3Cpath d='M15 4l1.5 3 3-1-1.5 3.5 3.5 1-3.5 1.5 1 3.5-3.5-2-3.5 2 1-3.5-3.5-1.5 3.5-1-1.5-3.5 3 1z' fill='%23FF0000'/%3E%3C/svg%3E" alt="Canada" />
+                      <span>Canada (+1)</span>
+                    </div>
+                    <div class="flag-opt pop-flag-opt" data-cc="+44" data-flag="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='20' fill='%23012169'/%3E%3Cpath d='M0 0l30 20M30 0L0 20' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M0 0l30 20M30 0L0 20' stroke='%23C8102E' stroke-width='2'/%3E%3Cpath d='M15 0v20M0 10h30' stroke='%23fff' stroke-width='6'/%3E%3Cpath d='M15 0v20M0 10h30' stroke='%23C8102E' stroke-width='3.5'/%3E%3C/svg%3E">
+                      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 20'%3E%3Crect width='30' height='20' fill='%23012169'/%3E%3Cpath d='M0 0l30 20M30 0L0 20' stroke='%23fff' stroke-width='4'/%3E%3Cpath d='M0 0l30 20M30 0L0 20' stroke='%23C8102E' stroke-width='2'/%3E%3Cpath d='M15 0v20M0 10h30' stroke='%23fff' stroke-width='6'/%3E%3Cpath d='M15 0v20M0 10h30' stroke='%23C8102E' stroke-width='3.5'/%3E%3C/svg%3E" alt="UK" />
+                      <span>UK (+44)</span>
+                    </div>
+                  </div>
+                </div>
+                <input type="hidden" id="pop-cc" value="+91" />
+                <input type="tel" id="pop-pn" placeholder="(555) 123-4567" required />
+              </div>
+              <div class="form-err-msg" id="pop-pn-err" style="display:none;font-size:11.5px;color:#FF6B6B;margin-top:2px;">Please enter a valid phone number.</div>
+            </div>
+
+            <!-- MANDATORY EMAIL FIELD -->
+            <div class="form-field">
+              <label>Email <span style="color:#FFC050;">*</span></label>
+              <div class="input-icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                </svg>
+                <input type="email" id="pop-em" placeholder="mike@coolbreezehvac.com" required />
+              </div>
+              <div class="form-err-msg" id="pop-em-err" style="display:none;font-size:11.5px;color:#FF6B6B;margin-top:2px;">Please enter a valid email address.</div>
+            </div>
+
+            <!-- COMPANY NAME FIELD -->
+            <div class="form-field">
+              <label>Company Name <span style="color:#FFC050;">*</span></label>
+              <input type="text" id="pop-cn" placeholder="Cool Breeze HVAC" />
+            </div>
+
+            <!-- CONSENT CHECKBOX -->
+            <label class="form-consent">
+              <input type="checkbox" id="pop-consent-chk" required checked />
+              <span>I agree to receive an AI demo call and texts from Spyke AI at this number</span>
+            </label>
+            <div class="form-err-msg" id="pop-chk-err" style="display:none;font-size:11.5px;color:#FF6B6B;margin-bottom:8px;">Please check consent.</div>
+
+            <!-- SUBMIT BUTTON -->
+            <button type="button" id="pop-btn-send-otp" class="form-submit-btn">
+              <span>Call Me Now 📞 &rarr;</span>
+            </button>
+          </div>
+
+          <!-- STEP 2: OTP VERIFICATION CODE INPUT -->
+          <div id="pop-otp-step-2" style="display:none;">
+            <div style="background:rgba(0,255,137,0.1); border:1px solid rgba(0,255,137,0.3); border-radius:10px; padding:12px; margin-bottom:12px; text-align:center;">
+              <div style="margin-bottom:4px; display:flex; align-items:center; justify-content:center;">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00FF89" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                </svg>
+              </div>
+              <h4 style="margin:0 0 4px 0; font-family:var(--f-display); font-size:15px; font-weight:700; color:#00FF89;">Enter 4-Digit OTP Code</h4>
+              <p style="font-size:12.5px; color:#A8E8C7; margin:0;" id="pop-otp-sent-info">We sent an OTP code to your email.</p>
+            </div>
+
+            <div class="form-field" style="text-align:center;">
+              <label style="font-size:13px; font-weight:700; color:#FFC050; display:block; margin-bottom:6px;">Verification Code (OTP) <span style="color:#FFC050;">*</span></label>
+              <input type="text" id="pop-otp-code" maxlength="4" placeholder="• • • •" style="width:150px; margin:0 auto; font-size:22px; font-weight:800; letter-spacing:6px; text-align:center; padding:8px 10px; background:#E6FBF0; color:#121212; border:2px solid #00FF89; border-radius:10px; outline:none;" />
+              <div class="form-err-msg" id="pop-otp-err" style="display:none;font-size:11.5px;color:#FF6B6B;text-align:center;margin-top:6px;">Invalid OTP code. Please try again.</div>
+            </div>
+
+            <button type="button" id="pop-btn-verify-otp" class="form-submit-btn" style="margin-top:12px;">
+              <span>Verify OTP &amp; Call Me Now 📞</span>
+            </button>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; font-size:12px;">
+              <button type="button" id="pop-btn-back-step1" style="background:none; border:none; color:#CBD5E1; text-decoration:underline; cursor:pointer; font-weight:600; padding:0;">← Change Details</button>
+              <button type="button" id="pop-btn-resend-otp" style="background:none; border:none; color:#00FF89; text-decoration:underline; cursor:pointer; font-weight:700; padding:0;">Resend OTP</button>
+            </div>
+          </div>
+
+          <!-- FINAL SUCCESS MESSAGE -->
+          <div id="pop-demo-form-msg" style="display:none;margin-top:10px;padding:14px;background:rgba(0,255,137,0.15);border:1.5px solid #00FF89;border-radius:12px;color:#E6FBF0;text-align:center;font-weight:700;">
+            <div style="font-size:26px;margin-bottom:2px;">✅</div>
+            <div style="font-size:16px;font-family:var(--f-display);color:#00FF89;">OTP Verified Successfully!</div>
+            <div style="font-size:13.5px;font-weight:600;margin-top:2px;color:#A8E8C7;">Calling your phone right now...</div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= STICKY BOTTOM CTA ================= -->
+  <div class="sbar" id="sbar">
+    <div class="wrap">
+      <p><b>20% more HVAC jobs in 90 days</b> or you don't pay us.</p>
+      <a class="btn btn-primary js-book" href="#book">Book a 1:1 Call</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- GHL embed script (powers calendar). Kept outside all divs, as GHL requires. -->
+<script src="https://services.spykeai.com/js/form_embed.js" type="text/javascript"></script>
+
+<script>
+(function(){
+  var root = document.querySelector(".spk");
+  if(!root) return;
+  var $ = function(id){ return document.getElementById(id); };
+
+  // Sticky header: measure its height so content and anchor jumps sit below it
+  var head = $("stickyhead");
+  function sizeHead(){ if(head){ root.style.setProperty("--hh", head.offsetHeight + "px"); } }
+  sizeHead(); window.addEventListener("resize", sizeHead);
+  window.addEventListener("scroll", function(){ if(head){ head.classList.toggle("scrolled", window.scrollY > 10); } }, {passive:true});
+
+  // Meta Pixel events (fires only if your Pixel is installed in GHL tracking code)
+  function track(name, custom){ try{ if(window.fbq){ custom ? fbq("trackCustom", name) : fbq("track", name); } }catch(e){} }
+  root.querySelectorAll(".js-book").forEach(function(a){ a.addEventListener("click", function(){ track("BookCallClick", true); }); });
+
+  // Testimonial swipe dots (phones)
+  var row = $("tq-row"), dots = $("tq-dots");
+  if(row && dots){
+    row.addEventListener("scroll", function(){
+      var cards = row.children, mid = row.scrollLeft + row.clientWidth/2, best = 0, bd = 1e9;
+      for(var i=0;i<cards.length;i++){ var c = cards[i], d = Math.abs(c.offsetLeft + c.offsetWidth/2 - mid); if(d<bd){bd=d;best=i;} }
+      for(var j=0;j<dots.children.length;j++){ dots.children[j].classList.toggle("on", j===best); }
+    }, {passive:true});
+  }
+
+  // Sticky bottom CTA: show after the hero, hide over the demo form and the calendar
+  var bar = $("sbar");
+  if(bar && "IntersectionObserver" in window){
+    var vis = {hero:true, demo:false, book:false};
+    var upd = function(){ bar.classList.toggle("show", !vis.hero && !vis.demo && !vis.book); };
+    var watch = function(el, key){ if(!el) return; new IntersectionObserver(function(en){ vis[key] = en[0].isIntersecting; upd(); }, {threshold:0.12}).observe(el); };
+    watch(root.querySelector(".hero"), "hero"); watch($("demo"), "demo"); watch($("book"), "book");
+  }
+
+  // Calculator
+  var fmt = function(n){ return "$" + Math.round(n).toLocaleString("en-US"); };
+  function calc(){
+    var calls = +$("c-calls").value, rate = +$("c-rate").value, ticket = +$("c-ticket").value;
+    if($("o-calls")) $("o-calls").textContent = calls;
+    if($("o-rate")) $("o-rate").textContent = rate + "%";
+    if($("o-ticket")) $("o-ticket").textContent = fmt(ticket);
+    var jobsMonth = calls * 30 * rate / 100, month = jobsMonth * ticket;
+    if($("o-jobs-m")) $("o-jobs-m").textContent = Math.round(jobsMonth).toLocaleString("en-US");
+    if($("o-jobs")) $("o-jobs").textContent = Math.round(jobsMonth * 12).toLocaleString("en-US");
+    if($("o-month")) $("o-month").textContent = fmt(month);
+    if($("o-year")) $("o-year").textContent = fmt(month * 12);
+  }
+  ["c-calls","c-rate","c-ticket"].forEach(function(id){ if($(id)) $(id).addEventListener("input", calc); });
+  calc();
+
+  // ===== SVG FLAG PICKER DROPDOWN LOGIC =====
+  var flagTrigger = document.getElementById('flag-picker-trigger');
+  var flagMenu = document.getElementById('flag-picker-menu');
+  var selectedImg = document.getElementById('selected-flag-img');
+  var ccInput = document.getElementById('cc');
+
+  if (flagTrigger && flagMenu) {
+    flagTrigger.addEventListener('click', function(e) {
+      e.stopPropagation();
+      flagMenu.style.display = (flagMenu.style.display === 'none' || !flagMenu.style.display) ? 'block' : 'none';
+    });
+
+    document.querySelectorAll('.flag-opt').forEach(function(opt) {
+      opt.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var newCc = this.getAttribute('data-cc');
+        var newFlag = this.getAttribute('data-flag');
+        if (ccInput) ccInput.value = newCc;
+        if (selectedImg) selectedImg.src = newFlag;
+        flagMenu.style.display = 'none';
+      });
+    });
+
+    document.addEventListener('click', function() {
+      if (flagMenu) flagMenu.style.display = 'none';
+    });
+  }
+
+  // ===== LIVE INPUT SANITIZATION & STRICT VALIDATIONS =====
+  var pnInput = document.getElementById('pn');
+  var emInput = document.getElementById('em');
+  var fnInput = document.getElementById('fn');
+  var ccInput = document.getElementById('cc');
+
+  function getPhoneMaxLength() {
+    var cc = ccInput ? ccInput.value : '+91';
+    if (cc === '+91' || cc === '+1') return 10;
+    if (cc === '+44') return 11;
+    return 15;
+  }
+
+  if (pnInput) {
+    // 1. Live restriction: BLOCK letters and non-digits immediately on typing!
+    pnInput.addEventListener('input', function() {
+      var digits = this.value.replace(/\D/g, '');
+      var maxLen = getPhoneMaxLength();
+      if (digits.length > maxLen) {
+        digits = digits.slice(0, maxLen);
+      }
+      this.value = digits;
+
+      // Clear error on valid typing
+      var pnErr = document.getElementById('pn-err');
+      var phoneGroup = this.closest('.phone-group');
+      if (digits.length === maxLen && (ccInput.value !== '+91' || /^[6-9]/.test(digits))) {
+        if (pnErr) pnErr.style.display = 'none';
+        if (phoneGroup) phoneGroup.style.borderColor = '#A8E8C7';
+      }
+    });
+
+    // Set maxlength dynamically
+    pnInput.setAttribute('maxlength', '10');
+  }
+
+  // Update maxlength & clean phone input when country changes
+  if (document.querySelectorAll('.flag-opt').length > 0) {
+    document.querySelectorAll('.flag-opt').forEach(function(opt) {
+      opt.addEventListener('click', function() {
+        var maxLen = getPhoneMaxLength();
+        if (pnInput) {
+          pnInput.setAttribute('maxlength', maxLen.toString());
+          var digits = pnInput.value.replace(/\D/g, '');
+          if (digits.length > maxLen) {
+            pnInput.value = digits.slice(0, maxLen);
+          }
+        }
+      });
+    });
+  }
+
+  // Email live error clearing
+  if (emInput) {
+    emInput.addEventListener('input', function() {
+      var emErr = document.getElementById('em-err');
+      var emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (emailRegex.test(this.value.trim())) {
+        if (emErr) emErr.style.display = 'none';
+        this.style.borderColor = '#A8E8C7';
+      }
+    });
+  }
+
+  // Full Name live error clearing
+  if (fnInput) {
+    fnInput.addEventListener('input', function() {
+      var fnErr = document.getElementById('fn-err');
+      if (this.value.trim().length >= 2) {
+        if (fnErr) fnErr.style.display = 'none';
+        this.style.borderColor = '#A8E8C7';
+      }
+    });
+  }
+
+  // ===== 2-STEP OTP VERIFICATION, CRM WEBHOOK & DIRECT VAPI CALL TRIGGER =====
+  var generatedOtp = null;
+  var leadData = {};
+
+  var btnSendOtp = document.getElementById('btn-send-otp');
+  var btnVerifyOtp = document.getElementById('btn-verify-otp');
+  var btnBack = document.getElementById('btn-back-step1');
+  var btnResend = document.getElementById('btn-resend-otp');
+
+  var step1 = document.getElementById('otp-step-1');
+  var step2 = document.getElementById('otp-step-2');
+  var successMsg = document.getElementById('demo-form-msg');
+
+  // STEP 1: VALIDATE LEAD DETAILS & SEND OTP (STRICT VALIDATIONS)
+  if (btnSendOtp) {
+    btnSendOtp.addEventListener('click', function(e) {
+      e.preventDefault();
+
+      var fnEl = document.getElementById('fn');
+      var emEl = document.getElementById('em');
+      var pnEl = document.getElementById('pn');
+      var ccEl = document.getElementById('cc');
+      var cnEl = document.getElementById('cn');
+      var chkEl = document.getElementById('consent-chk');
+
+      var fn = fnEl ? fnEl.value.trim() : '';
+      var em = emEl ? emEl.value.trim() : '';
+      var pn = pnEl ? pnEl.value.trim() : '';
+      var cc = ccEl ? ccEl.value : '+91';
+      var cn = cnEl ? cnEl.value.trim() : '';
+      var chk = chkEl ? chkEl.checked : false;
+
+      var valid = true;
+
+      // 1. Strict Full Name Check (at least 2 chars)
+      var fnErr = document.getElementById('fn-err');
+      if (!fn || fn.length < 2) {
+        if (fnErr) { fnErr.textContent = "Please enter your full name."; fnErr.style.display = 'block'; }
+        if (fnEl) fnEl.style.borderColor = '#FF6B6B';
+        valid = false;
+      } else {
+        if (fnErr) fnErr.style.display = 'none';
+        if (fnEl) fnEl.style.borderColor = '#A8E8C7';
+      }
+
+      // 2. Strict Phone Number Check (Only digits, exact length for India & US)
+      var cleanPn = pn.replace(/\D/g, '');
+      var pnErr = document.getElementById('pn-err');
+      var phoneGroup = pnEl ? pnEl.closest('.phone-group') : null;
+      var pnValid = false;
+      var pnErrMsg = "Please enter a valid phone number.";
+
+      if (cc === '+91') {
+        if (cleanPn.length === 10 && /^[6-9]/.test(cleanPn)) {
+          pnValid = true;
+        } else if (cleanPn.length !== 10) {
+          pnErrMsg = "Indian phone number must be exactly 10 digits.";
+        } else {
+          pnErrMsg = "Indian phone number must start with 6, 7, 8, or 9.";
+        }
+      } else if (cc === '+1') {
+        if (cleanPn.length === 10) {
+          pnValid = true;
+        } else {
+          pnErrMsg = "US/Canada phone number must be exactly 10 digits.";
+        }
+      } else if (cc === '+44') {
+        if (cleanPn.length >= 10 && cleanPn.length <= 11) {
+          pnValid = true;
+        } else {
+          pnErrMsg = "UK phone number must be 10 or 11 digits.";
+        }
+      } else {
+        if (cleanPn.length >= 7 && cleanPn.length <= 15) {
+          pnValid = true;
+        } else {
+          pnErrMsg = "Please enter a valid phone number (7-15 digits).";
+        }
+      }
+
+      if (!cleanPn || !pnValid) {
+        if (pnErr) { pnErr.textContent = pnErrMsg; pnErr.style.display = 'block'; }
+        if (phoneGroup) phoneGroup.style.borderColor = '#FF6B6B';
+        valid = false;
+      } else {
+        if (pnErr) pnErr.style.display = 'none';
+        if (phoneGroup) phoneGroup.style.borderColor = '#A8E8C7';
+      }
+
+      // 3. Strict Email Format Check
+      var emErr = document.getElementById('em-err');
+      var emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!em || !emailRegex.test(em)) {
+        if (emErr) { emErr.textContent = "Please enter a valid email address (e.g. mike@company.com)."; emErr.style.display = 'block'; }
+        if (emEl) emEl.style.borderColor = '#FF6B6B';
+        valid = false;
+      } else {
+        if (emErr) emErr.style.display = 'none';
+        if (emEl) emEl.style.borderColor = '#A8E8C7';
+      }
+
+      // 4. Consent Checkbox Check
+      var chkErr = document.getElementById('chk-err');
+      if (!chk) {
+        if (chkErr) { chkErr.textContent = "Please check the consent box to proceed."; chkErr.style.display = 'block'; }
+        valid = false;
+      } else {
+        if (chkErr) chkErr.style.display = 'none';
+      }
+
+      if (!valid) return;
+
+      // Save valid lead details
+      leadData = {
+        fn: fn,
+        cn: cn,
+        cc: cc,
+        pn: cleanPn,
+        fullPhone: cc + cleanPn,
+        em: em
+      };
+
+      sendOtpCode();
+    });
+  }
+
+  function sendWebhookPing(baseUrl, payload) {
+    try {
+      var queryStr = "?event=" + encodeURIComponent(payload.event || '') +
+        "&first_name=" + encodeURIComponent(payload.first_name || '') +
+        "&phone=" + encodeURIComponent(payload.phone || '') +
+        "&email=" + encodeURIComponent(payload.email || '') +
+        "&company_name=" + encodeURIComponent(payload.company_name || '') +
+        "&otp_code=" + encodeURIComponent(payload.otp_code || '') +
+        "&otp=" + encodeURIComponent(payload.otp || '') +
+        "&OTP=" + encodeURIComponent(payload.OTP || '') +
+        "&status=" + encodeURIComponent(payload.status || '');
+
+      var fullUrl = baseUrl + queryStr;
+
+      // 1. Send JSON POST via fetch (GHL Inbound Webhook JSON Body)
+      if (window.fetch) {
+        fetch(baseUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(function(e){ console.log("GHL JSON POST Error:", e); });
+
+        // 2. Send x-www-form-urlencoded POST (Simple CORS Request - No preflight options needed)
+        var formBody = [];
+        for (var property in payload) {
+          var encodedKey = encodeURIComponent(property);
+          var encodedValue = encodeURIComponent(payload[property]);
+          formBody.push(encodedKey + "=" + encodedValue);
+        }
+        formBody = formBody.join("&");
+
+        fetch(baseUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formBody
+        }).catch(function(e){ console.log("GHL Form POST Error:", e); });
+
+        // 3. Send GET via fetch with Query Params
+        fetch(fullUrl, { mode: 'no-cors', cache: 'no-cache' }).catch(function(e){ console.log("GHL GET Error:", e); });
+      }
+
+      // 4. Send Beacon if supported by browser
+      if (navigator && navigator.sendBeacon) {
+        try {
+          navigator.sendBeacon(fullUrl);
+        } catch(be) {}
+      }
+
+      // 5. Fallback Image GET Ping
+      var img = new Image();
+      img.src = fullUrl;
+    } catch(e) {
+      console.log("sendWebhookPing Exception:", e);
+    }
+  }
+
+  function sendOtpCode() {
+    generatedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+    console.log("Spyke AI OTP Generated:", generatedOtp);
+
+    var baseUrl = "https://services.leadconnectorhq.com/hooks/6ZCDV1ayTRbyBRUt5BmW/webhook-trigger/20e1ef65-abe9-4740-8647-1d6b5d91863d";
+    var payload = {
+      event: "otp_sent",
+      first_name: leadData.fn,
+      phone: leadData.fullPhone,
+      email: leadData.em,
+      company_name: leadData.cn,
+      otp_code: generatedOtp,
+      otp: generatedOtp,
+      OTP: generatedOtp
+    };
+
+    sendWebhookPing(baseUrl, payload);
+
+    // Transition to Step 2
+    step1.style.display = 'none';
+    step2.style.display = 'block';
+    document.getElementById('otp-sent-info').textContent = "We sent an OTP code to " + leadData.em;
+    document.getElementById('otp-code').value = '';
+    document.getElementById('otp-err').style.display = 'none';
+    document.getElementById('otp-code').focus();
+  }
+
+  // STEP 2: VERIFY OTP CODE & SUBMIT VERIFIED LEAD TO CRM
+  if (btnVerifyOtp) {
+    btnVerifyOtp.addEventListener('click', function(e) {
+      e.preventDefault();
+      var enteredOtp = document.getElementById('otp-code').value.trim();
+
+      if (enteredOtp !== generatedOtp) {
+        document.getElementById('otp-err').textContent = "Invalid OTP code. Please enter the correct 4-digit code.";
+        document.getElementById('otp-err').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('otp-err').style.display = 'none';
+
+      var baseUrl = "https://services.leadconnectorhq.com/hooks/6ZCDV1ayTRbyBRUt5BmW/webhook-trigger/20e1ef65-abe9-4740-8647-1d6b5d91863d";
+      var payload = {
+        event: "otp_verified",
+        first_name: leadData.fn,
+        phone: leadData.fullPhone,
+        email: leadData.em,
+        company_name: leadData.cn,
+        otp_code: generatedOtp,
+        otp: generatedOtp,
+        OTP: generatedOtp,
+        status: "verified"
+      };
+
+      sendWebhookPing(baseUrl, payload);
+
+      // Trigger Direct Vapi Call to Customer
+      triggerVapiCall(leadData.fullPhone, leadData.fn);
+
+      // Hide Step 2 & Show Success Message
+      step2.style.display = 'none';
+      successMsg.style.display = 'block';
+    });
+  }
+
+  function triggerVapiCall(phone, name) {
+    try {
+      console.log("Initiating Vapi Outbound Call to:", phone, "Name:", name);
+      fetch('https://api.vapi.ai/call/phone', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer 03bc9d1a-a029-40d7-8d0c-a4a81f04b0e0',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          assistantId: 'c2b8e1ea-16ce-4e53-9310-570d68f0b786',
+          customer: {
+            number: phone,
+            name: name
+          }
+        })
+      }).then(function(res){ return res.json(); })
+        .then(function(data){ 
+          console.log("Vapi Call Trigger Response:", data);
+          if (data && data.message === "unauthorized") {
+            console.warn("Vapi API key unauthorized. Please update Vapi API key in triggerVapiCall.");
+          }
+        })
+        .catch(function(err){ console.log("Vapi Call Error:", err); });
+    } catch(e) {
+      console.log("Vapi Call Exception:", e);
+    }
+  }
+
+  // GO BACK TO CHANGE DETAILS
+  if (btnBack) {
+    btnBack.addEventListener('click', function() {
+      step2.style.display = 'none';
+      step1.style.display = 'block';
+    });
+  }
+
+  // RESEND OTP CODE
+  if (btnResend) {
+    btnResend.addEventListener('click', function() {
+      sendOtpCode();
+      alert("A new OTP verification code has been generated & sent to " + (leadData.em || 'your email'));
+    });
+  }
+
+  // ===== POPUP MODAL HANDLERS & 2-STEP OTP FLOW WITH VAPI CALL =====
+  var popOverlay = document.getElementById('spk-popup-overlay');
+  var popCloseBtn = document.getElementById('spk-popup-close-btn');
+
+  function openSpkPopup() {
+    if (popOverlay) {
+      popOverlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeSpkPopup() {
+    if (popOverlay) {
+      popOverlay.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    }
+  }
+
+  if (popCloseBtn) {
+    popCloseBtn.addEventListener('click', closeSpkPopup);
+  }
+
+  if (popOverlay) {
+    popOverlay.addEventListener('click', function(e) {
+      if (e.target === popOverlay) closeSpkPopup();
+    });
+  }
+
+  // Open Popup Modal when clicking any CTA button
+  document.querySelectorAll('.js-book, .btn-primary').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      var href = this.getAttribute('href');
+      if (href && href === '#demo') return;
+      e.preventDefault();
+      openSpkPopup();
+    });
+  });
+
+  // Popup Flag Picker
+  var popFlagTrigger = document.getElementById('pop-flag-picker-trigger');
+  var popFlagMenu = document.getElementById('pop-flag-picker-menu');
+  var popSelectedImg = document.getElementById('pop-selected-flag-img');
+  var popCcInput = document.getElementById('pop-cc');
+
+  if (popFlagTrigger && popFlagMenu) {
+    popFlagTrigger.addEventListener('click', function(e) {
+      e.stopPropagation();
+      popFlagMenu.style.display = (popFlagMenu.style.display === 'none' || !popFlagMenu.style.display) ? 'block' : 'none';
+    });
+
+    document.querySelectorAll('.pop-flag-opt').forEach(function(opt) {
+      opt.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var newCc = this.getAttribute('data-cc');
+        var newFlag = this.getAttribute('data-flag');
+        if (popCcInput) popCcInput.value = newCc;
+        if (popSelectedImg) popSelectedImg.src = newFlag;
+        popFlagMenu.style.display = 'none';
+      });
+    });
+  }
+
+  // Popup Phone Live Sanitization
+  var popPnInput = document.getElementById('pop-pn');
+  if (popPnInput) {
+    popPnInput.addEventListener('input', function() {
+      var cc = popCcInput ? popCcInput.value : '+91';
+      var maxLen = (cc === '+91' || cc === '+1') ? 10 : (cc === '+44' ? 11 : 15);
+      var digits = this.value.replace(/\D/g, '');
+      if (digits.length > maxLen) digits = digits.slice(0, maxLen);
+      this.value = digits;
+
+      var popPnErr = document.getElementById('pop-pn-err');
+      var phoneGroup = this.closest('.phone-group');
+      if (digits.length === maxLen) {
+        if (popPnErr) popPnErr.style.display = 'none';
+        if (phoneGroup) phoneGroup.style.borderColor = '#A8E8C7';
+      }
+    });
+  }
+
+  // POPUP STEP 1 SUBMIT
+  var popBtnSendOtp = document.getElementById('pop-btn-send-otp');
+  var popStep1 = document.getElementById('pop-otp-step-1');
+  var popStep2 = document.getElementById('pop-otp-step-2');
+  var popSuccessMsg = document.getElementById('pop-demo-form-msg');
+  var popGeneratedOtp = null;
+  var popLeadData = {};
+
+  if (popBtnSendOtp) {
+    popBtnSendOtp.addEventListener('click', function(e) {
+      e.preventDefault();
+
+      var fnEl = document.getElementById('pop-fn');
+      var emEl = document.getElementById('pop-em');
+      var pnEl = document.getElementById('pop-pn');
+      var ccEl = document.getElementById('pop-cc');
+      var cnEl = document.getElementById('pop-cn');
+      var chkEl = document.getElementById('pop-consent-chk');
+
+      var fn = fnEl ? fnEl.value.trim() : '';
+      var em = emEl ? emEl.value.trim() : '';
+      var pn = pnEl ? pnEl.value.trim() : '';
+      var cc = ccEl ? ccEl.value : '+91';
+      var cn = cnEl ? cnEl.value.trim() : '';
+      var chk = chkEl ? chkEl.checked : false;
+
+      var valid = true;
+
+      // Name Check
+      var fnErr = document.getElementById('pop-fn-err');
+      if (!fn || fn.length < 2) {
+        if (fnErr) { fnErr.textContent = "Please enter your full name."; fnErr.style.display = 'block'; }
+        if (fnEl) fnEl.style.borderColor = '#FF6B6B';
+        valid = false;
+      } else {
+        if (fnErr) fnErr.style.display = 'none';
+        if (fnEl) fnEl.style.borderColor = '#A8E8C7';
+      }
+
+      // Phone Check
+      var cleanPn = pn.replace(/\D/g, '');
+      var pnErr = document.getElementById('pop-pn-err');
+      var phoneGroup = pnEl ? pnEl.closest('.phone-group') : null;
+      var pnValid = false;
+      var pnErrMsg = "Please enter a valid phone number.";
+
+      if (cc === '+91') {
+        if (cleanPn.length === 10 && /^[6-9]/.test(cleanPn)) pnValid = true;
+        else pnErrMsg = "Indian phone number must be 10 digits (starting with 6-9).";
+      } else if (cc === '+1') {
+        if (cleanPn.length === 10) pnValid = true;
+        else pnErrMsg = "US/Canada phone number must be 10 digits.";
+      } else {
+        if (cleanPn.length >= 7 && cleanPn.length <= 15) pnValid = true;
+      }
+
+      if (!cleanPn || !pnValid) {
+        if (pnErr) { pnErr.textContent = pnErrMsg; pnErr.style.display = 'block'; }
+        if (phoneGroup) phoneGroup.style.borderColor = '#FF6B6B';
+        valid = false;
+      } else {
+        if (pnErr) pnErr.style.display = 'none';
+        if (phoneGroup) phoneGroup.style.borderColor = '#A8E8C7';
+      }
+
+      // Email Check
+      var emErr = document.getElementById('pop-em-err');
+      var emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!em || !emailRegex.test(em)) {
+        if (emErr) { emErr.textContent = "Please enter a valid email address."; emErr.style.display = 'block'; }
+        if (emEl) emEl.style.borderColor = '#FF6B6B';
+        valid = false;
+      } else {
+        if (emErr) emErr.style.display = 'none';
+        if (emEl) emEl.style.borderColor = '#A8E8C7';
+      }
+
+      // Checkbox
+      var chkErr = document.getElementById('pop-chk-err');
+      if (!chk) {
+        if (chkErr) { chkErr.textContent = "Please check consent box."; chkErr.style.display = 'block'; }
+        valid = false;
+      } else {
+        if (chkErr) chkErr.style.display = 'none';
+      }
+
+      if (!valid) return;
+
+      popLeadData = { fn: fn, cn: cn, cc: cc, pn: cleanPn, fullPhone: cc + cleanPn, em: em };
+      popGeneratedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+      console.log("Popup Spyke AI OTP Generated:", popGeneratedOtp);
+
+      var baseUrl = "https://services.leadconnectorhq.com/hooks/6ZCDV1ayTRbyBRUt5BmW/webhook-trigger/20e1ef65-abe9-4740-8647-1d6b5d91863d";
+      var payload = {
+        event: "otp_sent",
+        first_name: popLeadData.fn,
+        phone: popLeadData.fullPhone,
+        email: popLeadData.em,
+        company_name: popLeadData.cn,
+        otp_code: popGeneratedOtp,
+        otp: popGeneratedOtp,
+        OTP: popGeneratedOtp
+      };
+
+      sendWebhookPing(baseUrl, payload);
+
+      // Transition Popup to Step 2
+      popStep1.style.display = 'none';
+      popStep2.style.display = 'block';
+      document.getElementById('pop-otp-sent-info').textContent = "We sent an OTP code to " + popLeadData.em;
+      document.getElementById('pop-otp-code').value = '';
+      document.getElementById('pop-otp-err').style.display = 'none';
+      document.getElementById('pop-otp-code').focus();
+    });
+  }
+
+  // POPUP STEP 2 VERIFY & CALL ME NOW
+  var popBtnVerifyOtp = document.getElementById('pop-btn-verify-otp');
+  if (popBtnVerifyOtp) {
+    popBtnVerifyOtp.addEventListener('click', function(e) {
+      e.preventDefault();
+      var enteredOtp = document.getElementById('pop-otp-code').value.trim();
+
+      if (enteredOtp !== popGeneratedOtp) {
+        document.getElementById('pop-otp-err').textContent = "Invalid OTP code. Please enter correct 4-digit code.";
+        document.getElementById('pop-otp-err').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('pop-otp-err').style.display = 'none';
+
+      var baseUrl = "https://services.leadconnectorhq.com/hooks/6ZCDV1ayTRbyBRUt5BmW/webhook-trigger/20e1ef65-abe9-4740-8647-1d6b5d91863d";
+      var payload = {
+        event: "otp_verified",
+        first_name: popLeadData.fn,
+        phone: popLeadData.fullPhone,
+        email: popLeadData.em,
+        company_name: popLeadData.cn,
+        otp_code: popGeneratedOtp,
+        otp: popGeneratedOtp,
+        OTP: popGeneratedOtp,
+        status: "verified"
+      };
+
+      sendWebhookPing(baseUrl, payload);
+
+      // Trigger Direct Vapi Call to Customer Phone
+      triggerVapiCall(popLeadData.fullPhone, popLeadData.fn);
+
+      popStep2.style.display = 'none';
+      popSuccessMsg.style.display = 'block';
+    });
+  }
+
+  // POPUP STEP 2: GO BACK TO CHANGE DETAILS
+  var popBtnBack = document.getElementById('pop-btn-back-step1');
+  if (popBtnBack) {
+    popBtnBack.addEventListener('click', function() {
+      popStep2.style.display = 'none';
+      popStep1.style.display = 'block';
+    });
+  }
+
+  // POPUP STEP 2: RESEND OTP CODE
+  var popBtnResend = document.getElementById('pop-btn-resend-otp');
+  if (popBtnResend) {
+    popBtnResend.addEventListener('click', function() {
+      popGeneratedOtp = Math.floor(1000 + Math.random() * 9000).toString();
+      console.log("Popup Resent OTP Generated:", popGeneratedOtp);
+      var baseUrl = "https://services.leadconnectorhq.com/hooks/6ZCDV1ayTRbyBRUt5BmW/webhook-trigger/20e1ef65-abe9-4740-8647-1d6b5d91863d";
+      var payload = {
+        event: "otp_sent",
+        first_name: popLeadData.fn,
+        phone: popLeadData.fullPhone,
+        email: popLeadData.em,
+        company_name: popLeadData.cn,
+        otp_code: popGeneratedOtp,
+        otp: popGeneratedOtp,
+        OTP: popGeneratedOtp
+      };
+      sendWebhookPing(baseUrl, payload);
+      alert("A new OTP verification code has been generated & sent to " + (popLeadData.em || 'your email'));
+    });
+  }
+
+  // AUTOMATIC FLOATING CLOSE BUTTON INJECTOR
+  window.forceCloseAllPopups = function(e) {
+    if (e) {
+      try { e.preventDefault(); e.stopPropagation(); if (e.stopImmediatePropagation) e.stopImmediatePropagation(); } catch(err){}
+    }
+
+    var targetSelectors = [
+      '.hl-popup-container',
+      '.hl-popup-backdrop',
+      '.form-builder-popup',
+      '.lead-connector-popup',
+      '[class*="popup-wrapper"]',
+      '[class*="modal-container"]',
+      'div[id*="popup"]',
+      'div[class*="popup"]',
+      'div[class*="modal"]',
+      'div[class*="backdrop"]',
+      'iframe[src*="form"]'
+    ];
+
+    var cleanupDoc = function(doc) {
+      if (!doc) return;
+
+      doc.querySelectorAll(targetSelectors.join(', ')).forEach(function(el) {
+        if (el.tagName === 'BODY' || el.tagName === 'HTML' || el.classList.contains('spk')) return;
+        el.style.setProperty('display', 'none', 'important');
+        el.style.setProperty('visibility', 'hidden', 'important');
+        el.style.setProperty('opacity', '0', 'important');
+        el.style.setProperty('pointer-events', 'none', 'important');
+      });
+
+      // Sweep fixed position backdrop elements added by GHL outside .spk
+      doc.querySelectorAll('div').forEach(function(div) {
+        if (div.classList.contains('spk') || div.closest('.spk')) return;
+        try {
+          var style = window.getComputedStyle(div);
+          if (style.position === 'fixed' && parseInt(style.zIndex, 10) > 100) {
+            div.style.setProperty('display', 'none', 'important');
+            div.style.setProperty('visibility', 'hidden', 'important');
+            div.style.setProperty('opacity', '0', 'important');
+          }
+        } catch(err){}
+      });
+
+      if (doc.body) {
+        doc.body.style.setProperty('overflow', 'auto', 'important');
+        doc.body.style.setProperty('position', 'static', 'important');
+        doc.body.classList.remove('modal-open', 'popup-open', 'no-scroll', 'hl-popup-open');
+      }
+    };
+
+    cleanupDoc(document);
+    try {
+      if (window.parent && window.parent.document && window.parent.document !== document) {
+        cleanupDoc(window.parent.document);
+      }
+    } catch(err) {}
+  };
+
+  function setupGhlPopupClose() {
+    var popupSelectors = [
+      '.hl-popup-container',
+      '.form-builder-popup',
+      '.lead-connector-popup',
+      '[class*="popup-wrapper"]',
+      '[class*="modal-container"]',
+      'div[id*="popup"]',
+      'div[class*="popup"]',
+      'iframe[src*="form"]'
+    ];
+
+    var scanDoc = function(doc) {
+      if (!doc) return;
+      var popups = doc.querySelectorAll(popupSelectors.join(', '));
+      popups.forEach(function(popup) {
+        var targetCard = popup.querySelector('.form-builder, div[class*="card"], div[class*="content"], iframe') || popup;
+        if (!targetCard || targetCard.querySelector('.ghl-popup-close-btn')) return;
+
+        targetCard.style.position = 'relative';
+
+        var closeBtn = doc.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'ghl-popup-close-btn';
+        closeBtn.innerHTML = '&times;';
+        closeBtn.setAttribute('title', 'Close Form');
+        closeBtn.setAttribute('aria-label', 'Close Popup');
+
+        ['click', 'mousedown', 'touchstart', 'pointerdown'].forEach(function(evt) {
+          closeBtn.addEventListener(evt, window.forceCloseAllPopups, true);
+        });
+
+        targetCard.appendChild(closeBtn);
+      });
+    };
+
+    scanDoc(document);
+    try {
+      if (window.parent && window.parent.document && window.parent.document !== document) {
+        scanDoc(window.parent.document);
+      }
+    } catch(err) {}
+  }
+
+  // Watch for GHL popup modal triggers and inject Red Cross Button
+  setupGhlPopupClose();
+  setInterval(setupGhlPopupClose, 400);
+
+  // Close modal when pressing ESC key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      window.forceCloseAllPopups(e);
+    }
+  });
+})();
+</script>
+
+</body></html>

@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { Mic, Calendar, User, Phone, Mail, Clock, CheckCircle2 } from "lucide-react";
+import { Mic, Calendar, User, Phone, Mail, Clock, CheckCircle2, MessageSquare } from "lucide-react";
 import Link from "next/link";
 
 export const revalidate = 0; // Disable caching to always show latest conversations
@@ -22,18 +22,36 @@ export default async function AdminDashboard() {
       <div className="max-w-7xl mx-auto">
         
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 font-heading flex items-center gap-3">
               <div className="w-10 h-10 bg-[#00DF81]/20 rounded-full flex items-center justify-center">
                 <Mic className="w-5 h-5 text-[#00DF81]" />
               </div>
-              AI Call Transcripts
+              Super Admin Dashboard
             </h1>
-            <p className="text-gray-500 mt-2">Monitor all conversations your AI agent has had with customers.</p>
+            <p className="text-gray-500 mt-2">Manage your AI call transcripts, leads, and Telnyx SMS communications.</p>
           </div>
           <Link href="/" className="text-sm font-bold text-[#00DF81] hover:underline">
             &larr; Back to Website
+          </Link>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex items-center gap-3 mb-8 border-b border-gray-200 pb-4">
+          <Link
+            href="/admin"
+            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl shadow-xs text-sm"
+          >
+            <Mic className="w-4 h-4" />
+            AI Call Transcripts
+          </Link>
+          <Link
+            href="/inbox"
+            className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-100 text-gray-700 font-semibold rounded-xl border border-gray-200 text-sm transition"
+          >
+            <MessageSquare className="w-4 h-4 text-emerald-600" />
+            Telnyx SMS Inbox
           </Link>
         </div>
 
