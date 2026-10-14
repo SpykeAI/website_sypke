@@ -17,7 +17,8 @@ import {
   ShieldAlert,
   Coins,
   ArrowLeft,
-  ChevronDown
+  ChevronDown,
+  ChevronLeft
 } from "lucide-react";
 
 interface Contact {
@@ -305,49 +306,44 @@ export default function SmsInboxPage() {
         activeConvId ? "hidden md:flex" : "flex"
       } w-full md:w-80 lg:w-96 border-r border-slate-200 flex-col bg-slate-50 shrink-0 h-full`}>
         {/* Top Header */}
-        <div className="p-4 border-b border-slate-200 bg-white flex items-center justify-between">
+        <div className="p-3.5 px-4 border-b border-slate-200 bg-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-sm">
-              <MessageSquare size={19} />
-            </div>
-            <div>
-              <h1 className="text-sm font-bold text-slate-900 tracking-tight">SpykeAI SMS Inbox</h1>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                <p className="text-[11px] font-medium text-slate-600 truncate">
-                  Line: <span className="font-semibold text-emerald-700">{conversations[0]?.telnyx_number || "+13464770028"}</span>
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5">
             <Link
               href="/admin"
-              className="p-2 hover:bg-slate-100 text-slate-500 hover:text-slate-900 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
+              className="p-1.5 hover:bg-slate-100 text-slate-500 hover:text-slate-900 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
               title="Back to Admin Dashboard"
             >
-              <ArrowLeft size={18} />
+              <ChevronLeft size={20} />
             </Link>
-            <button
-              onClick={() => setShowNewModal(true)}
-              className="p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors flex items-center justify-center shadow-sm cursor-pointer"
-              title="Start New Conversation"
-            >
-              <Plus size={18} />
-            </button>
+            <div>
+              <h1 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                <span>Messages</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+              </h1>
+              <p className="text-[11px] font-medium text-slate-500">
+                Line: <span className="font-semibold text-emerald-700">{conversations[0]?.telnyx_number || "+13464770028"}</span>
+              </p>
+            </div>
           </div>
+          <button
+            onClick={() => setShowNewModal(true)}
+            className="w-8 h-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition-colors flex items-center justify-center shadow-xs cursor-pointer"
+            title="Start New Conversation"
+          >
+            <Plus size={18} />
+          </button>
         </div>
 
         {/* Search Bar */}
-        <div className="p-3 bg-white border-b border-slate-200">
+        <div className="p-2.5 px-3 bg-white border-b border-slate-200">
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 text-slate-400" size={15} />
+            <Search className="absolute left-3 top-2.5 text-slate-400" size={14} />
             <input
               type="text"
-              placeholder="Search phone or name..."
+              placeholder="Search messages or phone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-100 border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
+              className="w-full bg-slate-100/80 border border-slate-200/80 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all"
             />
           </div>
         </div>
@@ -436,64 +432,67 @@ export default function SmsInboxPage() {
         {activeConv ? (
           <>
             {/* Header */}
-            <div className="p-3 md:p-3.5 md:px-6 border-b border-slate-200 bg-white flex items-center justify-between shadow-xs z-10 shrink-0 gap-2">
+            <div className="p-2.5 md:p-3.5 md:px-6 border-b border-slate-200 bg-white flex items-center justify-between shadow-xs z-10 shrink-0 gap-2">
               <div className="flex items-center gap-2 md:gap-3 min-w-0">
-                {/* Mobile Back Button to Return to Conversation List */}
+                {/* Mobile Back Button like iMessage / WhatsApp */}
                 <button
                   onClick={() => setActiveConvId(null)}
-                  className="md:hidden p-1.5 -ml-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer shrink-0"
-                  title="Back to conversations"
+                  className="md:hidden flex items-center gap-0.5 text-emerald-600 hover:text-emerald-700 font-semibold text-xs py-1 px-1.5 -ml-1.5 rounded-lg hover:bg-emerald-50 transition-colors cursor-pointer shrink-0"
+                  title="Back to Messages"
                 >
-                  <ArrowLeft size={18} />
+                  <ChevronLeft size={20} />
+                  <span>Messages</span>
                 </button>
 
-                <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-emerald-100/80 border border-emerald-200 flex items-center justify-center text-emerald-800 font-bold text-xs md:text-sm shrink-0">
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-emerald-100/80 border border-emerald-200 flex items-center justify-center text-emerald-800 font-bold text-xs md:text-sm shrink-0">
                   {activeConv.contacts?.display_name && activeConv.contacts.display_name !== activeConv.contacts.phone_e164
                     ? activeConv.contacts.display_name.charAt(0).toUpperCase()
-                    : <Phone size={15} />}
+                    : <Phone size={14} />}
                 </div>
                 <div className="min-w-0">
                   <h2 className="text-xs md:text-sm font-bold text-slate-900 truncate">
                     {activeConv.contacts?.display_name || activeConv.contacts?.phone_e164}
                   </h2>
-                  <div className="flex items-center gap-1.5 md:gap-2 text-[11px] md:text-xs text-slate-500 font-medium">
-                    <span className="truncate">{activeConv.contacts?.phone_e164}</span>
-                    <span className="text-slate-300">•</span>
-                    <div className="relative inline-flex items-center">
-                      <select
-                        value={activeConv.interest_level || "cold outreach"}
-                        onChange={(e) => handleUpdateStatus(activeConv.id, e.target.value)}
-                        className={`text-[9px] md:text-[10px] font-bold uppercase tracking-wider pl-2 pr-5 md:pl-2.5 md:pr-6 py-0.5 rounded border cursor-pointer outline-none transition-all appearance-none shadow-2xs ${
-                          activeConv.interest_level === "lead"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100"
-                            : activeConv.interest_level === "prospect"
-                            ? "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
-                            : "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100"
-                        }`}
-                        title="Change stage"
-                      >
-                        <option value="prospect">Prospect</option>
-                        <option value="cold outreach">Cold Outreach</option>
-                        <option value="lead">Lead</option>
-                      </select>
-                      <ChevronDown size={10} className="pointer-events-none absolute right-1 md:right-1.5 text-slate-500" />
-                    </div>
-                  </div>
+                  <p className="text-[11px] text-slate-500 font-medium truncate">
+                    {activeConv.contacts?.phone_e164}
+                  </p>
                 </div>
               </div>
 
-              {activeConv.contacts?.do_not_text && (
-                <div className="flex items-center gap-1 px-2 py-0.5 md:px-3 md:py-1 bg-rose-50 border border-rose-200 rounded-lg text-rose-700 text-[10px] md:text-xs font-semibold shrink-0">
-                  <ShieldAlert size={14} />
-                  <span className="hidden sm:inline">Contact Opted Out</span>
-                  <span className="sm:hidden">Opted Out</span>
+              <div className="flex items-center gap-2 shrink-0">
+                {/* Stage Pill Dropdown */}
+                <div className="relative inline-flex items-center">
+                  <select
+                    value={activeConv.interest_level || "cold outreach"}
+                    onChange={(e) => handleUpdateStatus(activeConv.id, e.target.value)}
+                    className={`text-[9px] md:text-[10px] font-bold uppercase tracking-wider pl-2.5 pr-5 md:pl-3 md:pr-6 py-1 rounded-full border cursor-pointer outline-none transition-all appearance-none shadow-2xs ${
+                      activeConv.interest_level === "lead"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100"
+                        : activeConv.interest_level === "prospect"
+                        ? "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+                        : "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100"
+                    }`}
+                    title="Change stage"
+                  >
+                    <option value="prospect">Prospect</option>
+                    <option value="cold outreach">Cold Outreach</option>
+                    <option value="lead">Lead</option>
+                  </select>
+                  <ChevronDown size={10} className="pointer-events-none absolute right-1.5 text-slate-500" />
                 </div>
-              )}
+
+                {activeConv.contacts?.do_not_text && (
+                  <div className="flex items-center gap-1 px-2 py-0.5 md:px-3 md:py-1 bg-rose-50 border border-rose-200 rounded-full text-rose-700 text-[10px] md:text-xs font-semibold shrink-0">
+                    <ShieldAlert size={13} />
+                    <span className="hidden sm:inline">Opted Out</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Error Banner */}
             {errorBanner && (
-              <div className="bg-rose-50 border-b border-rose-200 px-6 py-2.5 text-rose-700 text-xs flex items-center justify-between shrink-0">
+              <div className="bg-rose-50 border-b border-rose-200 px-4 md:px-6 py-2.5 text-rose-700 text-xs flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2">
                   <AlertCircle size={15} className="text-rose-600 shrink-0" />
                   <span className="font-medium">{errorBanner}</span>
@@ -564,53 +563,51 @@ export default function SmsInboxPage() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Composer Bar */}
-            <div className="p-3 md:p-4 bg-white border-t border-slate-200 shrink-0">
-              <form onSubmit={handleSendMessage} className="space-y-2">
-                <div className="relative">
+            {/* Native Phone Messages Style Composer */}
+            <div className="p-2.5 sm:p-3 md:p-4 bg-white border-t border-slate-200 shrink-0">
+              <form onSubmit={handleSendMessage} className="space-y-1.5">
+                {/* The Input Capsule */}
+                <div className="flex items-end gap-2 bg-slate-100 hover:bg-slate-100/90 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20 border border-slate-200 focus-within:border-emerald-500 rounded-3xl p-1.5 pl-4 transition-all">
                   <textarea
-                    rows={2}
+                    rows={1}
                     placeholder={
                       activeConv.contacts?.do_not_text
                         ? "Contact has opted out of SMS messages."
-                        : "Type an SMS message (Press Enter to send)..."
+                        : "Text message..."
                     }
                     disabled={activeConv.contacts?.do_not_text || sending}
                     value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
+                    onChange={(e) => {
+                      setInputText(e.target.value);
+                      e.target.style.height = "auto";
+                      e.target.style.height = `${Math.min(e.target.scrollHeight, 100)}px`;
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
                         handleSendMessage(e);
                       }
                     }}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 md:p-3 text-xs md:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white resize-none transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-inner"
+                    className="flex-1 bg-transparent border-0 text-sm text-slate-800 placeholder-slate-400 focus:outline-none resize-none py-1.5 max-h-24 leading-snug"
                   />
-                </div>
-
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                  {/* Chars, Segments & Cost Indicators */}
-                  <div className="flex flex-wrap items-center gap-1.5 text-[10px] sm:text-[11px]">
-                    <span className="px-1.5 sm:px-2 py-0.5 bg-slate-100 rounded font-semibold text-slate-600 border border-slate-200">
-                      {charCount} chars
-                    </span>
-                    <span className="px-1.5 sm:px-2 py-0.5 bg-slate-100 rounded font-semibold text-slate-600 border border-slate-200">
-                      {segmentCount} {segmentCount === 1 ? "seg" : "segs"}
-                    </span>
-                    <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 bg-emerald-50 text-emerald-800 rounded font-bold border border-emerald-200">
-                      <Coins size={11} className="text-emerald-600" />
-                      ~${estCost}
-                    </span>
-                  </div>
 
                   <button
                     type="submit"
                     disabled={!inputText.trim() || sending || activeConv.contacts?.do_not_text}
-                    className="px-4 sm:px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer ml-auto"
+                    className="w-8 h-8 rounded-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-30 disabled:hover:bg-emerald-600 text-white flex items-center justify-center shrink-0 transition-all shadow-xs cursor-pointer mb-0.5"
+                    title="Send SMS"
                   >
-                    <Send size={13} />
-                    <span>{sending ? "Sending..." : "Send SMS"}</span>
+                    <Send size={14} className={inputText.trim() ? "translate-x-0.5" : ""} />
                   </button>
+                </div>
+
+                {/* Sub-bar with Live Cost & Segments Counter */}
+                <div className="flex items-center justify-between px-3 text-[10px] text-slate-400 font-medium">
+                  <span>{charCount} chars • {segmentCount} {segmentCount === 1 ? "seg" : "segs"}</span>
+                  <span className="text-emerald-700 font-semibold flex items-center gap-1">
+                    <Coins size={10} className="text-emerald-600" />
+                    Est: ~${estCost}
+                  </span>
                 </div>
               </form>
             </div>
