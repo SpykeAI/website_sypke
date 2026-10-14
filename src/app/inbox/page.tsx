@@ -325,13 +325,22 @@ export default function SmsInboxPage() {
               </p>
             </div>
           </div>
-          <button
-            onClick={() => setShowNewModal(true)}
-            className="w-8 h-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition-colors flex items-center justify-center shadow-xs cursor-pointer"
-            title="Start New Conversation"
-          >
-            <Plus size={18} />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <Link
+              href="/admin/calls"
+              className="w-8 h-8 hover:bg-slate-100 text-slate-500 hover:text-emerald-600 rounded-full transition-colors flex items-center justify-center cursor-pointer"
+              title="Open Calls & Softphone in Superadmin"
+            >
+              <Phone size={16} />
+            </Link>
+            <button
+              onClick={() => setShowNewModal(true)}
+              className="w-8 h-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full transition-colors flex items-center justify-center shadow-xs cursor-pointer"
+              title="Start New Conversation"
+            >
+              <Plus size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Search Bar */}
@@ -480,6 +489,15 @@ export default function SmsInboxPage() {
                   </select>
                   <ChevronDown size={10} className="pointer-events-none absolute right-1.5 text-slate-500" />
                 </div>
+
+                {/* Call Contact via Superadmin Softphone */}
+                <Link
+                  href={`/admin/calls?to=${encodeURIComponent(activeConv.contacts?.phone_e164 || "")}`}
+                  className="p-1.5 hover:bg-emerald-50 text-emerald-600 rounded-full border border-emerald-200 transition-colors flex items-center justify-center cursor-pointer shrink-0"
+                  title="Call contact via Superadmin Softphone"
+                >
+                  <Phone size={13} />
+                </Link>
 
                 {activeConv.contacts?.do_not_text && (
                   <div className="flex items-center gap-1 px-2 py-0.5 md:px-3 md:py-1 bg-rose-50 border border-rose-200 rounded-full text-rose-700 text-[10px] md:text-xs font-semibold shrink-0">

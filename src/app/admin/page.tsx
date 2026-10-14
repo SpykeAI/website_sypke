@@ -38,13 +38,20 @@ export default async function AdminDashboard() {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-3 mb-8 border-b border-gray-200 pb-4">
+        <div className="flex items-center gap-3 mb-8 border-b border-gray-200 pb-4 overflow-x-auto">
           <Link
             href="/admin"
             className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl shadow-xs text-sm"
           >
             <Mic className="w-4 h-4" />
             AI Call Transcripts
+          </Link>
+          <Link
+            href="/admin/calls"
+            className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-100 text-gray-700 font-semibold rounded-xl border border-gray-200 text-sm transition"
+          >
+            <Phone className="w-4 h-4 text-emerald-600" />
+            Live Calls & Softphone
           </Link>
           <Link
             href="/inbox"
@@ -107,9 +114,30 @@ export default async function AdminDashboard() {
                         <Mail className="w-4 h-4 text-gray-400" />
                         {conv.email || "No email collected"}
                       </div>
-                      <div className="flex items-center gap-3 text-gray-600 text-sm">
-                        <Phone className="w-4 h-4 text-gray-400" />
-                        {conv.phone || "No phone collected"}
+                      <div className="flex items-center justify-between text-gray-600 text-sm">
+                        <div className="flex items-center gap-3">
+                          <Phone className="w-4 h-4 text-gray-400" />
+                          <span>{conv.phone || "No phone collected"}</span>
+                        </div>
+                        {conv.phone && (
+                          <div className="flex items-center gap-1.5">
+                            <Link
+                              href={`/admin/calls?to=${encodeURIComponent(conv.phone)}`}
+                              className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-2xs"
+                              title="Call Lead with Browser Softphone"
+                            >
+                              <Phone className="w-3 h-3" />
+                              <span>Call</span>
+                            </Link>
+                            <Link
+                              href="/inbox"
+                              className="p-1 bg-gray-50 hover:bg-emerald-50 text-gray-400 hover:text-emerald-700 border border-gray-200 rounded-lg text-xs transition"
+                              title="Text Lead in SMS Inbox"
+                            >
+                              <MessageSquare className="w-3 h-3" />
+                            </Link>
+                          </div>
+                        )}
                       </div>
                       
                       {conv.interest_level && (
