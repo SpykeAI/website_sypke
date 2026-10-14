@@ -142,6 +142,49 @@ export async function POST(req: Request) {
         .from("webhook_events")
         .update({ status: "processed", processed_at: new Date().toISOString() })
         .eq("provider_event_id", eventId);
+    } else if (payload) {
+      // Handle Outbound Delivery Status events (message.sent, message.delivered, message.finalized, message.failed)
+      const providerMsgId = payload?.id;
+      if (providerMsgId) {
+        let newStatus = "sent";
+        const recipientStatus = payload?.to?.[0]?.status;
+
+        if (eventType === "message.delivered" || recipientStatus === "delivered") {
+          newStatus = "delivered";
+        } else if (
+          eventType === "message.failed" ||
+          eventType === "message.undelivered" ||
+          recipientStatus === "delivery_failed" ||
+          recipientStatus === "sending_failed"
+        ) {
+          newStatus = "failed";
+        } else if (eventType === "message.sent" || recipientStatus === "sent") {
+          newStatus = "sent";
+        }
+
+        const errorCode = payload?.errors?.[0]?.detail || payload?.errors?.[0]?.title || payload?.errors?.[0]?.code || null;
+
+        const { data: currentMsg } = await supabase
+          .from("messages")
+          .select("id, status")
+          .eq("provider_message_id", providerMsgId)
+          .maybeSingle();
+
+        if (currentMsg) {
+          await supabase
+            .from("messages")
+            .update({
+              status: newStatus,
+              error_code: errorCode,
+            })
+            .eq("id", currentMsg.id);
+        }
+      }
+
+      await supabase
+        .from("webhook_events")
+        .update({ status: "processed", processed_at: new Date().toISOString() })
+        .eq("provider_event_id", eventId);
     }
 
     return NextResponse.json({ received: true });
