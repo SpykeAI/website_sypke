@@ -308,7 +308,12 @@ export default function SmsInboxPage() {
             </div>
             <div>
               <h1 className="text-sm font-bold text-slate-900 tracking-tight">SpykeAI SMS Inbox</h1>
-              <p className="text-[11px] font-medium text-slate-500">Telnyx Two-Way Messaging</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                <p className="text-[11px] font-medium text-slate-600 truncate">
+                  Line: <span className="font-semibold text-emerald-700">{conversations[0]?.telnyx_number || "+13464770028"}</span>
+                </p>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
@@ -438,10 +443,6 @@ export default function SmsInboxPage() {
                   </h2>
                   <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
                     <span>{activeConv.contacts?.phone_e164}</span>
-                    <span className="text-slate-300">•</span>
-                    <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60 text-[10px]">
-                      Telnyx Line: {activeConv.telnyx_number}
-                    </span>
                     <span className="text-slate-300">•</span>
                     <div className="relative inline-flex items-center">
                       <select
