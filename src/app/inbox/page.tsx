@@ -16,7 +16,8 @@ import {
   User, 
   ShieldAlert,
   Coins,
-  ArrowLeft
+  ArrowLeft,
+  ChevronDown
 } from "lucide-react";
 
 interface Contact {
@@ -31,6 +32,7 @@ interface Conversation {
   telnyx_number: string;
   last_message_at: string;
   unread_count: number;
+  interest_level?: string | null;
   contacts: Contact;
 }
 
@@ -61,6 +63,7 @@ export default function SmsInboxPage() {
   const [showNewModal, setShowNewModal] = useState(false);
   const [newPhone, setNewPhone] = useState("");
   const [newName, setNewName] = useState("");
+  const [newStage, setNewStage] = useState("prospect");
   const [creatingConv, setCreatingConv] = useState(false);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -230,6 +233,7 @@ export default function SmsInboxPage() {
         body: JSON.stringify({
           phone: newPhone.trim(),
           displayName: newName.trim() || null,
+          interest_level: newStage,
         }),
       });
 
@@ -238,6 +242,7 @@ export default function SmsInboxPage() {
         setShowNewModal(false);
         setNewPhone("");
         setNewName("");
+        setNewStage("prospect");
         await fetchConversations();
         if (data.conversationId) {
           setActiveConvId(data.conversationId);
@@ -249,6 +254,27 @@ export default function SmsInboxPage() {
       alert("Error creating conversation");
     } finally {
       setCreatingConv(false);
+    }
+  };
+
+  // Update conversation status / stage (prospect, cold outreach, lead)
+  const handleUpdateStatus = async (convId: string, newStatus: string) => {
+    // Optimistic UI update
+    setConversations((prev) =>
+      prev.map((c) => (c.id === convId ? { ...c, interest_level: newStatus } : c))
+    );
+
+    try {
+      await fetch("/api/sms/conversations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversationId: convId,
+          interest_level: newStatus,
+        }),
+      });
+    } catch (err) {
+      console.error("Failed to update status", err);
     }
   };
 
@@ -265,7 +291,8 @@ export default function SmsInboxPage() {
     const q = searchQuery.toLowerCase();
     const phone = c.contacts?.phone_e164?.toLowerCase() || "";
     const name = c.contacts?.display_name?.toLowerCase() || "";
-    return phone.includes(q) || name.includes(q);
+    const tag = (c.interest_level || "").toLowerCase();
+    return phone.includes(q) || name.includes(q) || tag.includes(q);
   });
 
   return (
@@ -367,11 +394,24 @@ export default function SmsInboxPage() {
                         </span>
                       )}
                     </div>
-                    {contact?.do_not_text && (
-                      <span className="inline-block mt-1 text-[9px] text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 font-semibold">
-                        OPTED OUT
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                      {conv.interest_level && (
+                        <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${
+                          conv.interest_level === "lead"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : conv.interest_level === "cold outreach"
+                            ? "bg-amber-50 text-amber-700 border-amber-200"
+                            : "bg-blue-50 text-blue-700 border-blue-200"
+                        }`}>
+                          {conv.interest_level}
+                        </span>
+                      )}
+                      {contact?.do_not_text && (
+                        <span className="text-[9px] text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 font-semibold">
+                          OPTED OUT
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -402,6 +442,26 @@ export default function SmsInboxPage() {
                     <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60 text-[10px]">
                       Telnyx Line: {activeConv.telnyx_number}
                     </span>
+                    <span className="text-slate-300">•</span>
+                    <div className="relative inline-flex items-center">
+                      <select
+                        value={activeConv.interest_level || "cold outreach"}
+                        onChange={(e) => handleUpdateStatus(activeConv.id, e.target.value)}
+                        className={`text-[10px] font-bold uppercase tracking-wider pl-2.5 pr-6 py-0.5 rounded border cursor-pointer outline-none transition-all appearance-none shadow-2xs ${
+                          activeConv.interest_level === "lead"
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100"
+                            : activeConv.interest_level === "prospect"
+                            ? "bg-blue-50 text-blue-700 border-blue-300 hover:bg-blue-100"
+                            : "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100"
+                        }`}
+                        title="Change stage"
+                      >
+                        <option value="prospect">Prospect</option>
+                        <option value="cold outreach">Cold Outreach</option>
+                        <option value="lead">Lead</option>
+                      </select>
+                      <ChevronDown size={11} className="pointer-events-none absolute right-1.5 text-slate-500" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -576,6 +636,19 @@ export default function SmsInboxPage() {
                   onChange={(e) => setNewName(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Stage / Category</label>
+                <select
+                  value={newStage}
+                  onChange={(e) => setNewStage(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
+                >
+                  <option value="prospect">Prospect</option>
+                  <option value="cold outreach">Cold Outreach</option>
+                  <option value="lead">Lead</option>
+                </select>
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2">

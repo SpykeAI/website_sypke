@@ -12,6 +12,7 @@ export async function GET() {
         telnyx_number,
         last_message_at,
         unread_count,
+        interest_level,
         created_at,
         contacts (
           id,
@@ -36,7 +37,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { phone, displayName } = body;
+    const { phone, displayName, interest_level } = body;
 
     if (!phone) {
       return NextResponse.json({ ok: false, message: "Phone number is required" }, { status: 400 });
@@ -86,6 +87,7 @@ export async function POST(req: Request) {
         .insert({
           contact_id: contactId,
           telnyx_number: telnyxFrom,
+          interest_level: interest_level || "cold outreach",
           last_message_at: new Date().toISOString(),
           unread_count: 0,
         })
@@ -101,3 +103,34 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
   }
 }
+
+// PATCH update conversation stage / status (prospect, cold outreach, lead)
+export async function PATCH(req: Request) {
+  try {
+    const body = await req.json();
+    const { conversationId, interest_level } = body;
+
+    if (!conversationId) {
+      return NextResponse.json({ ok: false, message: "conversationId is required" }, { status: 400 });
+    }
+
+    const { data, error } = await supabase
+      .from("conversations")
+      .update({ 
+        interest_level: interest_level || null, 
+        updated_at: new Date().toISOString() 
+      })
+      .eq("id", conversationId)
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true, conversation: data });
+  } catch (err: any) {
+    return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
+  }
+}
+
