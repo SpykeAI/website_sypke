@@ -9,11 +9,21 @@ import Script from "next/script";
 export default function AppLayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isInboxOrPhone = pathname?.startsWith("/inbox") || pathname?.startsWith("/phone");
+  const isAdmin = pathname?.startsWith("/admin");
 
   // If inside /inbox or /phone, render clean full-screen app without marketing navbar/footer/widgets
   if (isInboxOrPhone) {
     return (
       <main className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col bg-white">
+        {children}
+      </main>
+    );
+  }
+
+  // If inside /admin portal, render clean dashboard without marketing navbar/footer/widgets
+  if (isAdmin) {
+    return (
+      <main className="min-h-screen w-full flex flex-col bg-gray-50">
         {children}
       </main>
     );
