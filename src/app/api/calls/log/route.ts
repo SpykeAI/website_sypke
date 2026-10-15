@@ -16,23 +16,31 @@ export async function GET() {
     const allLogs: any[] = [];
     const seenIds = new Set<string>();
 
-    // 1. Fetch carrier-grade WebRTC records directly from Telnyx API
     const telnyxApiKey = process.env.TELNYX_API_KEY;
+    let telnyxDebug: any = {
+      hasKey: !!telnyxApiKey,
+      keyPrefix: telnyxApiKey ? telnyxApiKey.slice(0, 7) : null,
+    };
+
     if (telnyxApiKey) {
       try {
+        const cleanKey = telnyxApiKey.trim();
         const telnyxRes = await fetch(
           "https://api.telnyx.com/v2/detail_records?filter[record_type]=webrtc&page[size]=50",
           {
             headers: {
-              Authorization: `Bearer ${telnyxApiKey}`,
+              Authorization: `Bearer ${cleanKey}`,
               "Content-Type": "application/json",
             },
             cache: "no-store",
           }
         );
 
+        telnyxDebug.status = telnyxRes.status;
+
         if (telnyxRes.ok) {
           const telnyxData = await telnyxRes.json();
+          telnyxDebug.rawCount = telnyxData?.data?.length;
           if (Array.isArray(telnyxData.data)) {
             for (const r of telnyxData.data) {
               const id = r.id || r.call_id || r.telnyx_leg_id;
@@ -58,9 +66,11 @@ export async function GET() {
             }
           }
         } else {
-          console.error("Telnyx detail_records error status:", telnyxRes.status);
+          telnyxDebug.errorText = await telnyxRes.text();
+          console.error("Telnyx detail_records error:", telnyxRes.status, telnyxDebug.errorText);
         }
-      } catch (telnyxErr) {
+      } catch (telnyxErr: any) {
+        telnyxDebug.exception = telnyxErr?.message || String(telnyxErr);
         console.error("Failed to query Telnyx detail_records:", telnyxErr);
       }
     }
@@ -119,7 +129,7 @@ export async function GET() {
     allLogs.sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
 
     return NextResponse.json(
-      { ok: true, logs: allLogs },
+      { ok: true, logs: allLogs, debug: telnyxDebug },
       {
         headers: {
           "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
