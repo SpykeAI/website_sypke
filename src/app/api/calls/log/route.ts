@@ -171,23 +171,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: true, logId: callLog.id });
     }
 
-    // 2. Fallback: Persist in conversations table
-    const { data: convLog } = await supabase
-      .from("conversations")
-      .insert({
-        call_id: telnyx_call_control_id || `call_browser_${Date.now()}`,
-        phone: toNum,
-        telnyx_number: fromNum,
-        contact_name: callDir === "outbound" ? `Outbound to ${toNum}` : `Inbound from ${fromNum}`,
-        summary: `Status: ${callStatus} • Direction: ${callDir}`,
-        interest_level: callStatus,
-        last_message_at: new Date().toISOString(),
-      })
-      .select("id")
-      .maybeSingle();
-
-    const finalId = convLog?.id || `local-${Date.now()}`;
-    return NextResponse.json({ ok: true, logId: finalId });
+    // 2. Return local call tracking ID (Telnyx records the actual CDR automatically)
+    return NextResponse.json({ ok: true, logId: `call_${Date.now()}` });
   } catch (err: any) {
     console.error("POST /api/calls/log error:", err);
     return NextResponse.json({ ok: true, logId: `local-${Date.now()}` });

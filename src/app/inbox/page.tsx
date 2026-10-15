@@ -19,7 +19,8 @@ import {
   Coins,
   ArrowLeft,
   ChevronDown,
-  ChevronLeft
+  ChevronLeft,
+  Trash2
 } from "lucide-react";
 
 interface Contact {
@@ -67,6 +68,15 @@ export default function SmsInboxPage() {
   const [newName, setNewName] = useState("");
   const [newStage, setNewStage] = useState("prospect");
   const [creatingConv, setCreatingConv] = useState(false);
+
+  // Delete Confirmation Modal
+  const [confirmDeleteModal, setConfirmDeleteModal] = useState<{
+    isOpen: boolean;
+    type: "conversation" | "message";
+    id: string;
+    label?: string;
+  } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -282,6 +292,49 @@ export default function SmsInboxPage() {
     }
   };
 
+  // Delete conversation or message handler
+  const handleConfirmDelete = async () => {
+    if (!confirmDeleteModal) return;
+    setDeleting(true);
+
+    try {
+      if (confirmDeleteModal.type === "conversation") {
+        const convId = confirmDeleteModal.id;
+        // Optimistic UI update
+        setConversations((prev) => prev.filter((c) => c.id !== convId));
+        if (activeConvId === convId) {
+          const remaining = conversations.filter((c) => c.id !== convId);
+          setActiveConvId(remaining.length > 0 ? remaining[0].id : null);
+        }
+
+        const res = await fetch(`/api/sms/conversations?conversationId=${convId}`, {
+          method: "DELETE",
+        });
+        const data = await res.json();
+        if (!data.ok) {
+          console.error("Delete conversation error:", data.error || data.message);
+        }
+      } else if (confirmDeleteModal.type === "message") {
+        const msgId = confirmDeleteModal.id;
+        // Optimistic UI update
+        setMessages((prev) => prev.filter((m) => m.id !== msgId));
+
+        const res = await fetch(`/api/sms/messages?messageId=${msgId}`, {
+          method: "DELETE",
+        });
+        const data = await res.json();
+        if (!data.ok) {
+          console.error("Delete message error:", data.error || data.message);
+        }
+      }
+    } catch (err) {
+      console.error("Error during deletion:", err);
+    } finally {
+      setDeleting(false);
+      setConfirmDeleteModal(null);
+    }
+  };
+
   // Character, segment and cost calculations
   const charCount = inputText.length;
   const isUnicode = /[^\u0000-\u007F]/.test(inputText);
@@ -379,7 +432,7 @@ export default function SmsInboxPage() {
                 <div
                   key={conv.id}
                   onClick={() => setActiveConvId(conv.id)}
-                  className={`p-3.5 cursor-pointer transition-colors flex items-start gap-3 ${
+                  className={`p-3.5 cursor-pointer transition-colors flex items-start gap-3 group relative ${
                     isActive
                       ? "bg-emerald-50/80 border-l-4 border-emerald-600"
                       : "hover:bg-slate-100/70"
@@ -395,11 +448,29 @@ export default function SmsInboxPage() {
                       <span className="text-xs font-semibold text-slate-900 truncate">
                         {contact?.display_name && contact.display_name !== contact.phone_e164
                           ? contact.display_name
-                          : contact?.phone_e164}
+                          : contact?.phone_e164 || "Unknown Contact"}
                       </span>
-                      <span className="text-[10px] text-slate-400 font-medium">
-                        {new Date(conv.last_message_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                      </span>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDeleteModal({
+                              isOpen: true,
+                              type: "conversation",
+                              id: conv.id,
+                              label: contact?.display_name || contact?.phone_e164 || "this conversation",
+                            });
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-all cursor-pointer"
+                          title="Delete conversation"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                        <span className="text-[10px] text-slate-400 font-medium">
+                          {new Date(conv.last_message_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] text-slate-500 truncate">
@@ -502,6 +573,23 @@ export default function SmsInboxPage() {
                   <Phone size={13} />
                 </Link>
 
+                {/* Delete Chat Button */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setConfirmDeleteModal({
+                      isOpen: true,
+                      type: "conversation",
+                      id: activeConv.id,
+                      label: activeConv.contacts?.display_name || activeConv.contacts?.phone_e164 || "this chat",
+                    })
+                  }
+                  className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-full border border-slate-200 hover:border-rose-300 transition-colors flex items-center justify-center cursor-pointer shrink-0"
+                  title="Delete Chat Thread"
+                >
+                  <Trash2 size={13} />
+                </button>
+
                 {activeConv.contacts?.do_not_text && (
                   <div className="flex items-center gap-1 px-2 py-0.5 md:px-3 md:py-1 bg-rose-50 border border-rose-200 rounded-full text-rose-700 text-[10px] md:text-xs font-semibold shrink-0">
                     <ShieldAlert size={13} />
@@ -548,7 +636,7 @@ export default function SmsInboxPage() {
                   return (
                     <div
                       key={msg.id}
-                      className={`flex flex-col ${isOutbound ? "items-end" : "items-start"}`}
+                      className={`flex flex-col group relative ${isOutbound ? "items-end" : "items-start"}`}
                     >
                       <div
                         className={`max-w-[85%] sm:max-w-[70%] md:max-w-[55%] rounded-2xl px-3.5 py-2 md:px-4 md:py-2.5 text-xs md:text-sm leading-relaxed ${
@@ -560,8 +648,8 @@ export default function SmsInboxPage() {
                         <p className="whitespace-pre-wrap break-all [overflow-wrap:anywhere] select-text">{msg.body}</p>
                       </div>
 
-                      {/* Timestamp & Status */}
-                      <div className="flex items-center gap-1 mt-1 px-1 text-[10px] text-slate-400 font-medium">
+                      {/* Timestamp & Status & Delete Message */}
+                      <div className="flex items-center gap-1.5 mt-1 px-1 text-[10px] text-slate-400 font-medium">
                         <span>
                           {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </span>
@@ -576,6 +664,15 @@ export default function SmsInboxPage() {
                             <span className="capitalize">{msg.status}</span>
                           </span>
                         )}
+
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDeleteModal({ isOpen: true, type: "message", id: msg.id })}
+                          className="opacity-0 group-hover:opacity-100 hover:text-rose-500 transition-opacity p-0.5 cursor-pointer"
+                          title="Delete message"
+                        >
+                          <Trash2 size={11} />
+                        </button>
                       </div>
                     </div>
                   );
@@ -703,6 +800,44 @@ export default function SmsInboxPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {confirmDeleteModal?.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4">
+              <Trash2 size={22} />
+            </div>
+            <h3 className="text-base font-bold text-slate-900 text-center mb-1.5">
+              {confirmDeleteModal.type === "conversation" ? "Delete Conversation?" : "Delete Message?"}
+            </h3>
+            <p className="text-xs text-slate-500 text-center mb-6 leading-relaxed">
+              {confirmDeleteModal.type === "conversation"
+                ? `Are you sure you want to delete the chat with ${confirmDeleteModal.label || "this contact"}? All messages in this thread will be permanently deleted.`
+                : "Are you sure you want to permanently delete this message?"}
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteModal(null)}
+                disabled={deleting}
+                className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                disabled={deleting}
+                className="flex-1 py-2.5 px-4 bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                {deleting && <RefreshCw size={13} className="animate-spin" />}
+                <span>{deleting ? "Deleting..." : "Delete"}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

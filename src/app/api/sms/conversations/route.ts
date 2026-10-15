@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { normalizeToE164 } from "@/lib/telnyx";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // GET all conversations sorted by most recent message
 export async function GET() {
   try {
@@ -21,13 +24,14 @@ export async function GET() {
           do_not_text
         )
       `)
+      .not("contact_id", "is", null)
       .order("last_message_at", { ascending: false });
 
     if (error) {
       return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, conversations });
+    return NextResponse.json({ ok: true, conversations: conversations || [] });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
   }
@@ -134,3 +138,37 @@ export async function PATCH(req: Request) {
   }
 }
 
+// DELETE a conversation and its messages
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    let conversationId = searchParams.get("conversationId");
+
+    if (!conversationId) {
+      try {
+        const body = await req.json();
+        conversationId = body.conversationId;
+      } catch (e) {
+        // no body
+      }
+    }
+
+    if (!conversationId) {
+      return NextResponse.json({ ok: false, message: "conversationId is required" }, { status: 400 });
+    }
+
+    // 1. Delete associated messages
+    await supabase.from("messages").delete().eq("conversation_id", conversationId);
+
+    // 2. Delete the conversation record
+    const { error } = await supabase.from("conversations").delete().eq("id", conversationId);
+
+    if (error) {
+      return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true, message: "Conversation deleted successfully" });
+  } catch (err: any) {
+    return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
+  }
+}
