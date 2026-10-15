@@ -760,17 +760,30 @@ export default function AdminCallsPage() {
                   ))}
                 </div>
 
-                {/* Call Button */}
-                <button
-                  onClick={() => handleStartCall()}
-                  disabled={!dialNumber.trim() || callState !== "idle"}
-                  className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:hover:bg-emerald-600 text-white font-bold text-sm rounded-2xl flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-900/10 cursor-pointer"
-                >
-                  <Phone size={18} />
-                  <span>
-                    Call {dialNumber ? (dialNumber.startsWith("+91") ? "India (+91)" : dialNumber.startsWith("+1") ? "US (+1)" : countryCode === "+91" ? "India (+91)" : "US (+1)") : countryCode === "+91" ? "India (+91)" : "US (+1)"}
-                  </span>
-                </button>
+                {/* Call & Chat Buttons */}
+                <div className="flex items-center gap-2.5 w-full">
+                  <button
+                    onClick={() => handleStartCall()}
+                    disabled={!dialNumber.trim() || callState !== "idle"}
+                    className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:hover:bg-emerald-600 text-white font-bold text-sm rounded-2xl flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-900/10 cursor-pointer"
+                  >
+                    <Phone size={18} />
+                    <span>
+                      Call {dialNumber ? (dialNumber.startsWith("+91") ? "India (+91)" : dialNumber.startsWith("+1") ? "US (+1)" : countryCode === "+91" ? "India (+91)" : "US (+1)") : countryCode === "+91" ? "India (+91)" : "US (+1)"}
+                    </span>
+                  </button>
+
+                  {dialNumber.trim() && (
+                    <Link
+                      href={`/inbox?phone=${encodeURIComponent(formatDestinationNumber(dialNumber, countryCode))}`}
+                      className="h-13 px-4 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 hover:border-emerald-300 rounded-2xl flex items-center justify-center gap-1.5 transition text-xs font-bold cursor-pointer shrink-0 shadow-xs"
+                      title="Open SMS Chat with this number"
+                    >
+                      <MessageSquare size={17} />
+                      <span className="hidden sm:inline">SMS</span>
+                    </Link>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -875,9 +888,9 @@ export default function AdminCallsPage() {
 
                         {/* Send SMS Button */}
                         <Link
-                          href={`/inbox`}
+                          href={`/inbox?phone=${encodeURIComponent(targetNumber)}`}
                           className="p-2 bg-white hover:bg-emerald-50 text-gray-500 hover:text-emerald-700 border border-gray-200 rounded-xl transition shadow-xs cursor-pointer"
-                          title="Open in SMS Inbox"
+                          title={`Chat with ${targetNumber} in SMS Inbox`}
                         >
                           <MessageSquare size={14} />
                         </Link>

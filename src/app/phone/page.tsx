@@ -791,17 +791,30 @@ export default function BrowserPhonePage() {
                     ))}
                   </div>
 
-                  {/* Call Button */}
-                  <button
-                    onClick={() => handleStartCall()}
-                    disabled={!dialNumber.trim() || callState !== "idle"}
-                    className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:hover:bg-emerald-600 text-white font-bold text-sm rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-950 cursor-pointer"
-                  >
-                    <Phone size={18} />
-                    <span>
-                      Call {dialNumber ? (dialNumber.startsWith("+91") ? "India (+91)" : dialNumber.startsWith("+1") ? "US (+1)" : countryCode === "+91" ? "India (+91)" : "US (+1)") : countryCode === "+91" ? "India (+91)" : "US (+1)"}
-                    </span>
-                  </button>
+                  {/* Call & Chat Buttons */}
+                  <div className="flex items-center gap-2.5 w-full">
+                    <button
+                      onClick={() => handleStartCall()}
+                      disabled={!dialNumber.trim() || callState !== "idle"}
+                      className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:hover:bg-emerald-600 text-white font-bold text-sm rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-950 cursor-pointer"
+                    >
+                      <Phone size={18} />
+                      <span>
+                        Call {dialNumber ? (dialNumber.startsWith("+91") ? "India (+91)" : dialNumber.startsWith("+1") ? "US (+1)" : countryCode === "+91" ? "India (+91)" : "US (+1)") : countryCode === "+91" ? "India (+91)" : "US (+1)"}
+                      </span>
+                    </button>
+
+                    {dialNumber.trim() && (
+                      <Link
+                        href={`/inbox?phone=${encodeURIComponent(formatDestinationNumber(dialNumber, countryCode))}`}
+                        className="h-13 px-4 bg-slate-800 hover:bg-emerald-600 text-slate-300 hover:text-white border border-slate-700 rounded-2xl flex items-center justify-center gap-1.5 transition text-xs font-bold cursor-pointer shrink-0 shadow-xs"
+                        title="Open SMS Chat with this number"
+                      >
+                        <MessageSquare size={17} />
+                        <span className="hidden sm:inline">SMS</span>
+                      </Link>
+                    )}
+                  </div>
                 </>
               ) : (
                 /* CALL HISTORY VIEW */
@@ -855,17 +868,26 @@ export default function BrowserPhonePage() {
                           </div>
                         </div>
 
-                        <button
-                          onClick={() => {
-                            const num = log.direction === "outbound" ? log.to_number : log.from_number;
-                            setDialNumber(num);
-                            setActiveTab("dialer");
-                          }}
-                          className="p-2 bg-slate-700 hover:bg-emerald-600 text-slate-300 hover:text-white rounded-lg transition-colors cursor-pointer"
-                          title="Redial"
-                        >
-                          <Phone size={14} />
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => {
+                              const num = log.direction === "outbound" ? log.to_number : log.from_number;
+                              setDialNumber(num);
+                              setActiveTab("dialer");
+                            }}
+                            className="p-2 bg-slate-700 hover:bg-emerald-600 text-slate-300 hover:text-white rounded-lg transition-colors cursor-pointer"
+                            title="Redial"
+                          >
+                            <Phone size={14} />
+                          </button>
+                          <Link
+                            href={`/inbox?phone=${encodeURIComponent(log.direction === "outbound" ? log.to_number : log.from_number)}`}
+                            className="p-2 bg-slate-700 hover:bg-emerald-600 text-slate-300 hover:text-white rounded-lg transition-colors cursor-pointer"
+                            title="Chat in SMS Inbox"
+                          >
+                            <MessageSquare size={14} />
+                          </Link>
+                        </div>
                       </div>
                     ))
                   )}

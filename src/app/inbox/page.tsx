@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import AdminSidebar from "@/components/AdminSidebar";
 import { 
   Send, 
@@ -51,7 +52,10 @@ interface Message {
   created_at: string;
 }
 
-export default function SmsInboxPage() {
+function SmsInboxContent() {
+  const searchParams = useSearchParams();
+  const phoneParam = searchParams.get("phone");
+
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -83,17 +87,63 @@ export default function SmsInboxPage() {
   const prevMsgCountRef = useRef(0);
   const shouldScrollBottomRef = useRef(true);
 
-  // 1. Fetch conversations
-  const fetchConversations = async (silent = false) => {
+  // 1. Fetch conversations (with support for auto-opening/creating phone numbers from dialer)
+  const fetchConversations = async (silent = false, targetPhone?: string) => {
     if (!silent) setLoadingConv(true);
     try {
       const res = await fetch("/api/sms/conversations");
       const data = await res.json();
       if (data.ok) {
-        setConversations(data.conversations || []);
-        if (!activeConvId && data.conversations?.length > 0 && !silent) {
+        const convList: Conversation[] = data.conversations || [];
+        setConversations(convList);
+
+        // Check if there is a target phone number requested from dialer or query param
+        const phoneToOpen =
+          targetPhone ||
+          phoneParam ||
+          (typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("phone") : null);
+
+        if (phoneToOpen) {
+          const cleanTarget = phoneToOpen.trim().replace(/[\s\-\(\)]/g, "");
+          const match = convList.find((c) => {
+            const p = (c.contacts?.phone_e164 || "").replace(/[\s\-\(\)]/g, "");
+            return p === cleanTarget || p.endsWith(cleanTarget) || cleanTarget.endsWith(p);
+          });
+
+          if (match) {
+            setActiveConvId(match.id);
+            return;
+          } else if (!silent) {
+            // Auto-create new conversation with this phone number so user is immediately ready to chat!
+            try {
+              const createRes = await fetch("/api/sms/conversations", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  phone: cleanTarget,
+                  displayName: cleanTarget,
+                  interest_level: "prospect",
+                }),
+              });
+              const createData = await createRes.json();
+              if (createData.ok && createData.conversationId) {
+                const refetchRes = await fetch("/api/sms/conversations");
+                const refetchData = await refetchRes.json();
+                if (refetchData.ok) {
+                  setConversations(refetchData.conversations || []);
+                  setActiveConvId(createData.conversationId);
+                  return;
+                }
+              }
+            } catch (createErr) {
+              console.error("Auto-create conversation failed", createErr);
+            }
+          }
+        }
+
+        if (!activeConvId && convList.length > 0 && !silent) {
           if (typeof window !== "undefined" && window.innerWidth >= 768) {
-            setActiveConvId(data.conversations[0].id);
+            setActiveConvId(convList[0].id);
           }
         }
       }
@@ -134,10 +184,10 @@ export default function SmsInboxPage() {
     }
   };
 
-  // Initial load
+  // Initial load and whenever phoneParam changes
   useEffect(() => {
-    fetchConversations();
-  }, []);
+    fetchConversations(false, phoneParam || undefined);
+  }, [phoneParam]);
 
   // Poll for messages and updates every 4 seconds without jumping scroll
   useEffect(() => {
@@ -842,5 +892,19 @@ export default function SmsInboxPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function SmsInboxPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-screen items-center justify-center bg-white">
+          <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      }
+    >
+      <SmsInboxContent />
+    </Suspense>
   );
 }
