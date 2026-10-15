@@ -129,7 +129,7 @@ export async function GET() {
     allLogs.sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
 
     return NextResponse.json(
-      { ok: true, logs: allLogs, debug: telnyxDebug },
+      { ok: true, logs: allLogs },
       {
         headers: {
           "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
