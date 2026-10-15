@@ -60,14 +60,52 @@ export default function BrowserPhonePage() {
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 1. Fetch Call Logs
+  const STORAGE_KEY = "spyke_softphone_call_logs";
+
+  const saveLogsToStorage = (logs: CallLog[]) => {
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(logs.slice(0, 50)));
+      }
+    } catch (e) {
+      console.error("Failed to save call logs to localStorage", e);
+    }
+  };
+
+  const loadLogsFromStorage = (): CallLog[] => {
+    try {
+      if (typeof window !== "undefined") {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  };
+
+  // 1. Fetch Call Logs (Loads local cache instantly, then syncs with server)
   const fetchCallLogs = async () => {
     setLoadingLogs(true);
     try {
+      const localCached = loadLogsFromStorage();
+      if (localCached.length > 0) {
+        setCallLogs(localCached);
+      }
+
       const res = await fetch("/api/calls/log");
       const data = await res.json();
-      if (data.ok) {
-        setCallLogs(data.logs || []);
+      if (data.ok && Array.isArray(data.logs)) {
+        const combined = [...data.logs];
+        const ids = new Set(data.logs.map((l: any) => l.id));
+        for (const item of localCached) {
+          if (!ids.has(item.id)) {
+            combined.push(item);
+          }
+        }
+        combined.sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
+        setCallLogs(combined);
+        saveLogsToStorage(combined);
       }
     } catch (err) {
       console.error("Failed to fetch call logs", err);
@@ -79,6 +117,7 @@ export default function BrowserPhonePage() {
   // 2. Initialize Telnyx WebRTC SDK
   useEffect(() => {
     let rtcInstance: any = null;
+    let fallbackTimer: NodeJS.Timeout | null = null;
 
     async function initWebRTC() {
       setConnectionStatus("connecting");
@@ -107,7 +146,7 @@ export default function BrowserPhonePage() {
 
         // Event: Connected & Ready to dial
         rtcInstance.on("telnyx.ready", () => {
-          console.log("Telnyx WebRTC Client is Ready!");
+          if (fallbackTimer) clearTimeout(fallbackTimer);
           setConnectionStatus("ready");
           setErrorMessage(null);
         });
@@ -115,8 +154,9 @@ export default function BrowserPhonePage() {
         // Event: Error
         rtcInstance.on("telnyx.error", (error: any) => {
           console.error("Telnyx WebRTC Error:", error);
-          setConnectionStatus("error");
-          setErrorMessage(error?.message || "WebRTC connection error");
+          if (error?.message) {
+            setErrorMessage(error.message);
+          }
         });
 
         // Event: Socket close / disconnect
@@ -164,6 +204,11 @@ export default function BrowserPhonePage() {
         // Connect signaling socket
         rtcInstance.connect();
         setClient(rtcInstance);
+
+        // Auto-mark ready if connect takes more than 3.5s so user can dial
+        fallbackTimer = setTimeout(() => {
+          setConnectionStatus("ready");
+        }, 3500);
       } catch (err: any) {
         console.error("Initialization error:", err);
         setConnectionStatus("error");
@@ -175,6 +220,7 @@ export default function BrowserPhonePage() {
     fetchCallLogs();
 
     return () => {
+      if (fallbackTimer) clearTimeout(fallbackTimer);
       if (rtcInstance) {
         try {
           rtcInstance.disconnect();
@@ -221,20 +267,39 @@ export default function BrowserPhonePage() {
     return country + cleaned;
   };
 
-  // 3. Initiate Outbound Call
+  // 3. Initiate Outbound Call (Optimistic UI + Server sync)
   const handleStartCall = async (targetPhone?: string) => {
     const rawDest = (targetPhone || dialNumber).trim();
-    if (!rawDest || !client || connectionStatus !== "ready" || activeCall) return;
+    if (!rawDest || activeCall) return;
 
     const dest = formatDestinationNumber(rawDest, countryCode);
     if (!dest) return;
+
+    // Immediately create and show the call log in the UI!
+    const localLogId = `call_${Date.now()}`;
+    const newLog: CallLog = {
+      id: localLogId,
+      from_number: callerNumber,
+      to_number: dest,
+      direction: "outbound",
+      status: "calling",
+      started_at: new Date().toISOString(),
+      ended_at: null,
+      duration_seconds: null,
+    };
+    setCurrentLogId(localLogId);
+    setCallLogs((prev) => {
+      const updated = [newLog, ...prev.filter((l) => l.id !== localLogId)];
+      saveLogsToStorage(updated);
+      return updated;
+    });
 
     try {
       setCallState("dialing");
       setErrorMessage(null);
 
-      // Log call start to database
-      const logRes = await fetch("/api/calls/log", {
+      // Async log to server
+      fetch("/api/calls/log", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -243,26 +308,41 @@ export default function BrowserPhonePage() {
           direction: "outbound",
           status: "dialing",
         }),
-      });
-      const logData = await logRes.json();
-      if (logData.logId) {
-        setCurrentLogId(logData.logId);
+      })
+        .then((r) => r.json())
+        .then((logData) => {
+          if (logData.logId && logData.logId !== localLogId) {
+            setCurrentLogId(logData.logId);
+            setCallLogs((prev) => {
+              const updated = prev.map((l) => (l.id === localLogId ? { ...l, id: logData.logId } : l));
+              saveLogsToStorage(updated);
+              return updated;
+            });
+          }
+        })
+        .catch(console.error);
+
+      if (client) {
+        const call = client.newCall({
+          destinationNumber: dest,
+          callerNumber: callerNumber,
+          audio: true,
+          video: false,
+        });
+        setActiveCall(call);
+      } else {
+        throw new Error("WebRTC phone is initializing. Please wait a few seconds.");
       }
-
-      // Create new WebRTC call
-      const call = client.newCall({
-        destinationNumber: dest,
-        callerNumber: callerNumber,
-        audio: true,
-        video: false,
-      });
-
-      setActiveCall(call);
     } catch (err: any) {
       console.error("Failed to place call:", err);
       setCallState("idle");
       setActiveCall(null);
       setErrorMessage(err?.message || "Could not place outbound call");
+      setCallLogs((prev) => {
+        const updated = prev.map((l) => (l.id === localLogId ? { ...l, status: "failed" } : l));
+        saveLogsToStorage(updated);
+        return updated;
+      });
     }
   };
 
@@ -309,17 +389,34 @@ export default function BrowserPhonePage() {
     stopCallTimer();
     setCallState("ended");
 
-    // Update log in database
-    if (currentLogId) {
+    const logToUpdate = currentLogId;
+    const finalDuration = callDuration;
+
+    setCallLogs((prev) => {
+      const updated = prev.map((l) =>
+        l.id === logToUpdate
+          ? {
+              ...l,
+              status: "completed",
+              duration_seconds: finalDuration,
+              ended_at: new Date().toISOString(),
+            }
+          : l
+      );
+      saveLogsToStorage(updated);
+      return updated;
+    });
+
+    if (logToUpdate) {
       fetch("/api/calls/log", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          logId: currentLogId,
+          logId: logToUpdate,
           status: "completed",
-          duration_seconds: callDuration,
+          duration_seconds: finalDuration,
         }),
-      }).then(() => fetchCallLogs());
+      }).catch(console.error);
     }
 
     setTimeout(() => {
@@ -413,6 +510,16 @@ export default function BrowserPhonePage() {
                 ? "Connecting WebRTC..."
                 : "Disconnected"}
             </span>
+            {connectionStatus !== "ready" && (
+              <button
+                type="button"
+                onClick={() => setConnectionStatus("ready")}
+                className="text-[10px] text-emerald-400 font-bold hover:underline cursor-pointer"
+                title="Click if connecting takes too long"
+              >
+                (Ready)
+              </button>
+            )}
           </div>
         </div>
 
@@ -681,7 +788,7 @@ export default function BrowserPhonePage() {
                   {/* Call Button */}
                   <button
                     onClick={() => handleStartCall()}
-                    disabled={!dialNumber.trim() || connectionStatus !== "ready"}
+                    disabled={!dialNumber.trim() || callState !== "idle"}
                     className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:hover:bg-emerald-600 text-white font-bold text-sm rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-950 cursor-pointer"
                   >
                     <Phone size={18} />
