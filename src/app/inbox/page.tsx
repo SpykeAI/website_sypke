@@ -23,6 +23,7 @@ import {
   ChevronLeft,
   Trash2
 } from "lucide-react";
+import { getAvailableLines, PhoneLine } from "@/lib/phoneLines";
 
 interface Contact {
   id: string;
@@ -65,6 +66,12 @@ function SmsInboxContent() {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
+
+  // Sender Number Line Selection
+  const [availableLines, setAvailableLines] = useState<PhoneLine[]>(() => getAvailableLines("+13464770028"));
+  const [selectedFromNumber, setSelectedFromNumber] = useState<string>("+13464770028");
+  const [isCustomSender, setIsCustomSender] = useState(false);
+  const [customSenderInput, setCustomSenderInput] = useState("");
 
   // New Conversation Modal
   const [showNewModal, setShowNewModal] = useState(false);
@@ -238,12 +245,14 @@ function SmsInboxContent() {
     const tempText = inputText.trim();
     setInputText("");
 
+    const effectiveSender = (selectedFromNumber || activeConv.telnyx_number || "+13464770028").trim();
+
     // Optimistic UI update
     const optimisticMsg: Message = {
       id: "temp-" + Date.now(),
       conversation_id: activeConv.id,
       direction: "outbound",
-      from_number: activeConv.telnyx_number,
+      from_number: effectiveSender,
       to_number: activeConv.contacts.phone_e164,
       body: tempText,
       status: "pending",
@@ -262,6 +271,7 @@ function SmsInboxContent() {
           to: activeConv.contacts.phone_e164,
           text: tempText,
           conversationId: activeConv.id,
+          from: effectiveSender,
         }),
       });
 
@@ -426,9 +436,32 @@ function SmsInboxContent() {
                 <span>Messages</span>
                 <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
               </h1>
-              <p className="text-[11px] font-medium text-slate-500">
-                Line: <span className="font-semibold text-emerald-700">{conversations[0]?.telnyx_number || "+13464770028"}</span>
-              </p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="text-[11px] font-medium text-slate-400">Line:</span>
+                <div className="relative inline-flex items-center">
+                  <select
+                    value={isCustomSender ? "custom" : selectedFromNumber}
+                    onChange={(e) => {
+                      if (e.target.value === "custom") {
+                        setIsCustomSender(true);
+                      } else {
+                        setIsCustomSender(false);
+                        setSelectedFromNumber(e.target.value);
+                      }
+                    }}
+                    className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/90 rounded-md pl-1.5 pr-5 py-0.5 appearance-none focus:outline-none cursor-pointer transition shadow-2xs max-w-[155px] truncate"
+                    title="Select SMS Sender Line"
+                  >
+                    {availableLines.map((line) => (
+                      <option key={line.number} value={line.number}>
+                        {line.flag} {line.formatted}
+                      </option>
+                    ))}
+                    <option value="custom">✏️ Custom...</option>
+                  </select>
+                  <ChevronDown size={11} className="text-emerald-700 absolute right-1 pointer-events-none" />
+                </div>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
@@ -733,7 +766,57 @@ function SmsInboxContent() {
 
             {/* Native Phone Messages Style Composer */}
             <div className="p-2.5 sm:p-3 md:p-4 bg-white border-t border-slate-200 shrink-0 pb-16 md:pb-4">
-              <form onSubmit={handleSendMessage} className="space-y-1.5">
+              <form onSubmit={handleSendMessage} className="space-y-2">
+                {/* Sender Line Selector in Composer */}
+                <div className="flex items-center justify-between px-1 text-[11px]">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-slate-400 font-medium">From:</span>
+                    <div className="relative inline-flex items-center">
+                      <select
+                        value={isCustomSender ? "custom" : selectedFromNumber}
+                        onChange={(e) => {
+                          if (e.target.value === "custom") {
+                            setIsCustomSender(true);
+                          } else {
+                            setIsCustomSender(false);
+                            setSelectedFromNumber(e.target.value);
+                          }
+                        }}
+                        className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/90 rounded-md pl-2 pr-5 py-0.5 appearance-none focus:outline-none cursor-pointer transition shadow-2xs"
+                        title="Choose number to send from"
+                      >
+                        {availableLines.map((line) => (
+                          <option key={line.number} value={line.number}>
+                            {line.flag} {line.label} — {line.formatted}
+                          </option>
+                        ))}
+                        <option value="custom">✏️ Custom Sender Number...</option>
+                      </select>
+                      <ChevronDown size={11} className="text-emerald-700 absolute right-1.5 pointer-events-none" />
+                    </div>
+                  </div>
+
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    {availableLines.find((l) => l.number === selectedFromNumber)?.badge || "Active Line"}
+                  </span>
+                </div>
+
+                {isCustomSender && (
+                  <div className="px-1">
+                    <input
+                      type="text"
+                      placeholder="Custom sender number (e.g. +12025550143)..."
+                      value={customSenderInput}
+                      onChange={(e) => {
+                        setCustomSenderInput(e.target.value);
+                        setSelectedFromNumber(e.target.value);
+                      }}
+                      className="w-full bg-slate-50 border border-emerald-300 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                    />
+                  </div>
+                )}
+
                 {/* The Input Capsule */}
                 <div className="flex items-end gap-2 bg-slate-100 hover:bg-slate-100/90 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20 border border-slate-200 focus-within:border-emerald-500 rounded-3xl p-1.5 pl-4 transition-all">
                   <textarea
@@ -818,6 +901,32 @@ function SmsInboxContent() {
                   onChange={(e) => setNewName(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Send From Line</label>
+                <div className="relative">
+                  <select
+                    value={isCustomSender ? "custom" : selectedFromNumber}
+                    onChange={(e) => {
+                      if (e.target.value === "custom") {
+                        setIsCustomSender(true);
+                      } else {
+                        setIsCustomSender(false);
+                        setSelectedFromNumber(e.target.value);
+                      }
+                    }}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-600 focus:bg-white transition-all appearance-none pr-8 cursor-pointer"
+                  >
+                    {availableLines.map((line) => (
+                      <option key={line.number} value={line.number}>
+                        {line.flag} {line.label} ({line.formatted})
+                      </option>
+                    ))}
+                    <option value="custom">✏️ Custom Sender...</option>
+                  </select>
+                  <ChevronDown size={14} className="text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
               </div>
 
               <div>

@@ -5,7 +5,7 @@ import { normalizeToE164, sendTelnyxSms } from "@/lib/telnyx";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { to, text, conversationId } = body;
+    const { to, text, conversationId, from } = body;
 
     if (!to || !text || typeof text !== "string" || text.trim().length === 0) {
       return NextResponse.json(
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     }
 
     const normalizedTo = normalizeToE164(to);
-    const telnyxFrom = process.env.TELNYX_FROM_NUMBER || "unknown";
+    const telnyxFrom = (from || process.env.TELNYX_FROM_NUMBER || "+13464770028").replace(/^["']|["']$/g, "").trim();
 
     // 1. Check if contact exists and is opted-out (do_not_text)
     const { data: contactData } = await supabase
@@ -102,10 +102,25 @@ export async function POST(req: Request) {
     }
 
     // 5. Call Telnyx Messages API
-    const telnyxRes = await sendTelnyxSms({
+    let telnyxRes = await sendTelnyxSms({
       to: normalizedTo,
       text: text.trim(),
+      from: telnyxFrom,
     });
+
+    // Graceful fallback to primary active line if secondary line is not yet active on carrier
+    const primaryNumber = (process.env.TELNYX_FROM_NUMBER || "+13464770028").replace(/^["']|["']$/g, "").trim();
+    if (!telnyxRes.ok && telnyxFrom !== primaryNumber) {
+      console.warn(`Carrier send failed on ${telnyxFrom}, retrying with primary line ${primaryNumber}`);
+      const fallbackRes = await sendTelnyxSms({
+        to: normalizedTo,
+        text: text.trim(),
+        from: primaryNumber,
+      });
+      if (fallbackRes.ok) {
+        telnyxRes = fallbackRes;
+      }
+    }
 
     if (!telnyxRes.ok) {
       // Update status to failed
