@@ -219,7 +219,13 @@ export default function BrowserPhonePage() {
     initWebRTC();
     fetchCallLogs();
 
+    // Auto-sync call history from Telnyx carrier logs every 10 seconds
+    const pollInterval = setInterval(() => {
+      fetchCallLogs();
+    }, 10000);
+
     return () => {
+      clearInterval(pollInterval);
       if (fallbackTimer) clearTimeout(fallbackTimer);
       if (rtcInstance) {
         try {
@@ -800,7 +806,7 @@ export default function BrowserPhonePage() {
               ) : (
                 /* CALL HISTORY VIEW */
                 <div className="w-full space-y-2 max-h-[460px] overflow-y-auto pr-1">
-                  {loadingLogs ? (
+                  {loadingLogs && callLogs.length === 0 ? (
                     <div className="p-10 text-center text-slate-400 text-xs flex flex-col items-center gap-2">
                       <RefreshCw className="animate-spin text-emerald-500" size={20} />
                       Loading call logs...
@@ -830,7 +836,21 @@ export default function BrowserPhonePage() {
                             <p className="text-[10px] text-slate-400 flex items-center gap-1.5 mt-0.5">
                               <span>{new Date(log.started_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                               <span>•</span>
-                              <span>{log.duration_seconds ? `${log.duration_seconds}s` : log.status}</span>
+                              <span className={`capitalize font-semibold ${
+                                log.status === "failed" || log.status === "no_answer"
+                                  ? "text-amber-400"
+                                  : log.status === "calling" || log.status === "dialing"
+                                  ? "text-blue-400 animate-pulse"
+                                  : "text-emerald-400"
+                              }`}>
+                                {log.duration_seconds && log.duration_seconds > 0
+                                  ? `${log.duration_seconds}s`
+                                  : log.status === "no_answer"
+                                  ? "No Answer"
+                                  : log.status === "calling" || log.status === "dialing"
+                                  ? "Dialing..."
+                                  : log.status}
+                              </span>
                             </p>
                           </div>
                         </div>

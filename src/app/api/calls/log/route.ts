@@ -1,50 +1,131 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function extractDurationSeconds(summary: string | null): number | null {
   if (!summary) return null;
   const match = summary.match(/Duration:\s*(\d+)s/i);
   return match ? parseInt(match[1], 10) : null;
 }
 
-// GET recent call logs (Tries call_logs table, falls back to conversations table)
+// GET recent call logs (Fetches real carrier WebRTC records from Telnyx, then merges with Supabase)
 export async function GET() {
   try {
-    // 1. Try call_logs table first
-    const { data: callLogsData, error: callLogsErr } = await supabase
-      .from("call_logs")
-      .select("*")
-      .order("started_at", { ascending: false })
-      .limit(50);
+    const allLogs: any[] = [];
+    const seenIds = new Set<string>();
 
-    if (!callLogsErr && callLogsData) {
-      return NextResponse.json({ ok: true, logs: callLogsData });
+    // 1. Fetch carrier-grade WebRTC records directly from Telnyx API
+    const telnyxApiKey = process.env.TELNYX_API_KEY;
+    if (telnyxApiKey) {
+      try {
+        const telnyxRes = await fetch(
+          "https://api.telnyx.com/v2/detail_records?filter[record_type]=webrtc&page[size]=50",
+          {
+            headers: {
+              Authorization: `Bearer ${telnyxApiKey}`,
+              "Content-Type": "application/json",
+            },
+            cache: "no-store",
+          }
+        );
+
+        if (telnyxRes.ok) {
+          const telnyxData = await telnyxRes.json();
+          if (Array.isArray(telnyxData.data)) {
+            for (const r of telnyxData.data) {
+              const id = r.id || r.call_id || r.telnyx_leg_id;
+              if (id && !seenIds.has(id)) {
+                seenIds.add(id);
+                const duration = r.call_sec || (r.billed_sec && r.billed_sec > 0 ? r.billed_sec : 0);
+                allLogs.push({
+                  id,
+                  from_number: r.caller_number || r.cli || "+13464770028",
+                  to_number: r.dest_number || r.cld || "Unknown",
+                  direction: r.direction || "outbound",
+                  status:
+                    r.completed === 1
+                      ? "completed"
+                      : r.connected === 1
+                      ? "connected"
+                      : "no_answer",
+                  started_at: r.started_at,
+                  ended_at: r.finished_at || null,
+                  duration_seconds: duration,
+                });
+              }
+            }
+          }
+        } else {
+          console.error("Telnyx detail_records error status:", telnyxRes.status);
+        }
+      } catch (telnyxErr) {
+        console.error("Failed to query Telnyx detail_records:", telnyxErr);
+      }
     }
 
-    // 2. Fallback: Query conversations table where calls are logged
-    const { data: convData, error: convErr } = await supabase
-      .from("conversations")
-      .select("*")
-      .not("call_id", "is", null)
-      .order("created_at", { ascending: false })
-      .limit(50);
+    // 2. Fetch from Supabase call_logs table if available
+    try {
+      const { data: callLogsData, error: callLogsErr } = await supabase
+        .from("call_logs")
+        .select("*")
+        .order("started_at", { ascending: false })
+        .limit(50);
 
-    if (convErr || !convData) {
-      return NextResponse.json({ ok: true, logs: [] });
+      if (!callLogsErr && Array.isArray(callLogsData)) {
+        for (const cl of callLogsData) {
+          if (!seenIds.has(cl.id)) {
+            seenIds.add(cl.id);
+            allLogs.push(cl);
+          }
+        }
+      }
+    } catch (e) {
+      // ignore
     }
 
-    const mappedLogs = convData.map((row: any) => ({
-      id: row.id,
-      from_number: row.telnyx_number || "+13464770028",
-      to_number: row.phone || "Unknown",
-      direction: row.contact_name?.toLowerCase().includes("inbound") ? "inbound" : "outbound",
-      status: row.interest_level || "completed",
-      started_at: row.created_at,
-      ended_at: row.updated_at || null,
-      duration_seconds: extractDurationSeconds(row.summary),
-    }));
+    // 3. Fallback: Query Supabase conversations table where call_id is stored
+    try {
+      const { data: convData } = await supabase
+        .from("conversations")
+        .select("*")
+        .not("call_id", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(50);
 
-    return NextResponse.json({ ok: true, logs: mappedLogs });
+      if (Array.isArray(convData)) {
+        for (const row of convData) {
+          if (!seenIds.has(row.id)) {
+            seenIds.add(row.id);
+            allLogs.push({
+              id: row.id,
+              from_number: row.telnyx_number || "+13464770028",
+              to_number: row.phone || "Unknown",
+              direction: row.contact_name?.toLowerCase().includes("inbound") ? "inbound" : "outbound",
+              status: row.interest_level || "completed",
+              started_at: row.created_at,
+              ended_at: row.updated_at || null,
+              duration_seconds: extractDurationSeconds(row.summary),
+            });
+          }
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    // Sort newest calls first
+    allLogs.sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
+
+    return NextResponse.json(
+      { ok: true, logs: allLogs },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (err: any) {
     console.error("GET /api/calls/log error:", err);
     return NextResponse.json({ ok: true, logs: [] });
@@ -81,7 +162,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Fallback: Persist in conversations table
-    const { data: convLog, error: convErr } = await supabase
+    const { data: convLog } = await supabase
       .from("conversations")
       .insert({
         call_id: telnyx_call_control_id || `call_browser_${Date.now()}`,
