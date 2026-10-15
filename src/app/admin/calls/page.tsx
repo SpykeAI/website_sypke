@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import AdminSidebar from "@/components/AdminSidebar";
 import {
   Mic,
   Phone,
@@ -362,7 +363,10 @@ export default function AdminCallsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
+    <div className="flex h-screen w-full bg-gray-50 text-slate-800 font-sans antialiased overflow-hidden">
+      {/* VERTICAL NAVBAR */}
+      <AdminSidebar active="calls" />
+
       {/* Hidden Audio element for remote party sound */}
       <audio ref={remoteAudioRef} autoPlay playsInline className="hidden" />
 
@@ -398,55 +402,29 @@ export default function AdminCallsPage() {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 font-heading flex items-center gap-3">
-              <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
-                <Phone className="w-5 h-5 text-emerald-600" />
-              </div>
-              Super Admin Calls & Softphone
-            </h1>
-            <p className="text-gray-500 mt-2">
-              Make and receive live voice calls directly inside your browser via Telnyx WebRTC.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Line: {callerNumber}</span>
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 h-full overflow-y-auto p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 font-heading flex items-center gap-3">
+                <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
+                  <Phone className="w-5 h-5 text-emerald-600" />
+                </div>
+                Live Calls & Softphone
+              </h1>
+              <p className="text-gray-500 mt-1 text-sm">
+                Make and receive live voice calls directly inside your browser via Telnyx WebRTC.
+              </p>
             </div>
-            <Link href="/" className="text-sm font-bold text-emerald-600 hover:underline">
-              &larr; Back to Website
-            </Link>
+            <div className="flex items-center gap-3">
+              <div className="px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Line: {callerNumber}</span>
+              </div>
+            </div>
           </div>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-3 mb-8 border-b border-gray-200 pb-4 overflow-x-auto">
-          <Link
-            href="/admin"
-            className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-100 text-gray-700 font-semibold rounded-xl border border-gray-200 text-sm transition"
-          >
-            <Mic className="w-4 h-4 text-emerald-600" />
-            AI Call Transcripts
-          </Link>
-          <Link
-            href="/admin/calls"
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white font-bold rounded-xl shadow-xs text-sm"
-          >
-            <Phone className="w-4 h-4" />
-            Live Calls & Softphone
-          </Link>
-          <Link
-            href="/inbox"
-            className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-100 text-gray-700 font-semibold rounded-xl border border-gray-200 text-sm transition"
-          >
-            <MessageSquare className="w-4 h-4 text-emerald-600" />
-            Telnyx SMS Inbox
-          </Link>
-        </div>
 
         {/* Status Banner */}
         {errorMessage && (
@@ -792,5 +770,6 @@ export default function AdminCallsPage() {
 
       </div>
     </div>
+  </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import AdminSidebar from "@/components/AdminSidebar";
 import { 
   Send, 
   Search, 
@@ -300,11 +301,13 @@ export default function SmsInboxPage() {
 
   return (
     <div className="flex h-full w-full bg-white text-slate-800 font-sans antialiased overflow-hidden">
-      
-      {/* LEFT SIDEBAR: CONVERSATIONS LIST */}
+      {/* VERTICAL NAVBAR */}
+      <AdminSidebar active="inbox" />
+
+      {/* CONVERSATIONS LIST */}
       <div className={`${
         activeConvId ? "hidden md:flex" : "flex"
-      } w-full md:w-80 lg:w-96 border-r border-slate-200 flex-col bg-slate-50 shrink-0 h-full`}>
+      } w-full md:w-80 lg:w-96 border-r border-slate-200 flex-col bg-slate-50 shrink-0 h-full pb-16 md:pb-0`}>
         {/* Top Header */}
         <div className="p-3.5 px-4 border-b border-slate-200 bg-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -582,7 +585,7 @@ export default function SmsInboxPage() {
             </div>
 
             {/* Native Phone Messages Style Composer */}
-            <div className="p-2.5 sm:p-3 md:p-4 bg-white border-t border-slate-200 shrink-0">
+            <div className="p-2.5 sm:p-3 md:p-4 bg-white border-t border-slate-200 shrink-0 pb-16 md:pb-4">
               <form onSubmit={handleSendMessage} className="space-y-1.5">
                 {/* The Input Capsule */}
                 <div className="flex items-end gap-2 bg-slate-100 hover:bg-slate-100/90 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20 border border-slate-200 focus-within:border-emerald-500 rounded-3xl p-1.5 pl-4 transition-all">

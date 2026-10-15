@@ -23,7 +23,7 @@ export default function AppLayoutWrapper({ children }: { children: React.ReactNo
   // If inside /admin portal, render clean dashboard without marketing navbar/footer/widgets
   if (isAdmin) {
     return (
-      <main className="min-h-screen w-full flex flex-col bg-gray-50">
+      <main className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col bg-gray-50">
         {children}
       </main>
     );

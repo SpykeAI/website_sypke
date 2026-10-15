@@ -23,7 +23,7 @@ export default function AdminLogin() {
       });
 
       if (res.ok) {
-        router.push("/admin");
+        router.push("/inbox");
         router.refresh();
       } else {
         setError("Incorrect master password");
