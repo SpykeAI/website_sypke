@@ -565,36 +565,48 @@ export default function EmailCampaignsPage() {
         
         {/* TOP HEADER & TABS BAR */}
         <header className="bg-white border-b border-slate-200 sticky top-0 z-20 px-4 sm:px-6 lg:px-8 py-3.5 shadow-xs">
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-4">
+          <div className="max-w-7xl mx-auto space-y-3">
             
-            {/* Title & Badge (Left) */}
-            <div className="flex items-center gap-3 shrink-0 self-start lg:self-center">
-              <div className="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-2xs">
-                <Mail size={22} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                    Email Campaigns
-                  </h1>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                    Live Engine
-                  </span>
+            {/* Top Row: Heading on Left, Quick Action on Right */}
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-2xs">
+                  <Mail size={20} />
                 </div>
-                <p className="text-xs text-slate-500 font-medium hidden sm:block">
-                  Broadcasts, delivery logs, and response metrics.
-                </p>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                      Email Campaigns
+                    </h1>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      Live Engine
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium hidden sm:block">
+                    Create broadcasts, view delivery history, and monitor real-time campaign performance.
+                  </p>
+                </div>
               </div>
+
+              {/* Send Test Email Action */}
+              <button
+                onClick={() => setTestEmailModalOpen(true)}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition flex items-center gap-2 cursor-pointer shadow-2xs"
+                title="Send a live test email via SMTP to verify formatting"
+              >
+                <Send size={13} className="text-emerald-600" />
+                <span>Send Test Email</span>
+              </button>
             </div>
 
-            {/* CENTER (IN BETWEEN): BIG & HIGHLIGHTED TABS */}
-            <div className="flex-1 flex justify-center w-full lg:w-auto my-1 lg:my-0">
-              <div className="flex items-center p-1.5 bg-slate-100/90 border-2 border-slate-200/90 rounded-2xl shadow-sm gap-1.5 w-full sm:w-auto justify-center">
+            {/* Bottom Row (Below Email Campaign Heading): Centered in between, Big & Highlighted */}
+            <div className="flex justify-center pt-1 pb-0.5">
+              <div className="inline-flex items-center p-1.5 bg-slate-100/95 border-2 border-slate-200/90 rounded-2xl shadow-sm gap-2 w-full sm:w-auto justify-center">
                 
                 {/* Create Emails Tab */}
                 <button
                   onClick={() => setActiveTab("create")}
-                  className={`px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-extrabold transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer ${
+                  className={`px-7 py-3 rounded-xl text-sm font-black transition-all duration-150 flex items-center justify-center gap-2.5 cursor-pointer ${
                     activeTab === "create"
                       ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30 ring-2 ring-emerald-500 scale-[1.02]"
                       : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
@@ -607,7 +619,7 @@ export default function EmailCampaignsPage() {
                 {/* History Tab */}
                 <button
                   onClick={() => setActiveTab("history")}
-                  className={`px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-extrabold transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer ${
+                  className={`px-7 py-3 rounded-xl text-sm font-black transition-all duration-150 flex items-center justify-center gap-2.5 cursor-pointer ${
                     activeTab === "history"
                       ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30 ring-2 ring-emerald-500 scale-[1.02]"
                       : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
@@ -616,7 +628,7 @@ export default function EmailCampaignsPage() {
                   <History size={18} className={activeTab === "history" ? "text-white" : "text-emerald-600"} />
                   <span className="tracking-tight">History</span>
                   <span
-                    className={`text-xs px-2.5 py-0.5 rounded-full font-black ml-0.5 transition-colors ${
+                    className={`text-xs px-2.5 py-0.5 rounded-full font-black ml-1 transition-colors ${
                       activeTab === "history"
                         ? "bg-white text-emerald-800 shadow-2xs"
                         : "bg-slate-200 text-slate-700"
@@ -629,7 +641,7 @@ export default function EmailCampaignsPage() {
                 {/* Analytics Tab */}
                 <button
                   onClick={() => setActiveTab("analytics")}
-                  className={`px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-extrabold transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer ${
+                  className={`px-7 py-3 rounded-xl text-sm font-black transition-all duration-150 flex items-center justify-center gap-2.5 cursor-pointer ${
                     activeTab === "analytics"
                       ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30 ring-2 ring-emerald-500 scale-[1.02]"
                       : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
@@ -645,18 +657,6 @@ export default function EmailCampaignsPage() {
                 </button>
 
               </div>
-            </div>
-
-            {/* Right: Quick Action Button */}
-            <div className="flex items-center gap-2.5 shrink-0 self-end lg:self-center">
-              <button
-                onClick={() => setTestEmailModalOpen(true)}
-                className="px-4 py-2.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition flex items-center gap-2 cursor-pointer shadow-2xs"
-                title="Send a live test email via SMTP to verify formatting"
-              >
-                <Send size={13} className="text-emerald-600" />
-                <span>Send Test Email</span>
-              </button>
             </div>
 
           </div>
