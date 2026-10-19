@@ -564,82 +564,99 @@ export default function EmailCampaignsPage() {
       <div className="flex-1 h-full overflow-y-auto flex flex-col bg-slate-50/60 pb-20 md:pb-6">
         
         {/* TOP HEADER & TABS BAR */}
-        <header className="bg-white border-b border-slate-200 sticky top-0 z-20 px-4 sm:px-6 lg:px-8 py-4 shadow-2xs">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <header className="bg-white border-b border-slate-200 sticky top-0 z-20 px-4 sm:px-6 lg:px-8 py-3.5 shadow-xs">
+          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-4">
             
-            {/* Title & Badge */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-2xs">
-                <Mail size={20} />
+            {/* Title & Badge (Left) */}
+            <div className="flex items-center gap-3 shrink-0 self-start lg:self-center">
+              <div className="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shadow-2xs">
+                <Mail size={22} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                  <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                     Email Campaigns
                   </h1>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100/70 text-emerald-800 border border-emerald-200">
-                    Live SMTP Active
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    Live Engine
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 font-medium">
-                  Create outbound marketing broadcasts, track individual deliveries, and monitor open/reply metrics.
+                <p className="text-xs text-slate-500 font-medium hidden sm:block">
+                  Broadcasts, delivery logs, and response metrics.
                 </p>
               </div>
             </div>
 
-            {/* Actions & Tab Switcher */}
-            <div className="flex items-center gap-2.5">
-              <button
-                onClick={() => setTestEmailModalOpen(true)}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-700 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                title="Send a live test email via SMTP to verify formatting"
-              >
-                <Send size={12} className="text-emerald-600" />
-                <span>Send Test Email</span>
-              </button>
-
-              {/* TABS CONTAINER */}
-              <div className="flex items-center p-1 bg-slate-100 border border-slate-200 rounded-2xl shadow-2xs">
+            {/* CENTER (IN BETWEEN): BIG & HIGHLIGHTED TABS */}
+            <div className="flex-1 flex justify-center w-full lg:w-auto my-1 lg:my-0">
+              <div className="flex items-center p-1.5 bg-slate-100/90 border-2 border-slate-200/90 rounded-2xl shadow-sm gap-1.5 w-full sm:w-auto justify-center">
+                
+                {/* Create Emails Tab */}
                 <button
                   onClick={() => setActiveTab("create")}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  className={`px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-extrabold transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer ${
                     activeTab === "create"
-                      ? "bg-white text-emerald-700 shadow-xs border border-slate-200/80"
-                      : "text-slate-500 hover:text-slate-800"
+                      ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30 ring-2 ring-emerald-500 scale-[1.02]"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
                   }`}
                 >
-                  <Plus size={14} className={activeTab === "create" ? "text-emerald-600" : ""} />
-                  <span>Create Emails</span>
+                  <Plus size={18} className={activeTab === "create" ? "text-white" : "text-emerald-600"} />
+                  <span className="tracking-tight">Create Emails</span>
                 </button>
 
+                {/* History Tab */}
                 <button
                   onClick={() => setActiveTab("history")}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  className={`px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-extrabold transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer ${
                     activeTab === "history"
-                      ? "bg-white text-emerald-700 shadow-xs border border-slate-200/80"
-                      : "text-slate-500 hover:text-slate-800"
+                      ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30 ring-2 ring-emerald-500 scale-[1.02]"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
                   }`}
                 >
-                  <History size={14} className={activeTab === "history" ? "text-emerald-600" : ""} />
-                  <span>History</span>
-                  <span className="text-[10px] bg-slate-200/80 text-slate-700 px-1.5 py-0.2 rounded-full font-bold ml-0.5">
+                  <History size={18} className={activeTab === "history" ? "text-white" : "text-emerald-600"} />
+                  <span className="tracking-tight">History</span>
+                  <span
+                    className={`text-xs px-2.5 py-0.5 rounded-full font-black ml-0.5 transition-colors ${
+                      activeTab === "history"
+                        ? "bg-white text-emerald-800 shadow-2xs"
+                        : "bg-slate-200 text-slate-700"
+                    }`}
+                  >
                     {logs.length}
                   </span>
                 </button>
 
+                {/* Analytics Tab */}
                 <button
                   onClick={() => setActiveTab("analytics")}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  className={`px-5 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-extrabold transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer ${
                     activeTab === "analytics"
-                      ? "bg-white text-emerald-700 shadow-xs border border-slate-200/80"
-                      : "text-slate-500 hover:text-slate-800"
+                      ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30 ring-2 ring-emerald-500 scale-[1.02]"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-white/80"
                   }`}
                 >
-                  <BarChart3 size={14} className={activeTab === "analytics" ? "text-emerald-600" : ""} />
-                  <span>Analytics</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                  <BarChart3 size={18} className={activeTab === "analytics" ? "text-white" : "text-emerald-600"} />
+                  <span className="tracking-tight">Analytics</span>
+                  <span
+                    className={`w-2.5 h-2.5 rounded-full inline-block ${
+                      activeTab === "analytics" ? "bg-white animate-pulse" : "bg-emerald-500"
+                    }`}
+                  ></span>
                 </button>
+
               </div>
+            </div>
+
+            {/* Right: Quick Action Button */}
+            <div className="flex items-center gap-2.5 shrink-0 self-end lg:self-center">
+              <button
+                onClick={() => setTestEmailModalOpen(true)}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition flex items-center gap-2 cursor-pointer shadow-2xs"
+                title="Send a live test email via SMTP to verify formatting"
+              >
+                <Send size={13} className="text-emerald-600" />
+                <span>Send Test Email</span>
+              </button>
             </div>
 
           </div>
