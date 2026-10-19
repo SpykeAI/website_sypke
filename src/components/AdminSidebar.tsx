@@ -7,13 +7,14 @@ import {
   MessageSquare,
   Phone,
   Mic,
+  Mail,
   ArrowLeft,
   ShieldCheck,
   Radio
 } from "lucide-react";
 
 interface AdminSidebarProps {
-  active?: "inbox" | "calls" | "transcripts";
+  active?: "inbox" | "calls" | "transcripts" | "emails";
 }
 
 export default function AdminSidebar({ active }: AdminSidebarProps) {
@@ -22,6 +23,7 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
   const currentTab = active || (
     pathname?.startsWith("/inbox") ? "inbox" :
     pathname?.startsWith("/admin/calls") ? "calls" :
+    pathname?.startsWith("/admin/emails") ? "emails" :
     pathname?.startsWith("/admin/transcripts") ? "transcripts" :
     "inbox"
   );
@@ -41,6 +43,14 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
       subtitle: "WebRTC browser calling",
       href: "/admin/calls",
       icon: Phone,
+    },
+    {
+      id: "emails",
+      label: "Email Campaigns",
+      subtitle: "Create, history & analytics",
+      href: "/admin/emails",
+      icon: Mail,
+      badge: "New",
     },
     {
       id: "transcripts",
@@ -165,7 +175,9 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
               }`}
             >
               <Icon size={18} />
-              <span className="text-[10px] mt-0.5">{item.id === "inbox" ? "SMS Inbox" : item.id === "calls" ? "Calls" : "Transcripts"}</span>
+              <span className="text-[10px] mt-0.5">
+                {item.id === "inbox" ? "SMS" : item.id === "calls" ? "Calls" : item.id === "emails" ? "Emails" : "Transcripts"}
+              </span>
             </Link>
           );
         })}
