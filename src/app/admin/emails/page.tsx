@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import AdminSidebar from "@/components/AdminSidebar";
+import * as XLSX from "xlsx";
 import {
   Mail,
   Send,
@@ -25,7 +26,11 @@ import {
   Bookmark,
   FileText,
   Save,
-  Check
+  Check,
+  FileSpreadsheet,
+  Share2,
+  UploadCloud,
+  Users
 } from "lucide-react";
 
 interface SavedDraft {
@@ -35,6 +40,11 @@ interface SavedDraft {
   subject: string;
   body: string;
   savedAt: string;
+}
+
+interface ParsedRecipient {
+  name: string;
+  email: string;
 }
 
 interface EmailLog {
@@ -179,11 +189,27 @@ export default function EmailCampaignsPage() {
   const [draftName, setDraftName] = useState("");
   const [selectedDraftId, setSelectedDraftId] = useState<string | null>(null);
 
+  // SPREADSHEET / GOOGLE SHEET IMPORT STATE
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importedRecipients, setImportedRecipients] = useState<ParsedRecipient[]>([]);
+  const [importedSourceName, setImportedSourceName] = useState<string | null>(null);
+  const [viewRecipientsModalOpen, setViewRecipientsModalOpen] = useState(false);
+  const [searchRecipientQuery, setSearchRecipientQuery] = useState("");
+
+  // Google Sheet Modal State
+  const [googleSheetModalOpen, setGoogleSheetModalOpen] = useState(false);
+  const [googleSheetTab, setGoogleSheetTab] = useState<"link" | "paste">("link");
+  const [googleSheetUrl, setGoogleSheetUrl] = useState("");
+  const [pastedSpreadsheetData, setPastedSpreadsheetData] = useState("");
+  const [fetchingSheet, setFetchingSheet] = useState(false);
+  const [sheetFetchError, setSheetFetchError] = useState<string | null>(null);
+
   // SAVED VERSIONS (SIDEBAR)
   const [savedDrafts, setSavedDrafts] = useState<SavedDraft[]>(INITIAL_SAVED_DRAFTS);
 
   // SEND & NOTIFICATION STATE
   const [sending, setSending] = useState(false);
+  const [sendingProgress, setSendingProgress] = useState({ current: 0, total: 0 });
   const [draftSavedToast, setDraftSavedToast] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [toastMessage, setToastMessage] = useState({ title: "", description: "" });
@@ -237,7 +263,188 @@ export default function EmailCampaignsPage() {
     }
   };
 
-  // 1. SAVE DRAFT
+  // HELPER: Extract emails from any string or table
+  const extractEmailsFromText = (rawText: string): ParsedRecipient[] => {
+    const emailRegex = /([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+    const lines = rawText.split(/\r?\n/);
+    const resultsMap = new Map<string, string>();
+
+    for (const line of lines) {
+      const matches = line.match(emailRegex);
+      if (matches) {
+        for (const email of matches) {
+          const lower = email.toLowerCase().trim();
+          if (!resultsMap.has(lower)) {
+            // Attempt to find a companion name before the email or comma separated
+            let extractedName = lower.split("@")[0].replace(/[._-]/g, " ");
+            const parts = line.split(/[,\t;]/).map((p) => p.trim());
+            const emailPartIndex = parts.findIndex((p) => p.toLowerCase().includes(lower));
+            if (emailPartIndex > 0 && parts[0] && !parts[0].includes("@")) {
+              extractedName = parts[0];
+            } else if (emailPartIndex === 0 && parts[1] && !parts[1].includes("@")) {
+              extractedName = parts[1];
+            }
+            resultsMap.set(lower, extractedName);
+          }
+        }
+      }
+    }
+
+    return Array.from(resultsMap.entries()).map(([email, name]) => ({
+      email,
+      name: name || email.split("@")[0]
+    }));
+  };
+
+  // 1. FILE UPLOAD HANDLER (.xlsx, .xls, .csv)
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = evt.target?.result;
+        const workbook = XLSX.read(data, { type: "array" });
+        const allExtracted: ParsedRecipient[] = [];
+        const seen = new Set<string>();
+
+        for (const sheetName of workbook.SheetNames) {
+          const sheet = workbook.Sheets[sheetName];
+          // Convert sheet to text CSV to catch all columns/cells
+          const csv = XLSX.utils.sheet_to_csv(sheet);
+          const parsed = extractEmailsFromText(csv);
+          for (const item of parsed) {
+            if (!seen.has(item.email)) {
+              seen.add(item.email);
+              allExtracted.push(item);
+            }
+          }
+        }
+
+        if (allExtracted.length === 0) {
+          alert(`No valid email addresses found in "${file.name}". Please ensure your file contains an email column.`);
+          return;
+        }
+
+        setImportedRecipients(allExtracted);
+        setImportedSourceName(file.name);
+        setRecipientEmail(""); // Clear manual input
+
+        setToastMessage({
+          title: `File Uploaded: ${file.name}`,
+          description: `Successfully extracted ${allExtracted.length} recipient email IDs from spreadsheet.`,
+        });
+        setShowSuccessToast(true);
+        setTimeout(() => setShowSuccessToast(false), 4500);
+      } catch (err: any) {
+        console.error("Error reading file:", err);
+        alert(`Failed to parse spreadsheet file: ${err.message}`);
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
+    // Reset file input so same file can be re-selected if updated
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // 2. GOOGLE SHEET IMPORT HANDLER
+  const handleFetchGoogleSheet = async () => {
+    setSheetFetchError(null);
+    if (!googleSheetUrl.trim()) {
+      setSheetFetchError("Please enter a Google Sheets URL.");
+      return;
+    }
+
+    setFetchingSheet(true);
+
+    try {
+      const res = await fetch("/api/admin/emails/fetch-sheet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: googleSheetUrl.trim() }),
+      });
+
+      const data = await res.json();
+
+      if (!data.ok) {
+        setSheetFetchError(data.error || "Failed to fetch Google Sheet.");
+        setFetchingSheet(false);
+        return;
+      }
+
+      const extracted = extractEmailsFromText(data.csv);
+
+      if (extracted.length === 0) {
+        setSheetFetchError("Could not find any email addresses in this Google Sheet. Please check the sheet data.");
+        setFetchingSheet(false);
+        return;
+      }
+
+      setImportedRecipients(extracted);
+      setImportedSourceName("Google Sheet");
+      setRecipientEmail("");
+      setGoogleSheetModalOpen(false);
+      setGoogleSheetUrl("");
+
+      setToastMessage({
+        title: "Google Sheet Connected!",
+        description: `Imported ${extracted.length} recipient email IDs ready for dispatch.`,
+      });
+      setShowSuccessToast(true);
+      setTimeout(() => setShowSuccessToast(false), 4500);
+    } catch (err: any) {
+      console.error(err);
+      setSheetFetchError(`Network error: ${err.message}`);
+    } finally {
+      setFetchingSheet(false);
+    }
+  };
+
+  // 3. PASTE SPREADSHEET ROWS HANDLER
+  const handlePasteSpreadsheetRows = () => {
+    if (!pastedSpreadsheetData.trim()) {
+      alert("Please paste data copied from your Google Sheet or Excel.");
+      return;
+    }
+
+    const extracted = extractEmailsFromText(pastedSpreadsheetData);
+    if (extracted.length === 0) {
+      alert("No valid email addresses found in the pasted data. Please check and try again.");
+      return;
+    }
+
+    setImportedRecipients(extracted);
+    setImportedSourceName("Pasted Sheet Data");
+    setRecipientEmail("");
+    setGoogleSheetModalOpen(false);
+    setPastedSpreadsheetData("");
+
+    setToastMessage({
+      title: "Recipients Extracted!",
+      description: `Loaded ${extracted.length} recipient email IDs from pasted spreadsheet data.`,
+    });
+    setShowSuccessToast(true);
+    setTimeout(() => setShowSuccessToast(false), 4500);
+  };
+
+  // 4. CLEAR IMPORTED RECIPIENTS (Return to manual input)
+  const handleClearImportedRecipients = () => {
+    setImportedRecipients([]);
+    setImportedSourceName(null);
+  };
+
+  // 5. REMOVE SINGLE RECIPIENT FROM IMPORTED LIST
+  const handleRemoveSingleRecipient = (emailToRemove: string) => {
+    const updated = importedRecipients.filter((r) => r.email !== emailToRemove);
+    setImportedRecipients(updated);
+    if (updated.length === 0) {
+      setImportedSourceName(null);
+      setViewRecipientsModalOpen(false);
+    }
+  };
+
+  // 6. SAVE DRAFT
   const handleSaveDraft = () => {
     const finalName = draftName.trim() || `Draft - ${subject.trim() || "Untitled"}`;
     if (!finalName && !emailBody.trim()) {
@@ -250,7 +457,6 @@ export default function EmailCampaignsPage() {
 
     let updatedDrafts: SavedDraft[];
     if (existingIndex >= 0) {
-      // Update existing draft
       updatedDrafts = [...savedDrafts];
       updatedDrafts[existingIndex] = {
         ...updatedDrafts[existingIndex],
@@ -261,7 +467,6 @@ export default function EmailCampaignsPage() {
         savedAt: `Today, ${now}`
       };
     } else {
-      // Create new draft version
       const newDraft: SavedDraft = {
         id: `draft-${Date.now()}`,
         name: finalName,
@@ -279,7 +484,7 @@ export default function EmailCampaignsPage() {
     setTimeout(() => setDraftSavedToast(false), 3000);
   };
 
-  // 2. LOAD SAVED DRAFT
+  // 7. LOAD SAVED DRAFT
   const handleLoadDraft = (draft: SavedDraft) => {
     setSelectedDraftId(draft.id);
     setDraftName(draft.name);
@@ -288,16 +493,18 @@ export default function EmailCampaignsPage() {
     setEmailBody(draft.body);
   };
 
-  // 3. START NEW BLANK DRAFT
+  // 8. START NEW BLANK DRAFT
   const handleNewBlankDraft = () => {
     setSelectedDraftId(null);
     setDraftName("");
     setRecipientEmail("");
     setSubject("");
     setEmailBody("");
+    setImportedRecipients([]);
+    setImportedSourceName(null);
   };
 
-  // 4. DELETE SAVED DRAFT
+  // 9. DELETE SAVED DRAFT
   const handleDeleteDraft = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (confirm("Delete this saved draft?")) {
@@ -309,11 +516,13 @@ export default function EmailCampaignsPage() {
     }
   };
 
-  // 5. SEND EMAIL TO RECIPIENT
+  // 10. SEND EMAIL (To single typed recipient OR to all imported spreadsheet recipients)
   const handleSendEmail = async () => {
-    const targetEmail = recipientEmail.trim();
-    if (!targetEmail || !targetEmail.includes("@")) {
-      alert("Please enter a valid recipient Email ID to send to.");
+    const hasImported = importedRecipients.length > 0;
+    const targetSingleEmail = recipientEmail.trim();
+
+    if (!hasImported && (!targetSingleEmail || !targetSingleEmail.includes("@"))) {
+      alert("Please enter a recipient Email ID or upload an Excel / Google Sheet.");
       return;
     }
     if (!subject.trim()) {
@@ -328,49 +537,89 @@ export default function EmailCampaignsPage() {
     setSending(true);
 
     try {
-      const res = await fetch("/api/admin/emails/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mode: "test", // sends directly to targetEmail via verified SMTP
-          testEmail: targetEmail,
-          fromName: "Spyke AI Dispatch",
-          fromEmail: "spykeai2026@gmail.com",
-          subject: subject.trim(),
-          body: emailBody.trim(),
-          preheader: subject.trim(),
-        }),
-      });
+      if (hasImported) {
+        // Broadcast to all imported recipients
+        setSendingProgress({ current: 0, total: importedRecipients.length });
 
-      const data = await res.json();
-
-      if (data.ok) {
-        // Create an audit log record in History
-        const newLog: EmailLog = {
-          id: `log-${Date.now()}`,
-          campaignTitle: draftName.trim() || "Direct Outreach",
-          subject: subject.trim(),
-          recipientName: targetEmail.split("@")[0].replace(/[._-]/g, " "),
-          recipientEmail: targetEmail,
-          segment: "Direct Send",
-          sentAt: "Just now",
-          status: "delivered",
-          openCount: 0,
-          bodySnippet: emailBody.trim().slice(0, 140) + "...",
-          fullBody: emailBody.trim(),
-          messageId: data.messageId,
-        };
-
-        saveLogs([newLog, ...logs]);
-
-        setToastMessage({
-          title: "Email Delivered Successfully!",
-          description: `Sent directly to ${targetEmail} via SMTP. Logged in History.`,
+        const res = await fetch("/api/admin/emails/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mode: "campaign",
+            campaignTitle: draftName.trim() || `Spreadsheet Broadcast (${importedSourceName || "Sheet"})`,
+            segment: importedSourceName || "Excel/Google Sheet",
+            fromName: "Spyke AI Dispatch",
+            fromEmail: "spykeai2026@gmail.com",
+            subject: subject.trim(),
+            body: emailBody.trim(),
+            preheader: subject.trim(),
+            recipients: importedRecipients.map((r) => ({
+              name: r.name,
+              email: r.email,
+              city: "Texas",
+            })),
+          }),
         });
-        setShowSuccessToast(true);
-        setTimeout(() => setShowSuccessToast(false), 4500);
+
+        const data = await res.json();
+
+        if (data.ok && Array.isArray(data.logs)) {
+          saveLogs([...data.logs, ...logs]);
+
+          setToastMessage({
+            title: `Campaign Broadcast Complete!`,
+            description: `Sent to ${data.successCount} of ${importedRecipients.length} recipients via SMTP. Logged in History.`,
+          });
+          setShowSuccessToast(true);
+          setTimeout(() => setShowSuccessToast(false), 5000);
+        } else {
+          alert(`Failed to dispatch campaign: ${data.error || "Unknown server response"}`);
+        }
       } else {
-        alert(`Failed to send email: ${data.error || "Unknown server response"}`);
+        // Send to single typed recipient
+        const res = await fetch("/api/admin/emails/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mode: "test",
+            testEmail: targetSingleEmail,
+            fromName: "Spyke AI Dispatch",
+            fromEmail: "spykeai2026@gmail.com",
+            subject: subject.trim(),
+            body: emailBody.trim(),
+            preheader: subject.trim(),
+          }),
+        });
+
+        const data = await res.json();
+
+        if (data.ok) {
+          const newLog: EmailLog = {
+            id: `log-${Date.now()}`,
+            campaignTitle: draftName.trim() || "Direct Outreach",
+            subject: subject.trim(),
+            recipientName: targetSingleEmail.split("@")[0].replace(/[._-]/g, " "),
+            recipientEmail: targetSingleEmail,
+            segment: "Direct Send",
+            sentAt: "Just now",
+            status: "delivered",
+            openCount: 0,
+            bodySnippet: emailBody.trim().slice(0, 140) + "...",
+            fullBody: emailBody.trim(),
+            messageId: data.messageId,
+          };
+
+          saveLogs([newLog, ...logs]);
+
+          setToastMessage({
+            title: "Email Delivered Successfully!",
+            description: `Sent directly to ${targetSingleEmail} via SMTP. Logged in History.`,
+          });
+          setShowSuccessToast(true);
+          setTimeout(() => setShowSuccessToast(false), 4500);
+        } else {
+          alert(`Failed to send email: ${data.error || "Unknown server response"}`);
+        }
       }
     } catch (err: any) {
       console.error("Email send error:", err);
@@ -439,6 +688,13 @@ export default function EmailCampaignsPage() {
   const openRate = deliveredCount > 0 ? ((openedCount / deliveredCount) * 100).toFixed(1) : "0.0";
   const replyRate = openedCount > 0 ? ((repliedCount / openedCount) * 100).toFixed(1) : "0.0";
 
+  // Filtered recipients in View List Modal
+  const modalFilteredRecipients = importedRecipients.filter(
+    (r) =>
+      r.email.toLowerCase().includes(searchRecipientQuery.toLowerCase()) ||
+      r.name.toLowerCase().includes(searchRecipientQuery.toLowerCase())
+  );
+
   return (
     <div className="flex h-screen w-full bg-slate-50 text-slate-800 font-sans antialiased overflow-hidden">
       {/* VERTICAL NAVBAR */}
@@ -467,7 +723,7 @@ export default function EmailCampaignsPage() {
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 font-medium hidden sm:block">
-                    Simple text editor with saved draft versions, direct sending, and delivery history.
+                    Text editor with saved draft versions, Excel & Google Sheets bulk sending, and delivery history.
                   </p>
                 </div>
               </div>
@@ -558,31 +814,110 @@ export default function EmailCampaignsPage() {
           </div>
         )}
 
-        {/* TAB 1: CREATE EMAILS (VERY BASIC EDITOR + SIDE SAVED VERSIONS) */}
+        {/* TAB 1: CREATE EMAILS (TEXT EDITOR + RECIPIENTS/SHEETS + SIDE SAVED VERSIONS) */}
         {activeTab === "create" && (
           <div className="max-w-7xl mx-auto w-full p-4 sm:p-6 lg:p-8">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               
-              {/* LEFT: CLEAN TEXT EDITOR & SEND CONTROLS (8 COLS) */}
-              <div className="lg:col-span-8 bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
+              {/* LEFT: TEXT EDITOR & RECIPIENTS CONTROLS (8 COLS) */}
+              <div className="lg:col-span-8 bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-5">
                 
-                {/* To: Recipient Email */}
+                {/* TO: Recipient Input + Excel/Google Sheet Import Header */}
                 <div>
-                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
-                    To (Recipient Email ID)
-                  </label>
-                  <input
-                    type="email"
-                    value={recipientEmail}
-                    onChange={(e) => setRecipientEmail(e.target.value)}
-                    placeholder="Enter email to send to (e.g. client@gmail.com)"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl px-4 py-3 text-xs font-bold text-slate-900 focus:outline-none transition shadow-2xs placeholder:text-slate-400"
-                  />
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                    <label className="block text-xs font-black text-slate-800 uppercase tracking-wider">
+                      To (Recipient Email ID)
+                    </label>
+
+                    {/* Quick Import Buttons */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200/90 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                        title="Upload .xlsx, .xls, or .csv spreadsheet file"
+                      >
+                        <FileSpreadsheet size={13} className="text-emerald-600" />
+                        <span>Upload Excel / CSV</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setGoogleSheetModalOpen(true)}
+                        className="px-2.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 text-[11px] font-bold border border-blue-200/90 transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                        title="Import from Google Sheets link or paste rows"
+                      >
+                        <Share2 size={13} className="text-blue-600" />
+                        <span>Google Sheet</span>
+                      </button>
+
+                      {/* Hidden File Input for Excel/CSV */}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".xlsx,.xls,.csv"
+                        className="hidden"
+                        onChange={handleFileUpload}
+                      />
+                    </div>
+                  </div>
+
+                  {/* ACTIVE IMPORTED RECIPIENTS BANNER */}
+                  {importedRecipients.length > 0 ? (
+                    <div className="p-3.5 bg-emerald-50/90 border border-emerald-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-150">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                          <Users size={18} />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-black text-emerald-950">
+                              {importedRecipients.length} Recipient(s) Loaded
+                            </span>
+                            <span className="text-[10px] bg-emerald-200/80 text-emerald-900 font-extrabold px-2 py-0.5 rounded-full truncate max-w-[160px]">
+                              {importedSourceName}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-emerald-700 font-medium">
+                            Ready to send to all email IDs extracted from this spreadsheet.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end sm:self-center">
+                        <button
+                          type="button"
+                          onClick={() => setViewRecipientsModalOpen(true)}
+                          className="px-3 py-1.5 bg-white hover:bg-emerald-100/50 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-200 shadow-2xs transition cursor-pointer"
+                        >
+                          View List ({importedRecipients.length})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleClearImportedRecipients}
+                          className="px-2.5 py-1.5 bg-white hover:bg-rose-50 text-slate-500 hover:text-rose-600 text-xs font-bold rounded-xl border border-slate-200 transition cursor-pointer flex items-center gap-1"
+                          title="Clear and switch to manual input"
+                        >
+                          <X size={13} />
+                          <span>Clear</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* MANUAL EMAIL INPUT */
+                    <input
+                      type="text"
+                      value={recipientEmail}
+                      onChange={(e) => setRecipientEmail(e.target.value)}
+                      placeholder="Enter recipient email (e.g. client@gmail.com) — or click 'Upload Excel' above"
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl px-4 py-3 text-xs font-bold text-slate-900 focus:outline-none transition shadow-2xs placeholder:text-slate-400"
+                    />
+                  )}
                 </div>
 
                 {/* Subject Line */}
                 <div>
-                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-black text-slate-800 uppercase tracking-wider mb-1.5">
                     Subject Line
                   </label>
                   <input
@@ -597,7 +932,7 @@ export default function EmailCampaignsPage() {
                 {/* Text Editor Body */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-black text-slate-700 uppercase tracking-wider">
+                    <label className="text-xs font-black text-slate-800 uppercase tracking-wider">
                       Email Message Body
                     </label>
                     <span className="text-[11px] text-slate-400 font-medium">
@@ -605,15 +940,15 @@ export default function EmailCampaignsPage() {
                     </span>
                   </div>
                   <textarea
-                    rows={14}
+                    rows={13}
                     value={emailBody}
                     onChange={(e) => setEmailBody(e.target.value)}
-                    placeholder="Type your message here..."
+                    placeholder="Type your email message here..."
                     className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-2xl p-4 text-xs font-normal text-slate-900 focus:outline-none transition leading-relaxed shadow-2xs font-sans placeholder:text-slate-400"
                   />
                 </div>
 
-                {/* Draft Name & Action Buttons Row */}
+                {/* Draft Naming & Send Buttons Row */}
                 <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   
                   {/* Draft Name Input */}
@@ -626,7 +961,7 @@ export default function EmailCampaignsPage() {
                         type="text"
                         value={draftName}
                         onChange={(e) => setDraftName(e.target.value)}
-                        placeholder="e.g. Follow-up Draft v1"
+                        placeholder="e.g. Summer Follow-up v1"
                         className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none"
                       />
                       <button
@@ -641,7 +976,7 @@ export default function EmailCampaignsPage() {
                     </div>
                   </div>
 
-                  {/* Send Email Now Button */}
+                  {/* Send Email Button */}
                   <div className="self-end sm:self-center">
                     <button
                       type="button"
@@ -657,7 +992,11 @@ export default function EmailCampaignsPage() {
                       ) : (
                         <>
                           <Send size={14} />
-                          <span>Send Email</span>
+                          <span>
+                            {importedRecipients.length > 0
+                              ? `Send to All (${importedRecipients.length} Recipients)`
+                              : "Send Email"}
+                          </span>
                         </>
                       )}
                     </button>
@@ -690,7 +1029,7 @@ export default function EmailCampaignsPage() {
                 </div>
 
                 {/* Drafts List */}
-                <div className="space-y-2.5 max-h-[560px] overflow-y-auto pr-1">
+                <div className="space-y-2.5 max-h-[580px] overflow-y-auto pr-1">
                   {savedDrafts.length === 0 ? (
                     <div className="py-12 text-center text-slate-400">
                       <FileText size={28} className="mx-auto mb-2 text-slate-300" />
@@ -1048,7 +1387,222 @@ export default function EmailCampaignsPage() {
 
       </div>
 
-      {/* MODAL: VIEW DETAILED EMAIL PREVIEW FROM HISTORY */}
+      {/* MODAL 1: VIEW / INSPECT IMPORTED RECIPIENTS LIST */}
+      {viewRecipientsModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-xl border border-slate-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
+            <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users size={16} className="text-emerald-600" />
+                <h3 className="text-sm font-bold text-slate-900">
+                  Imported Recipients ({importedRecipients.length})
+                </h3>
+              </div>
+              <button
+                onClick={() => setViewRecipientsModalOpen(false)}
+                className="w-7 h-7 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center text-slate-600 cursor-pointer"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              {/* Search in list */}
+              <div className="relative">
+                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchRecipientQuery}
+                  onChange={(e) => setSearchRecipientQuery(e.target.value)}
+                  placeholder="Search in extracted emails or names..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs font-semibold text-slate-900 focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              {/* Scrollable list */}
+              <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 border border-slate-200 rounded-2xl">
+                {modalFilteredRecipients.length === 0 ? (
+                  <p className="text-xs text-slate-400 py-6 text-center">No matching recipients found.</p>
+                ) : (
+                  modalFilteredRecipients.map((r, i) => (
+                    <div key={i} className="px-4 py-2.5 flex items-center justify-between hover:bg-slate-50 text-xs">
+                      <div className="truncate max-w-[340px]">
+                        <p className="font-bold text-slate-900 truncate">{r.email}</p>
+                        {r.name && r.name !== r.email.split("@")[0] && (
+                          <p className="text-[11px] text-slate-400 truncate">{r.name}</p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSingleRecipient(r.email)}
+                        className="p-1 text-slate-400 hover:text-rose-600 rounded-lg transition cursor-pointer"
+                        title="Remove from send list"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+              <span className="text-xs text-slate-500 font-medium">Source: {importedSourceName}</span>
+              <button
+                onClick={() => setViewRecipientsModalOpen(false)}
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: GOOGLE SHEET IMPORT MODAL */}
+      {googleSheetModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg border border-slate-200 shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Share2 size={16} className="text-blue-600" />
+                <h3 className="text-base font-bold text-slate-900">Import from Google Sheets</h3>
+              </div>
+              <button
+                onClick={() => {
+                  setGoogleSheetModalOpen(false);
+                  setSheetFetchError(null);
+                }}
+                className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 cursor-pointer"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            {/* Modal Tabs */}
+            <div className="flex items-center p-1 bg-slate-100 rounded-xl text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setGoogleSheetTab("link")}
+                className={`flex-1 py-1.5 rounded-lg transition ${
+                  googleSheetTab === "link" ? "bg-white text-blue-700 shadow-2xs font-black" : "text-slate-600"
+                }`}
+              >
+                🔗 Google Sheets Link
+              </button>
+              <button
+                type="button"
+                onClick={() => setGoogleSheetTab("paste")}
+                className={`flex-1 py-1.5 rounded-lg transition ${
+                  googleSheetTab === "paste" ? "bg-white text-blue-700 shadow-2xs font-black" : "text-slate-600"
+                }`}
+              >
+                📋 Paste Rows Directly
+              </button>
+            </div>
+
+            {/* TAB A: LINK */}
+            {googleSheetTab === "link" && (
+              <div className="space-y-3 pt-1">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Google Sheets Share Link:
+                  </label>
+                  <input
+                    type="url"
+                    value={googleSheetUrl}
+                    onChange={(e) => setGoogleSheetUrl(e.target.value)}
+                    placeholder="https://docs.google.com/spreadsheets/d/1BxiMVs0X.../edit?usp=sharing"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-900 focus:outline-none"
+                  />
+                </div>
+
+                <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl text-[11px] text-blue-900 space-y-1">
+                  <p className="font-bold">⚠️ Quick Tip for Google Sheets:</p>
+                  <p>In Google Sheets, click <b>Share</b> &rarr; set General access to <b>"Anyone with the link can view"</b> so the email addresses can be safely read.</p>
+                </div>
+
+                {sheetFetchError && (
+                  <p className="text-xs text-rose-600 font-semibold p-2.5 bg-rose-50 border border-rose-200 rounded-xl">
+                    {sheetFetchError}
+                  </p>
+                )}
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setGoogleSheetModalOpen(false)}
+                    className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleFetchGoogleSheet}
+                    disabled={fetchingSheet}
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {fetchingSheet ? (
+                      <>
+                        <Loader2 size={13} className="animate-spin text-white" />
+                        <span>Fetching Sheet...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud size={14} />
+                        <span>Fetch & Extract Emails</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB B: PASTE ROWS */}
+            {googleSheetTab === "paste" && (
+              <div className="space-y-3 pt-1">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Paste Copied Spreadsheet Cells:
+                  </label>
+                  <textarea
+                    rows={6}
+                    value={pastedSpreadsheetData}
+                    onChange={(e) => setPastedSpreadsheetData(e.target.value)}
+                    placeholder="Copy cells in Google Sheets / Excel (Ctrl+C) and paste here (Ctrl+V)..."
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 rounded-xl p-3 text-xs font-mono text-slate-900 focus:outline-none"
+                  />
+                </div>
+
+                <p className="text-[11px] text-slate-400">
+                  You can select any columns or rows in Excel / Google Sheets and paste them right here. All valid email addresses will be automatically extracted.
+                </p>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setGoogleSheetModalOpen(false)}
+                    className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePasteSpreadsheetRows}
+                    className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer flex items-center gap-2"
+                  >
+                    <CheckCheck size={14} />
+                    <span>Extract Emails & Use</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: VIEW DETAILED EMAIL PREVIEW FROM HISTORY */}
       {selectedPreviewLog && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-2xl border border-slate-200 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150">
