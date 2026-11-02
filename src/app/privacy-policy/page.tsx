@@ -236,6 +236,7 @@ export default function PrivacyPolicy() {
                           <div><strong className="text-gray-900">Legal and Regulatory Authorities:</strong> To comply with applicable law, respond to lawful requests, protect our rights, prevent fraud, or investigate security incidents.</div>
                           <div><strong className="text-gray-900">Business Transactions:</strong> In the event of a merger, acquisition, restructuring, or sale of assets.</div>
                         </div>
+                        <p className="mt-4">Any sharing described in this section excludes SMS opt-in data and consent. Mobile information collected for SMS will not be sold or shared with third parties or affiliates for marketing or promotional purposes.</p>
                       </>
                     )
                   },
@@ -267,19 +268,29 @@ export default function PrivacyPolicy() {
                     )
                   },
                   {
-                    title: "11. Data Retention",
+                    title: "11. SMS / Text Messaging",
+                    content: (
+                      <>
+                        <p className="mb-4">If you opt in to receive text messages from Spyke AI Technologies, we collect your mobile phone number and record of consent to send you the messages you signed up for, such as demo and appointment reminders, follow-ups on your enquiry, and customer support.</p>
+                        <p className="mb-4">No mobile information will be shared with third parties or affiliates for marketing or promotional purposes. All the above categories exclude text messaging originator opt-in data and consent; this information will not be shared with any third parties. We share your mobile number only with vendors that help us deliver text messages, such as our messaging platform and mobile carriers, and only to send the messages you agreed to receive.</p>
+                        <p>Message frequency varies. Message and data rates may apply. You can opt out at any time by replying STOP. For help, reply HELP or email <a href="mailto:contact@spykeai.com" className="text-[#00DF81] hover:underline">contact@spykeai.com</a>.</p>
+                      </>
+                    )
+                  },
+                  {
+                    title: "12. Data Retention",
                     content: (
                       <p>We retain personal information only for as long as reasonably necessary for the purposes described in this Privacy Policy, to provide the Services, to fulfil contractual obligations, to maintain business records, or to comply with applicable legal requirements. Where SpykeAI processes information on behalf of a Client, retention may be determined by the Client's instructions.</p>
                     )
                   },
                   {
-                    title: "12. Data Security",
+                    title: "13. Data Security",
                     content: (
                       <p>We take reasonable technical and organisational measures designed to protect personal information against unauthorised access, disclosure, alteration, loss, or destruction. Safeguards may include access controls, encryption, secure data transmission, and system monitoring. However, no internet transmission or electronic storage system can be guaranteed to be completely secure.</p>
                     )
                   },
                   {
-                    title: "13. Your Privacy Rights",
+                    title: "14. Your Privacy Rights",
                     content: (
                       <>
                         <p className="mb-4">Depending on your location and applicable laws, you may have rights to request access to, correction of, or deletion of your personal information, withdraw consent, opt out of marketing, or raise concerns regarding processing. Some rights may be subject to legal exceptions.</p>
@@ -288,37 +299,37 @@ export default function PrivacyPolicy() {
                     )
                   },
                   {
-                    title: "14. Children's Privacy",
+                    title: "15. Children's Privacy",
                     content: (
                       <p>Our website and Services are primarily intended for businesses and adults. We do not knowingly collect personal information from children in circumstances where doing so would violate applicable law.</p>
                     )
                   },
                   {
-                    title: "15. International Data Transfers",
+                    title: "16. International Data Transfers",
                     content: (
                       <p>SpykeAI is based in India and may provide Services to Clients and users located in other countries. Depending on the Service and third-party providers used, personal information may be processed or stored outside the country where it was originally collected. We will take reasonable steps to ensure international transfers are handled in accordance with applicable data-protection requirements.</p>
                     )
                   },
                   {
-                    title: "16. Third-Party Websites and Services",
+                    title: "17. Third-Party Websites and Services",
                     content: (
                       <p>Our website and Services may contain links to or integrations with third-party websites or platforms. We are not responsible for the privacy practices, content, or security of third-party services that we do not control.</p>
                     )
                   },
                   {
-                    title: "17. Business Client Data",
+                    title: "18. Business Client Data",
                     content: (
                       <p>If you are a SpykeAI Client and provide us with information relating to your customers, leads, employees, or users, you remain responsible for ensuring that you have the necessary rights and permissions to provide that information to us.</p>
                     )
                   },
                   {
-                    title: "18. Data Breaches and Security Incidents",
+                    title: "19. Data Breaches and Security Incidents",
                     content: (
                       <p>If SpykeAI becomes aware of a security incident involving personal information under our control, we will take reasonable steps to investigate, contain, and address the incident. Where notification is legally required, we will make the appropriate notifications.</p>
                     )
                   },
                   {
-                    title: "19. Changes to This Privacy Policy",
+                    title: "20. Changes to This Privacy Policy",
                     content: (
                       <p>We may update this Privacy Policy from time to time to reflect changes to our Services, technology, or legal requirements. When we update this Privacy Policy, we will update the Effective Date at the top of the page.</p>
                     )
