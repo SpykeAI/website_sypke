@@ -227,6 +227,7 @@ export default function PrivacyPolicy() {
                   },
                   {
                     title: "7. How We Share Personal Information",
+                    defaultOpen: true,
                     content: (
                       <>
                         <p className="mb-4">We do not sell personal information for money. We may share or provide access to personal information where reasonably necessary to provide our Services, operate our business, or comply with applicable law. These parties may include:</p>
@@ -269,6 +270,7 @@ export default function PrivacyPolicy() {
                   },
                   {
                     title: "11. SMS / Text Messaging",
+                    defaultOpen: true,
                     content: (
                       <>
                         <p className="mb-4">If you opt in to receive text messages from Spyke AI Technologies, we collect your mobile phone number and record of consent to send you the messages you signed up for, such as demo and appointment reminders, follow-ups on your enquiry, and customer support.</p>
@@ -335,7 +337,7 @@ export default function PrivacyPolicy() {
                     )
                   }
                 ].map((section, idx) => (
-                  <details key={idx} className="group bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden open:ring-1 open:ring-[#00DF81]/20 open:shadow-md transition-all duration-300">
+                  <details key={idx} open={section.defaultOpen} className="group bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden open:ring-1 open:ring-[#00DF81]/20 open:shadow-md transition-all duration-300">
                     <summary className="flex items-center justify-between p-6 cursor-pointer select-none">
                       <h3 className="text-xl font-bold text-gray-900 font-heading group-open:text-[#00DF81] transition-colors">{section.title}</h3>
                       <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-open:bg-green-50 transition-colors shrink-0">
