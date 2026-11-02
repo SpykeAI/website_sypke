@@ -15,6 +15,7 @@ export default function OutboundCallForm() {
   const [otpStep, setOtpStep] = useState(false);
   const [otp, setOtp] = useState("");
   const [hashPayload, setHashPayload] = useState("");
+  const [smsConsent, setSmsConsent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,6 +140,18 @@ export default function OutboundCallForm() {
                 onChange={(v) => setPhone(v || "")}
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 focus-within:ring-2 focus-within:ring-[#00DF81] focus-within:border-transparent flex items-center gap-3"
               />
+            </div>
+            <div className="flex items-start gap-2.5 pt-1 text-left">
+              <input
+                type="checkbox"
+                id="outbound-sms-consent"
+                checked={smsConsent}
+                onChange={(e) => setSmsConsent(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-gray-300 text-[#00DF81] focus:ring-[#00DF81] cursor-pointer shrink-0"
+              />
+              <label htmlFor="outbound-sms-consent" className="text-xs text-gray-500 leading-relaxed cursor-pointer select-none">
+                I agree to receive text messages from Spyke AI Technologies about my demo request, appointment reminders, follow-ups and customer support at the phone number provided. Message frequency varies. Message &amp; data rates may apply. Reply STOP to opt out or HELP for help. Consent is not a condition of purchase. See our <a href="https://www.spykeai.com/privacy-policy" className="underline text-gray-700 hover:text-gray-900">Privacy Policy</a> and <a href="https://www.spykeai.com/terms-and-conditions" className="underline text-gray-700 hover:text-gray-900">Terms &amp; Conditions</a>.
+              </label>
             </div>
           </>
         ) : (
