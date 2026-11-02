@@ -404,6 +404,22 @@ export default function TermsConditions() {
               <p className="mb-4">If there is a conflict between these Terms and a specific written agreement signed or accepted by SpykeAI and the Client, the specific written agreement shall prevail to the extent of the conflict.</p>
             </Section>
 
+            {/* SMS Terms - Visible without clicking to expand */}
+            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm p-6 text-gray-600 text-lg">
+              <h2 className="font-heading font-bold text-xl text-gray-900 mb-6">SMS Terms</h2>
+              <ol className="list-decimal pl-6 space-y-3">
+                <li><strong>Program:</strong> Spyke AI Technologies SMS messages.</li>
+                <li><strong>What you'll receive:</strong> Texts about your demo request, appointment and demo reminders, follow-ups on your enquiry, and customer support.</li>
+                <li><strong>How you join:</strong> By ticking the SMS consent box on a form at spykeai.com, texting our number first, or agreeing on a call with our team. Consent is not a condition of purchase.</li>
+                <li><strong>Message frequency:</strong> Message frequency varies.</li>
+                <li><strong>Cost:</strong> Message and data rates may apply.</li>
+                <li><strong>Opt out:</strong> Reply STOP at any time to stop receiving messages. You'll get one confirmation text and no further messages.</li>
+                <li><strong>Help:</strong> Reply HELP for help, or email <a href="mailto:contact@spykeai.com" className="text-[#00DF81] hover:underline">contact@spykeai.com</a>.</li>
+                <li><strong>Carriers:</strong> Carriers are not liable for delayed or undelivered messages.</li>
+                <li><strong>Privacy:</strong> See our Privacy Policy at <a href="https://www.spykeai.com/privacy-policy" className="text-[#00DF81] hover:underline">https://www.spykeai.com/privacy-policy</a>. Your mobile information will not be sold or shared with third parties for marketing or promotional purposes.</li>
+              </ol>
+            </div>
+
             <Section title="Contact Information">
               <p className="mb-4">If you have questions, concerns, or requests regarding these Terms or our Services, please contact us:</p>
               <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
