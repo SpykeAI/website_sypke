@@ -92,20 +92,10 @@ export default function OutboundCallForm() {
 
   if (status === "success") {
     return (
-      <div className="bg-white p-8 md:p-10 rounded-3xl border border-gray-200 shadow-2xl relative z-10 text-center animate-in fade-in zoom-in-95 duration-500">
-        <div className="w-16 h-16 bg-[#00DF81]/20 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CheckCircle2 className="w-8 h-8 text-[#0A8F5C]" />
-        </div>
-        <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-50 text-green-700 font-bold mb-4 text-xs uppercase tracking-wide">
-          Calling Now
-        </div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-3 font-heading">Call Initiated! 📞</h3>
-        <p className="text-gray-600 font-medium mb-6 leading-relaxed">
-          Our AI Voice Agent is calling your phone now. Please answer the incoming call to experience the live demo.
-        </p>
-        <div className="bg-[#E8FBF1] p-4 rounded-xl border border-green-200 text-sm text-gray-700 mb-6">
-          Calling <strong className="text-gray-900">{phone}</strong>
-        </div>
+      <div className="bg-white p-8 md:p-12 rounded-3xl border border-gray-200 shadow-2xl relative z-10 text-center animate-in fade-in duration-500 flex flex-col items-center justify-center min-h-[360px]">
+        <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8 font-heading">
+          Our agent has called you
+        </h3>
         <button 
           onClick={() => {
             setStatus("idle");
@@ -116,9 +106,9 @@ export default function OutboundCallForm() {
             setEmail("");
             setSmsConsent(false);
           }}
-          className="px-6 py-3 bg-[#00DF81] text-gray-900 rounded-xl font-bold hover:bg-[#00c271] transition shadow-md text-sm"
+          className="w-full bg-[#00DF81] text-gray-900 py-4 rounded-xl font-bold text-lg hover:bg-[#00c271] transition shadow-lg flex items-center justify-center"
         >
-          Request Another Call
+          Call Again
         </button>
       </div>
     );
