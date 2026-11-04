@@ -97,6 +97,7 @@ export default function OutboundCallForm() {
           Our agent has called you
         </h3>
         <button 
+          type="button"
           onClick={() => {
             setStatus("idle");
             setOtpStep(false);
@@ -204,13 +205,11 @@ export default function OutboundCallForm() {
 
         <button
           type="submit"
-          disabled={status === "loading" || status === "success"}
+          disabled={status === "loading"}
           className="w-full bg-[#00DF81] text-gray-900 py-4 rounded-xl font-bold text-lg hover:bg-[#00c271] transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {status === "loading" ? (
             <Loader2 className="w-5 h-5 animate-spin" />
-          ) : status === "success" ? (
-            "Call Initiated! 📞"
           ) : otpStep ? (
             "Verify & Call Me Now"
           ) : (
