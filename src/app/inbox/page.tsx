@@ -53,6 +53,41 @@ interface Message {
   created_at: string;
 }
 
+// Dynamic SMS Segment & Cost Calculation
+// Telnyx Standard SMS Rates:
+// - US / Canada (+1): ~$0.0079 per segment (~ ₹0.66 INR)
+// - India (+91): ~$0.0750 per segment (~ ₹6.25 INR at current exchange rate)
+// - International Other: ~$0.0850 per segment
+function calculateSmsCost(text: string, recipientPhone?: string | null) {
+  const phone = (recipientPhone || "").trim();
+  const isIndia = phone.startsWith("+91") || phone.startsWith("91") || (/^[6-9]\d{9}$/.test(phone));
+  const isUS = phone.startsWith("+1") || (!phone.startsWith("+") && phone.length === 10 && /^[2-9]/.test(phone));
+
+  const ratePerSegment = isIndia ? 0.075 : isUS ? 0.0079 : 0.085;
+
+  const charCount = text.length;
+  const isUnicode = /[^\u0000-\u007F]/.test(text);
+  const segmentLimit = isUnicode ? 70 : 160;
+
+  const segmentCount = charCount === 0 ? 0 : Math.ceil(charCount / segmentLimit);
+  const billedSegments = Math.max(1, segmentCount);
+  const totalCostUsd = (billedSegments * ratePerSegment).toFixed(4);
+  const inrEstimate = isIndia ? (billedSegments * 6.25).toFixed(2) : null;
+
+  return {
+    isIndia,
+    isUS,
+    ratePerSegment,
+    isUnicode,
+    segmentLimit,
+    segmentCount,
+    billedSegments,
+    totalCostUsd,
+    inrEstimate,
+    displayCost: isIndia ? `~$${totalCostUsd} (₹${inrEstimate})` : `~$${totalCostUsd}`,
+  };
+}
+
 function SmsInboxContent() {
   const searchParams = useSearchParams();
   const phoneParam = searchParams.get("phone");
@@ -551,13 +586,10 @@ function SmsInboxContent() {
     }
   };
 
-  // Character, segment and cost calculations
+  // Character, segment and cost calculations for composer
   const charCount = inputText.length;
-  const isUnicode = /[^\u0000-\u007F]/.test(inputText);
-  const segmentLimit = isUnicode ? 70 : 160;
-  const segmentCount = charCount === 0 ? 1 : Math.ceil(charCount / segmentLimit);
-  // Telnyx standard rate ~$0.0079 per segment for US local SMS
-  const estCost = (segmentCount * 0.0079).toFixed(4);
+  const activeRecipientPhone = activeConv?.contacts?.phone_e164 || "";
+  const activeCost = calculateSmsCost(inputText, activeRecipientPhone);
 
   // Filter conversations
   const filteredConversations = conversations.filter((c) => {
@@ -909,27 +941,55 @@ function SmsInboxContent() {
                         <p className="whitespace-pre-wrap break-all [overflow-wrap:anywhere] select-text">{msg.body}</p>
                       </div>
 
-                      {/* Timestamp & Status & Delete Message */}
-                      <div className="flex items-center gap-1.5 mt-1 px-1 text-[10px] text-slate-400 font-medium">
+                      {/* Timestamp & Status & Cost Breakdown & Delete Message */}
+                      <div className="flex items-center gap-1.5 mt-1 px-1 text-[10px] text-slate-400 font-medium flex-wrap justify-end">
                         <span>
                           {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </span>
 
                         {isOutbound && (
-                          <span className="flex items-center gap-0.5 ml-1">
-                            {msg.status === "pending" && <Clock size={11} className="text-amber-500" />}
-                            {msg.status === "accepted" && <Check size={11} className="text-slate-400" />}
-                            {msg.status === "sent" && <Check size={11} className="text-blue-500" />}
-                            {msg.status === "delivered" && <CheckCheck size={12} className="text-emerald-600" />}
-                            {msg.status === "failed" && <AlertCircle size={11} className="text-rose-500" />}
-                            <span className="capitalize">{msg.status}</span>
-                          </span>
+                          <>
+                            <span className="flex items-center gap-0.5 ml-0.5">
+                              {msg.status === "pending" && <Clock size={11} className="text-amber-500" />}
+                              {msg.status === "accepted" && <Check size={11} className="text-slate-400" />}
+                              {msg.status === "sent" && <Check size={11} className="text-blue-500" />}
+                              {msg.status === "delivered" && <CheckCheck size={12} className="text-emerald-600" />}
+                              {msg.status === "failed" && <AlertCircle size={11} className="text-rose-500" />}
+                              <span className="capitalize">{msg.status}</span>
+                            </span>
+
+                            {/* Accurate Money / Cost Breakdown */}
+                            {(() => {
+                              const targetPhone = msg.to_number || activeConv?.contacts?.phone_e164 || "";
+                              const cost = calculateSmsCost(msg.body, targetPhone);
+                              return (
+                                <span
+                                  className={`inline-flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded text-[9.5px] font-semibold tracking-tight shadow-2xs ${
+                                    cost.isIndia
+                                      ? "bg-amber-50 text-amber-900 border border-amber-200/90"
+                                      : "bg-slate-100 text-slate-600 border border-slate-200/90"
+                                  }`}
+                                  title={`Telnyx SMS Cost Breakdown: ${cost.billedSegments} segment(s) @ $${cost.ratePerSegment}/seg ${cost.isIndia ? `(₹${cost.inrEstimate})` : ""}`}
+                                >
+                                  <Coins size={9} className={cost.isIndia ? "text-amber-600 shrink-0" : "text-slate-400 shrink-0"} />
+                                  <span>
+                                    {cost.isIndia
+                                      ? `~$${cost.totalCostUsd} (₹${cost.inrEstimate})`
+                                      : `~$${cost.totalCostUsd}`}
+                                  </span>
+                                  <span className="text-[8.5px] opacity-75">
+                                    • {cost.billedSegments} {cost.billedSegments === 1 ? "seg" : "segs"}
+                                  </span>
+                                </span>
+                              );
+                            })()}
+                          </>
                         )}
 
                         <button
                           type="button"
                           onClick={() => setConfirmDeleteModal({ isOpen: true, type: "message", id: msg.id })}
-                          className="opacity-0 group-hover:opacity-100 hover:text-rose-500 transition-opacity p-0.5 cursor-pointer"
+                          className="opacity-0 group-hover:opacity-100 hover:text-rose-500 transition-opacity p-0.5 cursor-pointer ml-0.5"
                           title="Delete message"
                         >
                           <Trash2 size={11} />
@@ -1031,11 +1091,55 @@ function SmsInboxContent() {
                 </div>
 
                 {/* Sub-bar with Live Cost & Segments Counter */}
-                <div className="flex items-center justify-between px-3 text-[10px] text-slate-400 font-medium">
-                  <span>{charCount} chars • {segmentCount} {segmentCount === 1 ? "seg" : "segs"}</span>
-                  <span className="text-emerald-700 font-semibold flex items-center gap-1">
-                    <Coins size={10} className="text-emerald-600" />
-                    Est: ~${estCost}
+                <div className="flex items-center justify-between px-3 text-[10px] text-slate-500 font-medium">
+                  <div className="flex items-center gap-1.5">
+                    <span>
+                      {charCount} chars • {charCount === 0 ? 0 : activeCost.segmentCount} {activeCost.segmentCount === 1 ? "seg" : "segs"}
+                    </span>
+                    {activeCost.isUnicode && charCount > 0 && (
+                      <span
+                        className="text-amber-700 font-semibold text-[9px] bg-amber-50 px-1 py-0.5 rounded border border-amber-200"
+                        title="Unicode characters (emojis or special characters) reduce segment size to 70 chars"
+                      >
+                        Unicode (70 char limit)
+                      </span>
+                    )}
+                  </div>
+
+                  <span className="text-emerald-800 font-semibold flex items-center gap-1">
+                    <Coins size={11} className={activeCost.isIndia ? "text-amber-600" : "text-emerald-600"} />
+                    {charCount === 0 ? (
+                      <span className="flex items-center gap-1">
+                        <span>Est: $0.0000</span>
+                        <span className="text-[9.5px] text-slate-400 font-normal">
+                          (Rate: {activeCost.isIndia ? "~$0.0750/seg · ₹6.25" : activeCost.isUS ? "~$0.0079/seg" : "~$0.0850/seg"})
+                        </span>
+                        {activeCost.isIndia && (
+                          <span className="text-[9px] font-bold text-amber-800 bg-amber-50 px-1 py-0.2 rounded border border-amber-200">
+                            🇮🇳 IN
+                          </span>
+                        )}
+                        {activeCost.isUS && (
+                          <span className="text-[9px] font-bold text-blue-800 bg-blue-50 px-1 py-0.2 rounded border border-blue-200">
+                            🇺🇸 US
+                          </span>
+                        )}
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1">
+                        <span>Est: {activeCost.displayCost}</span>
+                        {activeCost.isIndia && (
+                          <span className="text-[9px] font-bold text-amber-800 bg-amber-50 px-1 py-0.2 rounded border border-amber-200">
+                            🇮🇳 IN
+                          </span>
+                        )}
+                        {activeCost.isUS && (
+                          <span className="text-[9px] font-bold text-blue-800 bg-blue-50 px-1 py-0.2 rounded border border-blue-200">
+                            🇺🇸 US
+                          </span>
+                        )}
+                      </span>
+                    )}
                   </span>
                 </div>
               </form>
