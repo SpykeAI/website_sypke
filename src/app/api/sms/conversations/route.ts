@@ -41,7 +41,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { phone, displayName, interest_level } = body;
+    const { phone, displayName, interest_level, notes } = body;
 
     if (!phone) {
       return NextResponse.json({ ok: false, message: "Phone number is required" }, { status: 400 });
@@ -100,6 +100,23 @@ export async function POST(req: Request) {
 
       if (convErr) throw convErr;
       convId = newConv?.id;
+    }
+
+    // 3. If notes provided, record note as an internal initial message in conversation
+    if (notes && typeof notes === "string" && notes.trim() && convId) {
+      try {
+        await supabase.from("messages").insert({
+          conversation_id: convId,
+          direction: "outbound",
+          from_number: telnyxFrom,
+          to_number: normalizedPhone,
+          body: `📝 Note: ${notes.trim()}`,
+          status: "delivered",
+          created_at: new Date().toISOString(),
+        });
+      } catch (noteErr) {
+        console.error("Failed to insert initial note message:", noteErr);
+      }
     }
 
     return NextResponse.json({ ok: true, conversationId: convId, contactId });

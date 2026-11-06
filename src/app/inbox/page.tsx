@@ -77,6 +77,9 @@ function SmsInboxContent() {
   const [showNewModal, setShowNewModal] = useState(false);
   const [newPhone, setNewPhone] = useState("");
   const [newName, setNewName] = useState("");
+  const [newNotes, setNewNotes] = useState("");
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [detectedCountry, setDetectedCountry] = useState<string | null>(null);
   const [newStage, setNewStage] = useState("prospect");
   const [creatingConv, setCreatingConv] = useState(false);
 
@@ -294,20 +297,170 @@ function SmsInboxContent() {
     }
   };
 
+  // Validate phone number strictly
+  const validatePhone = (raw: string): { isValid: boolean; error?: string; formatted?: string; country?: string } => {
+    const trimmed = raw.trim();
+    if (!trimmed) {
+      return { isValid: false, error: "Phone number is required." };
+    }
+
+    // Strict check: only digits and leading + are permitted
+    if (!/^\+?[0-9]+$/.test(trimmed)) {
+      return { isValid: false, error: "Only digits allowed. No letters or symbols." };
+    }
+
+    // 1. Explicit Indian number starting with +91
+    if (trimmed.startsWith("+91")) {
+      const digits = trimmed.slice(3);
+      if (digits.length === 0) {
+        return { isValid: false, error: "Enter 10-digit Indian mobile number after +91.", country: "🇮🇳 India (+91)" };
+      }
+      if (digits.length < 10) {
+        return { isValid: false, error: `Indian number is incomplete (${digits.length}/10 digits).`, country: "🇮🇳 India (+91)" };
+      }
+      if (digits.length > 10) {
+        return { isValid: false, error: `Indian number must be exactly 10 digits after +91 (currently ${digits.length}).`, country: "🇮🇳 India (+91)" };
+      }
+      if (!/^[6-9]/.test(digits)) {
+        return { isValid: false, error: "Indian mobile number must start with 6, 7, 8, or 9.", country: "🇮🇳 India (+91)" };
+      }
+      return { isValid: true, formatted: trimmed, country: "🇮🇳 India (+91)" };
+    }
+
+    // 2. Starts with 91 (without +) and length >= 11
+    if (trimmed.startsWith("91") && trimmed.length > 10) {
+      const digits = trimmed.slice(2);
+      if (digits.length < 10) {
+        return { isValid: false, error: `Indian number is incomplete (${digits.length}/10 digits).`, country: "🇮🇳 India (+91)" };
+      }
+      if (digits.length > 10) {
+        return { isValid: false, error: `Indian number must be 10 digits (currently ${digits.length}).`, country: "🇮🇳 India (+91)" };
+      }
+      if (!/^[6-9]/.test(digits)) {
+        return { isValid: false, error: "Indian mobile number must start with 6, 7, 8, or 9.", country: "🇮🇳 India (+91)" };
+      }
+      return { isValid: true, formatted: "+91" + digits, country: "🇮🇳 India (+91)" };
+    }
+
+    // 3. Indian number entered as 10 digits starting with 6, 7, 8, 9
+    if (/^[6-9]/.test(trimmed) && !trimmed.startsWith("+")) {
+      if (trimmed.length < 10) {
+        return { isValid: false, error: `Indian number must be 10 digits (${trimmed.length}/10 digits entered).`, country: "🇮🇳 India" };
+      }
+      if (trimmed.length === 10) {
+        return { isValid: true, formatted: "+91" + trimmed, country: "🇮🇳 India (+91)" };
+      }
+      return { isValid: false, error: `Indian number must be exactly 10 digits (currently ${trimmed.length}).`, country: "🇮🇳 India" };
+    }
+
+    // 4. US / Canada (+1 or 10 digits starting with 2-5)
+    if (trimmed.startsWith("+1")) {
+      const digits = trimmed.slice(2);
+      if (digits.length !== 10) {
+        return { isValid: false, error: `US/Canada numbers must be 10 digits after +1 (currently ${digits.length}/10).`, country: "🇺🇸 US/CA (+1)" };
+      }
+      return { isValid: true, formatted: trimmed, country: "🇺🇸 US/CA (+1)" };
+    }
+
+    if (trimmed.length === 10) {
+      return { isValid: true, formatted: "+1" + trimmed, country: "🇺🇸 US/CA (+1)" };
+    }
+
+    // 5. General international with +
+    if (trimmed.startsWith("+")) {
+      const digits = trimmed.slice(1);
+      if (digits.length < 7 || digits.length > 15) {
+        return { isValid: false, error: `International number must be between 7 and 15 digits (currently ${digits.length}).`, country: "🌐 International" };
+      }
+      return { isValid: true, formatted: trimmed, country: "🌐 International" };
+    }
+
+    if (trimmed.length < 10) {
+      return { isValid: false, error: `Phone number is too short (${trimmed.length} digits).` };
+    }
+
+    return { isValid: true, formatted: "+" + trimmed };
+  };
+
+  // Restrict phone input keystrokes
+  const handlePhoneChange = (val: string) => {
+    // 1. Strip ALL non-digit characters except leading '+'
+    let cleaned = val.replace(/[^0-9+]/g, "");
+    if (cleaned.includes("+")) {
+      cleaned = "+" + cleaned.replace(/\+/g, "");
+    }
+
+    // 2. Strict character limits:
+    if (cleaned.startsWith("+91")) {
+      const digits = cleaned.slice(3).replace(/\D/g, "");
+      cleaned = "+91" + digits.slice(0, 10);
+    } else if (cleaned.startsWith("91") && cleaned.length > 10) {
+      const digits = cleaned.slice(2).replace(/\D/g, "");
+      cleaned = "91" + digits.slice(0, 10);
+    } else if (/^[6-9]/.test(cleaned) && !cleaned.startsWith("+")) {
+      // Indian 10-digit number starting with 6-9: max 10 digits
+      cleaned = cleaned.replace(/\D/g, "").slice(0, 10);
+    } else if (cleaned.startsWith("+1")) {
+      const digits = cleaned.slice(2).replace(/\D/g, "");
+      cleaned = "+1" + digits.slice(0, 10);
+    }
+
+    setNewPhone(cleaned);
+
+    if (cleaned.length > 0) {
+      const check = validatePhone(cleaned);
+      setPhoneError(check.isValid ? null : (check.error || null));
+      setDetectedCountry(check.country || null);
+    } else {
+      setPhoneError(null);
+      setDetectedCountry(null);
+    }
+  };
+
+  const handlePhoneKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Allow navigational and control keys
+    if (
+      ["Backspace", "Delete", "Tab", "Escape", "Enter", "ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key) ||
+      ((e.ctrlKey || e.metaKey) && ["a", "c", "v", "x"].includes(e.key.toLowerCase()))
+    ) {
+      return;
+    }
+
+    // Allow '+' ONLY as the very first character if not already present
+    if (e.key === "+" && e.currentTarget.selectionStart === 0 && !newPhone.includes("+")) {
+      return;
+    }
+
+    // Strictly block non-numeric characters (text, letters, symbols)
+    if (!/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   // Start new conversation
   const handleCreateNewConversation = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPhone.trim() || creatingConv) return;
+    const validation = validatePhone(newPhone);
+    if (!validation.isValid) {
+      setPhoneError(validation.error || "Please enter a valid phone number");
+      return;
+    }
 
+    if (creatingConv) return;
     setCreatingConv(true);
+    setPhoneError(null);
+
+    const formattedPhone = validation.formatted || newPhone.trim();
+
     try {
       const res = await fetch("/api/sms/conversations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          phone: newPhone.trim(),
+          phone: formattedPhone,
           displayName: newName.trim() || null,
           interest_level: newStage,
+          notes: newNotes.trim() || null,
         }),
       });
 
@@ -316,6 +469,9 @@ function SmsInboxContent() {
         setShowNewModal(false);
         setNewPhone("");
         setNewName("");
+        setNewNotes("");
+        setPhoneError(null);
+        setDetectedCountry(null);
         setNewStage("prospect");
         await fetchConversations();
         if (data.conversationId) {
@@ -716,6 +872,28 @@ function SmsInboxContent() {
               ) : (
                 messages.map((msg) => {
                   const isOutbound = msg.direction === "outbound";
+                  const isInternalNote = msg.body?.startsWith("📝 Note:");
+
+                  if (isInternalNote) {
+                    return (
+                      <div key={msg.id} className="flex flex-col items-center my-2 w-full">
+                        <div className="bg-amber-50 border border-amber-200/90 text-amber-900 rounded-2xl px-4 py-2.5 text-xs max-w-[90%] sm:max-w-[75%] shadow-xs flex items-start gap-2.5">
+                          <span className="text-base shrink-0 select-none">📝</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-0.5">
+                              <span className="font-bold text-[10px] uppercase tracking-wider text-amber-800">Contact Note</span>
+                              <span className="text-[10px] text-amber-600 font-medium">
+                                {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              </span>
+                            </div>
+                            <p className="whitespace-pre-wrap break-words text-amber-950 font-medium leading-relaxed">
+                              {msg.body.replace(/^📝 Note:\s*/, "")}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
                   return (
                     <div
                       key={msg.id}
@@ -881,15 +1059,36 @@ function SmsInboxContent() {
 
             <form onSubmit={handleCreateNewConversation} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Phone Number *</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-slate-700">Phone Number *</label>
+                  {detectedCountry && (
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      {detectedCountry}
+                    </span>
+                  )}
+                </div>
                 <input
-                  type="text"
+                  type="tel"
+                  inputMode="tel"
                   required
-                  placeholder="+12025550143"
+                  placeholder="+919876543210 or 9876543210"
                   value={newPhone}
-                  onChange={(e) => setNewPhone(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
+                  onKeyDown={handlePhoneKeyDown}
+                  onChange={(e) => handlePhoneChange(e.target.value)}
+                  className={`w-full bg-slate-50 border ${
+                    phoneError ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-400" : "border-slate-300 focus:border-emerald-600"
+                  } rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white transition-all`}
                 />
+                {phoneError ? (
+                  <p className="text-[11px] font-medium text-rose-600 mt-1.5 flex items-center gap-1">
+                    <AlertCircle size={12} className="shrink-0" />
+                    <span>{phoneError}</span>
+                  </p>
+                ) : newPhone && !phoneError ? (
+                  <p className="text-[11px] font-medium text-emerald-600 mt-1 flex items-center gap-1">
+                    ✓ Valid number
+                  </p>
+                ) : null}
               </div>
 
               <div>
@@ -900,6 +1099,19 @@ function SmsInboxContent() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Notes <span className="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="e.g. Lead inquiry details, property preferences or conversation notes..."
+                  value={newNotes}
+                  onChange={(e) => setNewNotes(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:bg-white transition-all resize-none"
                 />
               </div>
 
@@ -945,14 +1157,21 @@ function SmsInboxContent() {
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowNewModal(false)}
+                  onClick={() => {
+                    setShowNewModal(false);
+                    setNewPhone("");
+                    setNewName("");
+                    setNewNotes("");
+                    setPhoneError(null);
+                    setDetectedCountry(null);
+                  }}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={!newPhone.trim() || creatingConv}
+                  disabled={!newPhone.trim() || !!phoneError || creatingConv}
                   className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-colors shadow-xs cursor-pointer"
                 >
                   {creatingConv ? "Creating..." : "Start Chat"}

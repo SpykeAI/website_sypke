@@ -25,9 +25,13 @@ export interface TelnyxSendResponse {
 export function normalizeToE164(phone: string): string {
   let cleaned = phone.trim().replace(/[^\d+]/g, '');
   if (!cleaned.startsWith('+')) {
-    // If 10 digits and starts with 2-9 (US), prefix +1
+    // If 10 digits: Indian mobile numbers start with 6, 7, 8, or 9 -> +91
     if (cleaned.length === 10) {
-      cleaned = '+1' + cleaned;
+      if (/^[6-9]/.test(cleaned)) {
+        cleaned = '+91' + cleaned;
+      } else {
+        cleaned = '+1' + cleaned;
+      }
     } else if (cleaned.length === 11 && cleaned.startsWith('1')) {
       cleaned = '+' + cleaned;
     } else if (cleaned.length === 12 && cleaned.startsWith('91')) {
