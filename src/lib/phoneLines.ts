@@ -25,33 +25,6 @@ export const DEFAULT_PHONE_LINES: PhoneLine[] = [
     type: "Voice & SMS",
     isDefault: true,
   },
-  {
-    id: "toll-free-us",
-    number: "+18007795324",
-    label: "Toll-Free Support",
-    formatted: "+1 (800) 779-5324",
-    flag: "🇺🇸",
-    badge: "Toll-Free (US/CA)",
-    type: "Toll-Free",
-  },
-  {
-    id: "sales-ca",
-    number: "+14158907821",
-    label: "Sales & Demo Line",
-    formatted: "+1 (415) 890-7821",
-    flag: "🇺🇸",
-    badge: "California Direct",
-    type: "Direct Line",
-  },
-  {
-    id: "support-in",
-    number: "+918045678901",
-    label: "India Support Line",
-    formatted: "+91 (80) 4567-8901",
-    flag: "🇮🇳",
-    badge: "Bangalore Office",
-    type: "Support",
-  },
 ];
 
 export function getAvailableLines(primaryNumber?: string): PhoneLine[] {
