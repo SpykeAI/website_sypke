@@ -54,16 +54,16 @@ interface Message {
 }
 
 // Dynamic SMS Segment & Cost Calculation
-// Telnyx Standard SMS Rates:
-// - US / Canada (+1): ~$0.0079 per segment (~ ₹0.66 INR)
-// - India (+91): ~$0.0750 per segment (~ ₹6.25 INR at current exchange rate)
+// Telnyx Standard SMS Rates (Verified via Telnyx Live CDR / Billing):
+// - US / Canada (+1): $0.0085 per segment (~ ₹0.71 INR) [$0.0040 base + $0.0045 10DLC carrier pass-through]
+// - India (+91): $0.0680 per segment (~ ₹5.68 INR) [Alphanumeric Sender ID termination]
 // - International Other: ~$0.0850 per segment
 function calculateSmsCost(text: string, recipientPhone?: string | null) {
   const phone = (recipientPhone || "").trim();
   const isIndia = phone.startsWith("+91") || phone.startsWith("91") || (/^[6-9]\d{9}$/.test(phone));
   const isUS = phone.startsWith("+1") || (!phone.startsWith("+") && phone.length === 10 && /^[2-9]/.test(phone));
 
-  const ratePerSegment = isIndia ? 0.075 : isUS ? 0.0079 : 0.085;
+  const ratePerSegment = isIndia ? 0.068 : isUS ? 0.0085 : 0.085;
 
   const charCount = text.length;
   const isUnicode = /[^\u0000-\u007F]/.test(text);
@@ -72,7 +72,11 @@ function calculateSmsCost(text: string, recipientPhone?: string | null) {
   const segmentCount = charCount === 0 ? 0 : Math.ceil(charCount / segmentLimit);
   const billedSegments = Math.max(1, segmentCount);
   const totalCostUsd = (billedSegments * ratePerSegment).toFixed(4);
-  const inrEstimate = isIndia ? (billedSegments * 6.25).toFixed(2) : null;
+  const inrEstimate = isIndia
+    ? (billedSegments * 5.68).toFixed(2)
+    : isUS
+    ? (billedSegments * 0.71).toFixed(2)
+    : null;
 
   return {
     isIndia,
@@ -84,7 +88,11 @@ function calculateSmsCost(text: string, recipientPhone?: string | null) {
     billedSegments,
     totalCostUsd,
     inrEstimate,
-    displayCost: isIndia ? `~$${totalCostUsd} (₹${inrEstimate})` : `~$${totalCostUsd}`,
+    displayCost: isIndia
+      ? `~$${totalCostUsd} (₹${inrEstimate})`
+      : isUS
+      ? `~$${totalCostUsd} (₹${inrEstimate})`
+      : `~$${totalCostUsd}`,
   };
 }
 
@@ -1112,7 +1120,7 @@ function SmsInboxContent() {
                       <span className="flex items-center gap-1">
                         <span>Est: $0.0000</span>
                         <span className="text-[9.5px] text-slate-400 font-normal">
-                          (Rate: {activeCost.isIndia ? "~$0.0750/seg · ₹6.25" : activeCost.isUS ? "~$0.0079/seg" : "~$0.0850/seg"})
+                          (Rate: {activeCost.isIndia ? "~$0.0680/seg · ₹5.68" : activeCost.isUS ? "~$0.0085/seg · ₹0.71" : "~$0.0850/seg"})
                         </span>
                         {activeCost.isIndia && (
                           <span className="text-[9px] font-bold text-amber-800 bg-amber-50 px-1 py-0.2 rounded border border-amber-200">
