@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   MessageSquare,
   Phone,
@@ -10,7 +10,8 @@ import {
   Mail,
   ArrowLeft,
   ShieldCheck,
-  Radio
+  Radio,
+  LogOut
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -19,6 +20,18 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ active }: AdminSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/admin/logout", { method: "POST" });
+    } catch (e) {
+      console.error("Logout failed", e);
+    } finally {
+      router.push("/admin/login");
+      router.refresh();
+    }
+  };
 
   const currentTab = active || (
     pathname?.startsWith("/inbox") ? "inbox" :
@@ -151,10 +164,21 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
               <ArrowLeft size={14} />
               <span>Back to Website</span>
             </Link>
-            <span className="text-[10px] text-slate-400 flex items-center gap-1">
-              <ShieldCheck size={12} className="text-emerald-500" />
-              Superadmin
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-slate-400 flex items-center gap-1">
+                <ShieldCheck size={12} className="text-emerald-500" />
+                Superadmin
+              </span>
+              <span className="text-slate-300 text-xs">·</span>
+              <button
+                onClick={handleLogout}
+                className="text-[10px] font-semibold text-slate-400 hover:text-rose-600 flex items-center gap-1 transition-colors cursor-pointer"
+                title="Sign Out of Superadmin"
+              >
+                <LogOut size={11} />
+                <span>Exit</span>
+              </button>
+            </div>
           </div>
         </div>
       </aside>
