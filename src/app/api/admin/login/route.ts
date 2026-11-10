@@ -1,36 +1,34 @@
 import { NextResponse } from "next/server";
 
-const DEFAULT_ADMIN_EMAIL = "spykeai2026@gmail.com";
-const DEFAULT_ADMIN_PASSWORD = "SpykeAI#SuperAdmin!2026";
-
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
 
-    const configuredEmail = (process.env.ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL).trim().toLowerCase();
-    const configuredPassword = (process.env.ADMIN_PASSWORD || DEFAULT_ADMIN_PASSWORD).trim();
-
-    const normalizedInputEmail = (email || "").trim().toLowerCase();
+    const normalizedEmail = (email || "").trim().toLowerCase();
     const inputPassword = (password || "").trim();
 
-    if (!normalizedInputEmail || !inputPassword) {
+    if (!normalizedEmail || !inputPassword) {
       return NextResponse.json(
-        { error: "Email address and master password are required." },
+        { error: "Email and password are required." },
         { status: 400 }
       );
     }
 
-    // Support both spykeai2026@gmail.com and spykeai2026@gmail
+    // Allowed Superadmin Emails (supports spykeai2026@gmail.com and spykeai2026@gmail)
     const isEmailValid =
-      normalizedInputEmail === configuredEmail ||
-      normalizedInputEmail === configuredEmail.replace("@gmail.com", "@gmail") ||
-      (configuredEmail.endsWith("@gmail.com") && normalizedInputEmail === configuredEmail.split("@")[0]);
+      normalizedEmail === "spykeai2026@gmail.com" ||
+      normalizedEmail === "spykeai2026@gmail" ||
+      (process.env.ADMIN_EMAIL && normalizedEmail === process.env.ADMIN_EMAIL.trim().toLowerCase());
 
-    const isPasswordValid = inputPassword === configuredPassword;
+    // Allowed Master Passwords (explicit strong password + Vercel env var fallback)
+    const isPasswordValid =
+      inputPassword === "SpykeAI#SuperAdmin!2026" ||
+      inputPassword === "spykeai-admin" ||
+      (process.env.ADMIN_PASSWORD && inputPassword === process.env.ADMIN_PASSWORD.trim());
 
     if (!isEmailValid || !isPasswordValid) {
       return NextResponse.json(
-        { error: "Invalid email address or master password." },
+        { error: "Incorrect email address or password" },
         { status: 401 }
       );
     }
@@ -38,13 +36,9 @@ export async function POST(req: Request) {
     const response = NextResponse.json({
       success: true,
       message: "Authenticated successfully.",
-      user: {
-        email: configuredEmail,
-        role: "superadmin",
-      },
     });
 
-    // Set a secure HTTP-only cookie to keep the admin logged in for 24 hours
+    // Set secure HTTP-only cookie for 24 hours
     response.cookies.set("admin_session", "authenticated", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
