@@ -27,7 +27,7 @@ export default function AdminLogin() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        router.push("/inbox");
+        router.push(data.redirectUrl || "/inbox");
         router.refresh();
       } else {
         setError(data.error || "Incorrect email address or password");

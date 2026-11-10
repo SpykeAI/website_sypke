@@ -18,14 +18,31 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/phone');
 
   if (isProtected) {
-    // Read the secure superadmin session cookie
     const adminSession = request.cookies.get('admin_session')?.value;
-    
-    // If not authenticated, redirect to Superadmin Login page
+    const portalRole = request.cookies.get('portal_role')?.value || 'superadmin';
+
+    // If not authenticated, redirect to Login page
     if (!adminSession || adminSession !== 'authenticated') {
       const loginUrl = new URL('/admin/login', request.url);
       return NextResponse.redirect(loginUrl);
     }
+
+    // Role-based route segregation
+    if (portalRole === 'external') {
+      // External users can ONLY access external portal pages
+      const isExternalRoute = pathname.startsWith('/admin/external');
+      if (!isExternalRoute) {
+        return NextResponse.redirect(new URL('/admin/external/dashboard', request.url));
+      }
+    } else if (portalRole === 'internal') {
+      // Internal users cannot access User Management or External Portal
+      const isSuperadminOnly = pathname.startsWith('/admin/users');
+      const isExternalRoute = pathname.startsWith('/admin/external');
+      if (isSuperadminOnly || isExternalRoute) {
+        return NextResponse.redirect(new URL('/inbox', request.url));
+      }
+    }
+    // Superadmin has full access to all portals and user management
   }
 
   return NextResponse.next();
