@@ -132,7 +132,7 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
   const adminItems = [
     {
       id: "users",
-      label: "Portal Access & Users",
+      label: "Portal Access and Users",
       subtitle: "Manage User IDs & Passwords",
       href: "/admin/users",
       icon: KeyRound,

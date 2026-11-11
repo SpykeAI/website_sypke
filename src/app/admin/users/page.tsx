@@ -173,7 +173,7 @@ export default function AdminUsersPage() {
               <span className="p-1.5 bg-purple-100 text-purple-700 rounded-lg">
                 <KeyRound size={18} />
               </span>
-              <h1 className="text-xl font-black text-slate-900 tracking-tight">Portal Access & Credentials</h1>
+              <h1 className="text-xl font-black text-slate-900 tracking-tight">Portal Access and Users</h1>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
               Create, configure, and isolate access credentials for Internal Operations and External Clients.
