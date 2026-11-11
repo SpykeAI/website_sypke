@@ -11,9 +11,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Protect /admin, /inbox, and /phone from unauthorized access in production (only allow /admin/login)
+  // Protect /admin, /clientportal, /inbox, and /phone from unauthorized access in production (only allow /admin/login)
   const isProtected = 
     (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) || 
+    pathname.startsWith('/clientportal') ||
     pathname.startsWith('/inbox') ||
     pathname.startsWith('/phone');
 
@@ -29,15 +30,15 @@ export function middleware(request: NextRequest) {
 
     // Role-based route segregation
     if (portalRole === 'external') {
-      // External users can ONLY access external portal pages
-      const isExternalRoute = pathname.startsWith('/admin/external');
+      // External users can ONLY access external client portal pages
+      const isExternalRoute = pathname.startsWith('/clientportal') || pathname.startsWith('/admin/external');
       if (!isExternalRoute) {
-        return NextResponse.redirect(new URL('/admin/external', request.url));
+        return NextResponse.redirect(new URL('/clientportal', request.url));
       }
     } else if (portalRole === 'internal') {
       // Internal users cannot access User Management or External Portal
       const isSuperadminOnly = pathname.startsWith('/admin/users');
-      const isExternalRoute = pathname.startsWith('/admin/external');
+      const isExternalRoute = pathname.startsWith('/admin/external') || pathname.startsWith('/clientportal');
       if (isSuperadminOnly || isExternalRoute) {
         return NextResponse.redirect(new URL('/admin/internal', request.url));
       }
@@ -49,5 +50,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/inbox/:path*', '/phone/:path*'],
+  matcher: ['/admin/:path*', '/clientportal/:path*', '/inbox/:path*', '/phone/:path*'],
 };

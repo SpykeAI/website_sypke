@@ -174,7 +174,7 @@ export async function POST(req: Request) {
     }
 
     const userPortalType = authData.user.user_metadata?.portal_type || targetPortalType;
-    const redirectUrl = userPortalType === "external" ? "/admin/external" : "/admin/internal";
+    const redirectUrl = userPortalType === "external" ? "/clientportal" : "/admin/internal";
 
     const response = NextResponse.json({
       success: true,

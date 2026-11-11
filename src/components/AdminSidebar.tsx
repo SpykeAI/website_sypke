@@ -14,7 +14,8 @@ import {
   LogOut,
   Building2,
   Globe2,
-  KeyRound
+  KeyRound,
+  User
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -58,8 +59,9 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
     pathname?.startsWith("/admin/calls") ? "calls" :
     pathname?.startsWith("/admin/emails") ? "emails" :
     pathname?.startsWith("/admin/transcripts") ? "transcripts" :
+    pathname?.startsWith("/clientportal") ? "clientportal" :
     pathname?.startsWith("/admin/internal") ? "internal_portal" :
-    pathname?.startsWith("/admin/external") ? "external_portal" :
+    pathname?.startsWith("/admin/external") ? "clientportal" :
     pathname?.startsWith("/admin/users") ? "users" :
     "inbox"
   );
@@ -116,12 +118,12 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
     ...(role === "external"
       ? [
           {
-            id: "external_portal",
-            label: "External Portal",
-            subtitle: "Client & partner workspace",
-            href: "/admin/external",
-            icon: Globe2,
-            badge: "Client",
+            id: "clientportal",
+            label: "Account Management",
+            subtitle: "Profile & Business Entity",
+            href: "/clientportal",
+            icon: User,
+            badge: "Profile",
             color: "blue",
           },
         ]
@@ -153,12 +155,20 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
             <img src="/logo.png" alt="SpykeAI" className="h-8 w-auto object-contain" />
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-sm font-extrabold text-slate-900 tracking-tight">Admin Portal</span>
-                <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded border border-emerald-200">
-                  {role === "superadmin" ? "PRO" : role === "internal" ? "INTERNAL" : "EXTERNAL"}
+                <span className="text-sm font-extrabold text-slate-900 tracking-tight">
+                  {role === "external" ? "Client Portal" : "Admin Portal"}
+                </span>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
+                  role === "external"
+                    ? "bg-blue-50 text-blue-700 border-blue-200"
+                    : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                }`}>
+                  {role === "superadmin" ? "PRO" : role === "internal" ? "INTERNAL" : "CLIENT"}
                 </span>
               </div>
-              <p className="text-[11px] font-medium text-slate-400">Spyke AI Operations</p>
+              <p className="text-[11px] font-medium text-slate-400">
+                {role === "external" ? "Client Workspace" : "Spyke AI Operations"}
+              </p>
             </div>
           </div>
         </div>
@@ -223,7 +233,7 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
           {portalItems.length > 0 && (
             <div className={showCore ? "pt-2 border-t border-slate-100" : ""}>
               <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Dedicated Portals
+                {role === "external" ? "Account Management" : "Dedicated Portals"}
               </div>
 
               <div className="space-y-1 mt-1">
@@ -387,52 +397,64 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
 
       {/* MOBILE BOTTOM NAVBAR */}
       <div className="md:hidden flex items-center justify-around bg-white border-t border-slate-200 p-2 fixed bottom-0 left-0 right-0 z-40 select-none shadow-lg">
-        <Link
-          href="/inbox"
-          className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
-            currentTab === "inbox" ? "text-emerald-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
-          }`}
-        >
-          <MessageSquare size={18} />
-          <span className="text-[10px] mt-0.5">Inbox</span>
-        </Link>
-        <Link
-          href="/admin/calls"
-          className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
-            currentTab === "calls" ? "text-emerald-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
-          }`}
-        >
-          <Phone size={18} />
-          <span className="text-[10px] mt-0.5">Calls</span>
-        </Link>
-        <Link
-          href="/admin/emails"
-          className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
-            currentTab === "emails" ? "text-emerald-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
-          }`}
-        >
-          <Mail size={18} />
-          <span className="text-[10px] mt-0.5">Emails</span>
-        </Link>
-        <Link
-          href="/admin/transcripts"
-          className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
-            currentTab === "transcripts" ? "text-emerald-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
-          }`}
-        >
-          <Mic size={18} />
-          <span className="text-[10px] mt-0.5">Transcripts</span>
-        </Link>
-        {showUserMgmt && (
+        {role === "external" ? (
           <Link
-            href="/admin/users"
-            className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
-              currentTab === "users" ? "text-purple-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
-            }`}
+            href="/clientportal"
+            className="flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all text-blue-600 font-bold"
           >
-            <KeyRound size={18} />
-            <span className="text-[10px] mt-0.5">Users</span>
+            <User size={18} />
+            <span className="text-[10px] mt-0.5">Profile</span>
           </Link>
+        ) : (
+          <>
+            <Link
+              href="/inbox"
+              className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
+                currentTab === "inbox" ? "text-emerald-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
+              }`}
+            >
+              <MessageSquare size={18} />
+              <span className="text-[10px] mt-0.5">Inbox</span>
+            </Link>
+            <Link
+              href="/admin/calls"
+              className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
+                currentTab === "calls" ? "text-emerald-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
+              }`}
+            >
+              <Phone size={18} />
+              <span className="text-[10px] mt-0.5">Calls</span>
+            </Link>
+            <Link
+              href="/admin/emails"
+              className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
+                currentTab === "emails" ? "text-emerald-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
+              }`}
+            >
+              <Mail size={18} />
+              <span className="text-[10px] mt-0.5">Emails</span>
+            </Link>
+            <Link
+              href="/admin/transcripts"
+              className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
+                currentTab === "transcripts" ? "text-emerald-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
+              }`}
+            >
+              <Mic size={18} />
+              <span className="text-[10px] mt-0.5">Transcripts</span>
+            </Link>
+            {showUserMgmt && (
+              <Link
+                href="/admin/users"
+                className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
+                  currentTab === "users" ? "text-purple-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
+                }`}
+              >
+                <KeyRound size={18} />
+                <span className="text-[10px] mt-0.5">Users</span>
+              </Link>
+            )}
+          </>
         )}
       </div>
     </>
