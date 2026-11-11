@@ -59,7 +59,10 @@ export default function ClientPortalProfilePage() {
     try {
       const res = await fetch("/api/client/profile");
       if (res.status === 401 || res.status === 403) {
-        window.location.href = "/clientportal/login";
+        const errData = await res.json().catch(() => null);
+        setErrorMessage(
+          errData?.error || "Your session requires external portal access. Please log in with client credentials."
+        );
         return;
       }
       const data = await res.json();
