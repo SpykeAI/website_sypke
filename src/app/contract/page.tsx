@@ -142,29 +142,30 @@ export default function ContractPage() {
   return (
     <div className="min-h-screen bg-[#080B11] text-slate-200 font-sans selection:bg-red-500/20 selection:text-red-300 pb-24">
       {/* TOP STATUS BAR */}
-      <nav className="border-b border-slate-800/80 bg-[#0B0F17]/90 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-8 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <img src="/logo.png" alt="SpykeAI" className="h-7 w-auto object-contain" />
+      <nav className="border-b border-slate-800/80 bg-[#0B0F17]/95 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+        <div className="flex items-center gap-3 shrink-0">
+          <Link href="/" className="flex items-center gap-2.5 group shrink-0">
+            <img src="/logo.png" alt="SpykeAI" className="h-8 w-auto object-contain shrink-0" />
             <span className="text-white font-extrabold tracking-tight text-base group-hover:text-emerald-400 transition-colors">
               SPYKE<span className="text-[#00DF81]">AI</span>
             </span>
           </Link>
           <span className="h-4 w-[1px] bg-slate-800 hidden sm:inline" />
-          <span className="text-xs font-semibold tracking-wider uppercase text-slate-400 hidden sm:inline">
+          <span className="text-xs font-bold tracking-wider uppercase text-slate-400 hidden sm:inline">
             Client Services Agreement
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">
             <ShieldCheck size={13} className="text-emerald-400" />
-            <span>Official Legal Record</span>
+            <span className="hidden sm:inline">Official Legal Record</span>
+            <span className="sm:hidden">Legal Record</span>
           </div>
 
           <Link
             href="/"
-            className="text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+            className="text-xs font-semibold text-slate-400 hover:text-white transition-colors px-2.5 py-1 rounded-lg border border-slate-800/60 hover:border-slate-700 bg-slate-900/40"
           >
             Website Home
           </Link>
@@ -258,7 +259,7 @@ export default function ContractPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* 1A: THE PROVIDER */}
-            <div className="bg-[#0D121D] rounded-3xl border border-slate-800/90 p-6 sm:p-7 space-y-4 shadow-xl">
+            <div className="bg-[#0B0F19] rounded-2xl border border-slate-800 p-6 sm:p-7 space-y-4 shadow-xl">
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
                   THE PROVIDER (&quot;SPYKE AI&quot;, &quot;WE&quot;)
@@ -292,7 +293,7 @@ export default function ContractPage() {
             </div>
 
             {/* 1B: THE CLIENT */}
-            <div className="bg-[#0D121D] rounded-3xl border border-slate-800/90 p-6 sm:p-7 space-y-4 shadow-xl">
+            <div className="bg-[#0B0F19] rounded-2xl border border-slate-800 p-6 sm:p-7 space-y-4 shadow-xl">
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
                   THE CLIENT (&quot;YOU&quot;)
@@ -409,7 +410,7 @@ export default function ContractPage() {
             <div className="flex-1 h-[1px] bg-red-900/30" />
           </div>
 
-          <div className="bg-[#0D121D] rounded-3xl border border-slate-800/90 p-6 sm:p-9 space-y-8 shadow-xl text-xs sm:text-[13px] leading-relaxed text-slate-300">
+          <div className="bg-[#0B0F19] rounded-2xl border border-slate-800 p-6 sm:p-9 space-y-8 shadow-xl text-xs sm:text-[13px] leading-relaxed text-slate-300">
             {/* Clause 1 */}
             <div className="space-y-2">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
@@ -615,7 +616,7 @@ export default function ContractPage() {
           <form onSubmit={handleExecute} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {/* 3A: PROVIDER PRE-EXECUTED SIGNATURE */}
-              <div className="bg-[#0D121D] rounded-3xl border border-slate-800/90 p-6 sm:p-7 space-y-4 shadow-xl flex flex-col justify-between">
+              <div className="bg-[#0B0F19] rounded-2xl border border-slate-800 p-6 sm:p-7 space-y-4 shadow-xl flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
@@ -626,19 +627,28 @@ export default function ContractPage() {
                     </span>
                   </div>
 
-                  {/* Cursive Signature Graphic */}
-                  <div className="py-4 my-2 border-b border-slate-800/70">
-                    <div
-                      className="text-3xl sm:text-4xl text-emerald-400 select-none italic font-serif"
-                      style={{ fontFamily: "'Brush Script MT', 'Dancing Script', cursive, Georgia, serif" }}
-                    >
-                      Ayushi Sainani
+                  {/* Corporate Digital Seal / Authorized Signature */}
+                  <div className="py-4 my-2 border-b border-slate-800/80">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                        <ShieldCheck size={22} />
+                      </div>
+                      <div>
+                        <div className="text-sm font-black text-white tracking-wide uppercase flex items-center gap-1.5">
+                          <span>Spyke AI Technologies</span>
+                          <CheckCircle2 size={14} className="text-emerald-400" />
+                        </div>
+                        <p className="text-[11px] font-mono text-emerald-400/90 mt-0.5">
+                          Verified Digital Corporate Seal
+                        </p>
+                      </div>
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <p className="text-xs font-bold text-white">Ayushi Sainani, Founder</p>
+                    <p className="text-xs font-bold text-white">Authorized Corporate Signatory</p>
                     <p className="text-[11px] text-slate-400">for Spyke AI Technologies</p>
+                    <p className="text-[10px] text-slate-400 font-mono">Operations &amp; Legal Department</p>
                   </div>
                 </div>
 
@@ -648,7 +658,7 @@ export default function ContractPage() {
               </div>
 
               {/* 3B: CLIENT SIGNATURE INPUT */}
-              <div className="bg-[#0D121D] rounded-3xl border border-slate-800/90 p-6 sm:p-7 space-y-4 shadow-xl flex flex-col justify-between">
+              <div className="bg-[#0B0F19] rounded-2xl border border-slate-800 p-6 sm:p-7 space-y-4 shadow-xl flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
@@ -723,13 +733,13 @@ export default function ContractPage() {
 
             {/* CONSENT CHECKBOX */}
             {!executedData && (
-              <div className="p-4 sm:p-5 bg-[#0D121D] border border-slate-800/90 rounded-2xl flex items-start gap-3.5 shadow-lg">
+              <div className="p-4 sm:p-5 bg-[#0B0F19] border border-slate-800 rounded-xl flex items-start gap-3.5 shadow-lg">
                 <input
                   type="checkbox"
                   id="consentCheckbox"
                   checked={formData.consent}
                   onChange={(e) => handleInputChange("consent", e.target.checked)}
-                  className="mt-1 w-4 h-4 rounded bg-[#090D15] border-slate-700 text-red-600 focus:ring-red-500 focus:ring-offset-0 cursor-pointer accent-red-600"
+                  className="mt-1 w-4 h-4 rounded bg-[#070A12] border-slate-700 text-red-600 focus:ring-red-500 focus:ring-offset-0 cursor-pointer accent-red-600"
                 />
                 <label htmlFor="consentCheckbox" className="text-xs text-slate-400 leading-relaxed cursor-pointer select-none">
                   <strong className="text-white">I have read this entire Agreement and I agree to all of its terms.</strong> I agree that typing my name above and clicking &quot;Sign &amp; Execute&quot; constitutes my legal electronic signature, and I consent to receive the executed copy and related records electronically at the email address I provided.

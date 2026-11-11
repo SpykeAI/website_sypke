@@ -76,7 +76,7 @@ export async function POST(req: Request) {
           consent: true,
           signedAt,
           formattedDate,
-          providerSignatory: "Ayushi Sainani, Founder (Spyke AI Technologies)",
+          providerSignatory: "Authorized Signatory (Spyke AI Technologies)",
         }),
       });
     } catch (dbErr) {
@@ -136,9 +136,9 @@ export async function POST(req: Request) {
             <div style="display: flex; gap: 16px; margin-bottom: 24px;">
               <div style="background-color: #121826; border: 1px solid #1e293b; border-radius: 12px; padding: 18px; width: 50%;">
                 <div style="font-size: 11px; font-weight: 700; color: #10b981; text-transform: uppercase; margin-bottom: 6px;">Provider Signatory [Signed]</div>
-                <div style="font-family: 'Brush Script MT', cursive, Georgia, serif; font-size: 24px; color: #34d399; margin: 8px 0;">Ayushi Sainani</div>
-                <div style="font-size: 12px; font-weight: 600; color: #e2e8f0;">Ayushi Sainani, Founder</div>
-                <div style="font-size: 11px; color: #64748b;">Spyke AI Technologies</div>
+                <div style="font-family: -apple-system, sans-serif; font-weight: 800; font-size: 18px; color: #34d399; margin: 8px 0; letter-spacing: 0.5px;">Spyke AI Technologies</div>
+                <div style="font-size: 12px; font-weight: 600; color: #e2e8f0;">Authorized Corporate Signatory</div>
+                <div style="font-size: 11px; color: #64748b;">Operations &amp; Legal Department</div>
               </div>
               <div style="background-color: #121826; border: 1px solid #1e293b; border-radius: 12px; padding: 18px; width: 50%;">
                 <div style="font-size: 11px; font-weight: 700; color: #10b981; text-transform: uppercase; margin-bottom: 6px;">Client Signatory [Signed]</div>
@@ -184,7 +184,7 @@ export async function POST(req: Request) {
       formattedDate,
       signatory: fullName,
       company: companyName,
-      providerSignatory: "Ayushi Sainani, Founder",
+      providerSignatory: "Authorized Corporate Signatory",
       status: "EXECUTED",
     });
   } catch (error: any) {
