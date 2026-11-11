@@ -20,7 +20,8 @@ import {
   UserCheck,
   Lock,
   Mail,
-  X
+  X,
+  Pencil
 } from "lucide-react";
 
 interface PortalUser {
@@ -61,6 +62,17 @@ export default function AdminUsersPage() {
   // Delete User Modal State
   const [deleteTarget, setDeleteTarget] = useState<PortalUser | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Edit User Modal State
+  const [editTarget, setEditTarget] = useState<PortalUser | null>(null);
+  const [editDisplayName, setEditDisplayName] = useState("");
+  const [editRole, setEditRole] = useState("");
+  const [editStatus, setEditStatus] = useState<"active" | "inactive">("active");
+  const [editPassword, setEditPassword] = useState("");
+  const [showEditPassword, setShowEditPassword] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editSuccessMsg, setEditSuccessMsg] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -152,6 +164,72 @@ export default function AdminUsersPage() {
     navigator.clipboard.writeText(text);
     setCopiedId(user.id);
     setTimeout(() => setCopiedId(null), 2500);
+  };
+
+  const openEditModal = (user: PortalUser) => {
+    setEditTarget(user);
+    setEditDisplayName(user.display_name || "");
+    setEditRole(user.role || "");
+    setEditStatus(user.status || "active");
+    setEditPassword("");
+    setShowEditPassword(false);
+    setEditError(null);
+    setEditSuccessMsg(null);
+  };
+
+  const generateStrongEditPassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";
+    let pass = "";
+    for (let i = 0; i < 12; i++) {
+      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setEditPassword(pass);
+    setShowEditPassword(true);
+  };
+
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editTarget) return;
+
+    setEditing(true);
+    setEditError(null);
+    setEditSuccessMsg(null);
+
+    try {
+      const payload: any = {
+        id: editTarget.id,
+        display_name: editDisplayName,
+        role: editRole,
+        status: editStatus,
+      };
+
+      if (editPassword.trim()) {
+        payload.newPassword = editPassword.trim();
+      }
+
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setEditSuccessMsg("User credentials and access updated successfully!");
+        fetchUsers();
+        setTimeout(() => {
+          setEditTarget(null);
+          setEditSuccessMsg(null);
+        }, 1200);
+      } else {
+        setEditError(data.error || "Failed to update user.");
+      }
+    } catch {
+      setEditError("Network error. Please try again.");
+    } finally {
+      setEditing(false);
+    }
   };
 
   const filteredUsers = users.filter((u) => {
@@ -344,16 +422,23 @@ export default function AdminUsersPage() {
                           </td>
                           <td className="py-3.5 px-5 text-slate-600 capitalize">{user.role}</td>
                           <td className="py-3.5 px-5">
-                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                              Active
-                            </span>
+                            {user.status === "inactive" ? (
+                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200">
+                                <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                                Inactive
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                Active
+                              </span>
+                            )}
                           </td>
                           <td className="py-3.5 px-5 text-right">
                             <div className="inline-flex items-center gap-1.5 justify-end">
                               <button
                                 onClick={() => copyCredentials(user)}
-                                className="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition"
+                                className="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition cursor-pointer"
                                 title="Copy User ID & Login URL"
                               >
                                 {copiedId === user.id ? (
@@ -363,8 +448,15 @@ export default function AdminUsersPage() {
                                 )}
                               </button>
                               <button
+                                onClick={() => openEditModal(user)}
+                                className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition cursor-pointer"
+                                title="Edit User (Reset Password, Change Status & Role)"
+                              >
+                                <Pencil size={14} />
+                              </button>
+                              <button
                                 onClick={() => setDeleteTarget(user)}
-                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                                 title="Delete User"
                               >
                                 <Trash2 size={14} />
@@ -656,6 +748,225 @@ export default function AdminUsersPage() {
                 {deleting ? "Deleting..." : "Delete User"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT PORTAL USER MODAL */}
+      {editTarget && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <span className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                  <Pencil size={18} />
+                </span>
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-base">Edit Portal User</h3>
+                  <p className="text-[11px] text-slate-400 truncate max-w-[260px]">
+                    {editTarget.email}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setEditTarget(null)}
+                className="p-1 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {editSuccessMsg && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-2">
+                <Check size={16} className="text-emerald-600 shrink-0" />
+                <span>{editSuccessMsg}</span>
+              </div>
+            )}
+
+            {editError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-center gap-2">
+                <AlertCircle size={15} className="shrink-0" />
+                <span>{editError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateUser} className="space-y-4">
+              {/* Account Overview (Portal + Email) */}
+              <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    User Identifier
+                  </span>
+                  <span className="text-xs font-bold text-slate-800 truncate block max-w-[220px]">
+                    {editTarget.email}
+                  </span>
+                </div>
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    editTarget.portal_type === "internal"
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-blue-50 text-blue-700 border-blue-200"
+                  }`}
+                >
+                  {editTarget.portal_type.toUpperCase()}
+                </span>
+              </div>
+
+              {/* Status Selector */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                  Account Status
+                </label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setEditStatus("active")}
+                    className={`p-2.5 rounded-xl border text-left flex items-center gap-2 transition-all cursor-pointer ${
+                      editStatus === "active"
+                        ? "bg-emerald-50 border-emerald-500 text-emerald-900 ring-2 ring-emerald-500/20"
+                        : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <div>
+                      <span className="font-bold text-xs block">Active</span>
+                      <span className="text-[10px] text-slate-400 block">Can log in</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditStatus("inactive")}
+                    className={`p-2.5 rounded-xl border text-left flex items-center gap-2 transition-all cursor-pointer ${
+                      editStatus === "inactive"
+                        ? "bg-slate-100 border-slate-500 text-slate-900 ring-2 ring-slate-500/20"
+                        : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-slate-400" />
+                    <div>
+                      <span className="font-bold text-xs block">Inactive</span>
+                      <span className="text-[10px] text-slate-400 block">Access blocked</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Reset Password */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Reset Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={generateStrongEditPassword}
+                    className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 cursor-pointer"
+                  >
+                    Auto-Generate New
+                  </button>
+                </div>
+                <div className="relative">
+                  <Lock size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type={showEditPassword ? "text" : "password"}
+                    value={editPassword}
+                    onChange={(e) => setEditPassword(e.target.value)}
+                    placeholder="Leave blank to keep current password"
+                    className="w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowEditPassword(!showEditPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    {showEditPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                  </button>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Only enter a value if you wish to reset this user's password.
+                </p>
+              </div>
+
+              {/* Display Name */}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                  Full Name / Company
+                </label>
+                <input
+                  type="text"
+                  value={editDisplayName}
+                  onChange={(e) => setEditDisplayName(e.target.value)}
+                  placeholder="e.g. John Operations or Acme Corp"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+              </div>
+
+              {/* Role Field */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Role
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-medium">Designation / Access Level</span>
+                </div>
+                <div className="relative">
+                  <UserCheck size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={editRole}
+                    onChange={(e) => setEditRole(e.target.value)}
+                    placeholder={editTarget.portal_type === "internal" ? "e.g. Agent, Operations, Manager" : "e.g. Client, Partner, Investor"}
+                    className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                  />
+                </div>
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                  <span className="text-[10px] text-slate-400 font-medium">Quick select:</span>
+                  {(editTarget.portal_type === "internal"
+                    ? ["Agent", "Operations", "Manager", "Support", "Caller"]
+                    : ["Client", "Partner", "Investor", "Viewer"]
+                  ).map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setEditRole(r)}
+                      className={`text-[10px] font-semibold px-2 py-0.5 rounded-lg border transition-all cursor-pointer ${
+                        editRole.toLowerCase() === r.toLowerCase()
+                          ? "bg-emerald-50 border-emerald-300 text-emerald-700 font-bold"
+                          : "bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700"
+                      }`}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditTarget(null)}
+                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={editing}
+                  className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  {editing ? (
+                    <>
+                      <RefreshCw size={14} className="animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <span>Save Changes</span>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

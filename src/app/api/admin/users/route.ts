@@ -121,26 +121,44 @@ export async function DELETE(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { id, newPassword, status } = body;
+    const { id, newPassword, status, role, display_name } = body;
 
     if (!id) {
       return NextResponse.json({ error: "User ID is required." }, { status: 400 });
     }
 
     const updatePayload: any = {};
-    if (newPassword) {
+    if (newPassword && newPassword.trim()) {
       updatePayload.password = newPassword.trim();
     }
-    if (status) {
-      updatePayload.user_metadata = { status };
-    }
 
-    const { error } = await supabase.auth.admin.updateUserById(id, updatePayload);
+    // Preserve existing user metadata and merge updates
+    const { data: userResp } = await supabase.auth.admin.getUserById(id);
+    const existingMeta = userResp?.user?.user_metadata || {};
+
+    const newMeta: any = { ...existingMeta };
+    if (status) newMeta.status = status;
+    if (role !== undefined && role !== null) newMeta.role = role.trim();
+    if (display_name !== undefined && display_name !== null) newMeta.display_name = display_name.trim();
+
+    updatePayload.user_metadata = newMeta;
+
+    const { data: updated, error } = await supabase.auth.admin.updateUserById(id, updatePayload);
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true, message: "User updated successfully." });
+    return NextResponse.json({
+      success: true,
+      message: "User updated successfully.",
+      user: {
+        id,
+        email: updated.user?.email,
+        display_name: newMeta.display_name,
+        role: newMeta.role,
+        status: newMeta.status,
+      },
+    });
   } catch (error: any) {
     console.error("PATCH /api/admin/users error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
