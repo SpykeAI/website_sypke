@@ -9,26 +9,27 @@ function getCookieValue(req: Request, name: string): string | null {
 
 export async function GET(req: Request) {
   try {
+    const session = getCookieValue(req, "admin_session");
     const portalEmail = getCookieValue(req, "portal_email");
     const portalRole = getCookieValue(req, "portal_role");
 
-    const targetEmail = portalEmail?.toLowerCase().trim() || "";
-
-    if (!targetEmail) {
-      return NextResponse.json({
-        success: true,
-        profile: {
-          name: "",
-          email: "",
-          company_name: "",
-          registered_address: "",
-          ein: "",
-          phone: "",
-          role: portalRole || "Client",
-          portal_type: "external",
-        },
-      });
+    // Strictly enforce session authentication
+    if (!session || session !== "authenticated" || !portalEmail) {
+      return NextResponse.json(
+        { error: "Unauthorized. Please log in with your authorized external portal credentials." },
+        { status: 401 }
+      );
     }
+
+    // Role check: Only external clients (or superadmin) can access client profile
+    if (portalRole !== "external" && portalRole !== "superadmin") {
+      return NextResponse.json(
+        { error: "Access denied. Only external client accounts can access this profile." },
+        { status: 403 }
+      );
+    }
+
+    const targetEmail = portalEmail.toLowerCase().trim();
 
     // Look up user in Supabase
     const { data, error } = await supabase.auth.admin.listUsers();
@@ -91,15 +92,28 @@ export async function PATCH(req: Request) {
 
 async function handleProfileUpdate(req: Request) {
   try {
+    const session = getCookieValue(req, "admin_session");
     const portalEmail = getCookieValue(req, "portal_email");
+    const portalRole = getCookieValue(req, "portal_role");
+
+    if (!session || session !== "authenticated" || !portalEmail) {
+      return NextResponse.json(
+        { error: "Unauthorized. Please log in with your authorized external portal credentials." },
+        { status: 401 }
+      );
+    }
+
+    if (portalRole !== "external" && portalRole !== "superadmin") {
+      return NextResponse.json(
+        { error: "Access denied. Only external client accounts can modify this profile." },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const { name, company_name, registered_address, ein, phone } = body;
 
-    const targetEmail = portalEmail?.toLowerCase().trim() || body.email?.toLowerCase().trim() || "";
-
-    if (!targetEmail) {
-      return NextResponse.json({ error: "No authenticated client session found." }, { status: 401 });
-    }
+    const targetEmail = portalEmail.toLowerCase().trim();
 
     // Locate user in Supabase
     const { data: usersData, error: listError } = await supabase.auth.admin.listUsers();

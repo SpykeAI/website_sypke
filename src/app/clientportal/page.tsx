@@ -58,6 +58,10 @@ export default function ClientPortalProfilePage() {
     setErrorMessage(null);
     try {
       const res = await fetch("/api/client/profile");
+      if (res.status === 401 || res.status === 403) {
+        window.location.href = "/admin/login";
+        return;
+      }
       const data = await res.json();
       if (data.success && data.profile) {
         setProfile((prev) => ({
@@ -75,6 +79,21 @@ export default function ClientPortalProfilePage() {
   };
 
   useEffect(() => {
+    // Client-side authentication lock
+    const cookies = document.cookie.split(";").reduce((acc: any, cookie) => {
+      const [key, val] = cookie.trim().split("=");
+      if (key && val) acc[key] = decodeURIComponent(val);
+      return acc;
+    }, {});
+
+    const isAuthenticated = cookies.admin_session === "authenticated";
+    const role = cookies.portal_role;
+
+    if (!isAuthenticated || (role !== "external" && role !== "superadmin")) {
+      window.location.href = "/admin/login";
+      return;
+    }
+
     loadProfile();
   }, []);
 

@@ -50,5 +50,14 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/clientportal/:path*', '/inbox/:path*', '/phone/:path*'],
+  matcher: [
+    '/admin',
+    '/admin/:path*',
+    '/clientportal',
+    '/clientportal/:path*',
+    '/inbox',
+    '/inbox/:path*',
+    '/phone',
+    '/phone/:path*'
+  ],
 };

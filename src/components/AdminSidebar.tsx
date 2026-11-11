@@ -356,17 +356,19 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
 
         {/* Footer info & Status */}
         <div className="p-4 border-t border-slate-100 bg-slate-50/60 space-y-3">
-          <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <Radio size={11} className="text-emerald-500 animate-pulse" />
-                Telnyx Line
-              </span>
-              <span className="text-[10px] font-bold text-emerald-600">Active</span>
+          {role !== "external" && (
+            <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Radio size={11} className="text-emerald-500 animate-pulse" />
+                  Telnyx Line
+                </span>
+                <span className="text-[10px] font-bold text-emerald-600">Active</span>
+              </div>
+              <p className="text-xs font-bold text-slate-800 mt-1">+1 (346) 477-0028</p>
+              <p className="text-[10px] text-slate-400">US & India Whitelisted</p>
             </div>
-            <p className="text-xs font-bold text-slate-800 mt-1">+1 (346) 477-0028</p>
-            <p className="text-[10px] text-slate-400">US & India Whitelisted</p>
-          </div>
+          )}
 
           <div className="flex items-center justify-between pt-1">
             <Link
