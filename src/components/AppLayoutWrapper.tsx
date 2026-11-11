@@ -10,20 +10,12 @@ export default function AppLayoutWrapper({ children }: { children: React.ReactNo
   const pathname = usePathname();
   const isInboxOrPhone = pathname?.startsWith("/inbox") || pathname?.startsWith("/phone");
   const isAdmin = pathname?.startsWith("/admin");
+  const isClientPortal = pathname?.startsWith("/clientportal");
 
-  // If inside /inbox or /phone, render clean full-screen app without marketing navbar/footer/widgets
-  if (isInboxOrPhone) {
+  // If inside /inbox, /phone, /admin, or /clientportal, render clean full-screen portal without marketing navbar/footer/widgets
+  if (isInboxOrPhone || isAdmin || isClientPortal) {
     return (
-      <main className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col bg-white">
-        {children}
-      </main>
-    );
-  }
-
-  // If inside /admin portal, render clean dashboard without marketing navbar/footer/widgets
-  if (isAdmin) {
-    return (
-      <main className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col bg-gray-50">
+      <main className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col bg-slate-50">
         {children}
       </main>
     );

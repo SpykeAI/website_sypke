@@ -100,35 +100,49 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
     },
   ];
 
-  // Portals Section (Only visible to dedicated portal roles, hidden for superadmin)
-  const portalItems = [
-    ...(role === "internal"
-      ? [
-          {
-            id: "internal_portal",
-            label: "Internal Portal",
-            subtitle: "Team operational workspace",
-            href: "/admin/internal",
-            icon: Building2,
-            badge: "Team",
-            color: "emerald",
-          },
-        ]
-      : []),
-    ...(role === "external"
-      ? [
-          {
-            id: "clientportal",
-            label: "Account Management",
-            subtitle: "Profile & Business Entity",
-            href: "/clientportal",
-            icon: User,
-            badge: "Profile",
-            color: "blue",
-          },
-        ]
-      : []),
-  ];
+  const isClientPortal = pathname?.startsWith("/clientportal") || active === "clientportal";
+
+  // Portals Section
+  const portalItems = isClientPortal
+    ? [
+        {
+          id: "clientportal",
+          label: "Account Management",
+          subtitle: "Profile & Business Entity",
+          href: "/clientportal",
+          icon: User,
+          badge: "Profile",
+          color: "blue",
+        },
+      ]
+    : [
+        ...(role === "internal"
+          ? [
+              {
+                id: "internal_portal",
+                label: "Internal Portal",
+                subtitle: "Team operational workspace",
+                href: "/admin/internal",
+                icon: Building2,
+                badge: "Team",
+                color: "emerald",
+              },
+            ]
+          : []),
+        ...(role === "external"
+          ? [
+              {
+                id: "clientportal",
+                label: "Account Management",
+                subtitle: "Profile & Business Entity",
+                href: "/clientportal",
+                icon: User,
+                badge: "Profile",
+                color: "blue",
+              },
+            ]
+          : []),
+      ];
 
   // Superadmin Management Items
   const adminItems = [
@@ -142,8 +156,8 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
     },
   ];
 
-  const showCore = role === "superadmin" || role === "internal";
-  const showUserMgmt = role === "superadmin";
+  const showCore = !isClientPortal && (role === "superadmin" || role === "internal");
+  const showUserMgmt = !isClientPortal && role === "superadmin";
 
   return (
     <>
@@ -151,26 +165,35 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
       <aside className="hidden md:flex w-64 lg:w-72 bg-white border-r border-slate-200/90 flex-col shrink-0 h-full select-none z-30">
         {/* Brand / Portal Header */}
         <div className="p-4 lg:p-5 border-b border-slate-100 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="SpykeAI" className="h-8 w-auto object-contain" />
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm font-extrabold text-slate-900 tracking-tight">
-                  {role === "external" ? "Client Portal" : "Admin Portal"}
-                </span>
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${
-                  role === "external"
-                    ? "bg-blue-50 text-blue-700 border-blue-200"
-                    : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                }`}>
-                  {role === "superadmin" ? "PRO" : role === "internal" ? "INTERNAL" : "CLIENT"}
-                </span>
+          {isClientPortal || role === "external" ? (
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-200">
+                <Globe2 size={18} />
               </div>
-              <p className="text-[11px] font-medium text-slate-400">
-                {role === "external" ? "Client Workspace" : "Spyke AI Operations"}
-              </p>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-extrabold text-slate-900 tracking-tight">Client Portal</span>
+                  <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-1.5 py-0.5 rounded border border-blue-200">
+                    CLIENT
+                  </span>
+                </div>
+                <p className="text-[11px] font-medium text-slate-400">Account Workspace</p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="SpykeAI" className="h-8 w-auto object-contain" />
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-extrabold text-slate-900 tracking-tight">Admin Portal</span>
+                  <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded border border-emerald-200">
+                    {role === "superadmin" ? "PRO" : "INTERNAL"}
+                  </span>
+                </div>
+                <p className="text-[11px] font-medium text-slate-400">Spyke AI Operations</p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Vertical Nav List */}
@@ -356,7 +379,7 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
 
         {/* Footer info & Status */}
         <div className="p-4 border-t border-slate-100 bg-slate-50/60 space-y-3">
-          {role !== "external" && (
+          {!isClientPortal && role !== "external" && (
             <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
@@ -399,7 +422,7 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
 
       {/* MOBILE BOTTOM NAVBAR */}
       <div className="md:hidden flex items-center justify-around bg-white border-t border-slate-200 p-2 fixed bottom-0 left-0 right-0 z-40 select-none shadow-lg">
-        {role === "external" ? (
+        {isClientPortal || role === "external" ? (
           <Link
             href="/clientportal"
             className="flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all text-blue-600 font-bold"
