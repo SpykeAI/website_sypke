@@ -49,7 +49,7 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
     } catch (e) {
       console.error("Logout failed", e);
     } finally {
-      router.push("/admin/login");
+      router.push(role === "external" ? "/clientportal/login" : "/admin/login");
       router.refresh();
     }
   };

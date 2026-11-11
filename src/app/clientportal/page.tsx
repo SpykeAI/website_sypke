@@ -59,7 +59,7 @@ export default function ClientPortalProfilePage() {
     try {
       const res = await fetch("/api/client/profile");
       if (res.status === 401 || res.status === 403) {
-        window.location.href = "/admin/login";
+        window.location.href = "/clientportal/login";
         return;
       }
       const data = await res.json();
@@ -90,7 +90,7 @@ export default function ClientPortalProfilePage() {
     const role = cookies.portal_role;
 
     if (!isAuthenticated || (role !== "external" && role !== "superadmin")) {
-      window.location.href = "/admin/login";
+      window.location.href = "/clientportal/login";
       return;
     }
 
