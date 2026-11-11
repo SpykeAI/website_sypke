@@ -1,9 +1,84 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import crypto from "crypto";
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const body = await req.json();
+
+    // ==========================================
+    // A. OTP LOGIN / RECOVERY (FORGOT PASSWORD)
+    // ==========================================
+    if (body.otp && body.hashPayload) {
+      const { email: otpEmail, otp, hashPayload } = body;
+      const normalizedOtpEmail = (otpEmail || "").trim().toLowerCase();
+
+      if (
+        normalizedOtpEmail !== "spykeai2026@gmail.com" &&
+        normalizedOtpEmail !== "spykeai2026@gmail" &&
+        (process.env.ADMIN_EMAIL && normalizedOtpEmail !== process.env.ADMIN_EMAIL.trim().toLowerCase())
+      ) {
+        return NextResponse.json(
+          { error: "OTP login is only permitted for authorized administrator email." },
+          { status: 403 }
+        );
+      }
+
+      const [hash, expiresAt] = (hashPayload || "").split(".");
+      if (!hash || !expiresAt || Date.now() > Number(expiresAt)) {
+        return NextResponse.json(
+          { error: "Verification code has expired. Please request a new code." },
+          { status: 400 }
+        );
+      }
+
+      const secret = process.env.OTP_SECRET || "SpykeAI_Secure_OTP_2026_xyz";
+      const dataToHash = `${normalizedOtpEmail}.${otp.trim()}.${expiresAt}.${secret}`;
+      const calculatedHash = crypto.createHash("sha256").update(dataToHash).digest("hex");
+
+      if (calculatedHash !== hash) {
+        return NextResponse.json(
+          { error: "Invalid verification code. Please check and try again." },
+          { status: 400 }
+        );
+      }
+
+      const response = NextResponse.json({
+        success: true,
+        role: "superadmin",
+        portal_type: "superadmin",
+        redirectUrl: "/inbox",
+        user: {
+          email: "spykeai2026@gmail.com",
+          display_name: "Super Administrator (OTP Verified)",
+          role: "superadmin",
+        },
+      });
+
+      // 24-hour session cookie
+      response.cookies.set("admin_session", "authenticated", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24,
+        path: "/",
+      });
+
+      response.cookies.set("portal_role", "superadmin", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24,
+        path: "/",
+      });
+
+      return response;
+    }
+
+    // ==========================================
+    // B. STANDARD PASSWORD LOGIN
+    // ==========================================
+    const { email, password } = body;
 
     const normalizedInput = (email || "").trim().toLowerCase();
     const inputPassword = (password || "").trim();
@@ -15,9 +90,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ==========================================
     // 1. CHECK SUPERADMIN MASTER CREDENTIALS
-    // ==========================================
     const isSuperadminEmail =
       normalizedInput === "spykeai2026@gmail.com" ||
       normalizedInput === "spykeai2026@gmail" ||
@@ -61,10 +134,7 @@ export async function POST(req: Request) {
       return response;
     }
 
-    // ==========================================
     // 2. CHECK INTERNAL / EXTERNAL PORTAL USERS IN SUPABASE
-    // ==========================================
-    // Resolve email address: if username without @ was passed, check against users list
     let targetEmail = normalizedInput;
     let targetPortalType: "internal" | "external" = "internal";
     let targetDisplayName = normalizedInput;
@@ -83,7 +153,6 @@ export async function POST(req: Request) {
       targetPortalType = matchedUser.user_metadata?.portal_type || "internal";
       targetDisplayName = matchedUser.user_metadata?.display_name || matchedUser.user_metadata?.username || targetEmail;
 
-      // Check if user is active
       if (matchedUser.user_metadata?.status === "inactive") {
         return NextResponse.json(
           { error: "This portal account is currently deactivated. Please contact your Superadmin." },
@@ -92,7 +161,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Try authenticating with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: targetEmail,
       password: inputPassword,
@@ -120,7 +188,6 @@ export async function POST(req: Request) {
       },
     });
 
-    // Set secure HTTP-only cookies
     response.cookies.set("admin_session", "authenticated", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

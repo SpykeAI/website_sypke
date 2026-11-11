@@ -12,13 +12,16 @@ interface Recipient {
 }
 
 function createTransporter() {
+  const user = (process.env.SMTP_USER || "spykeai2026@gmail.com").trim();
+  const pass = (process.env.SMTP_PASS || "bhcltdujumkilxbx").replace(/\s+/g, "");
   const host = process.env.SMTP_HOST || "smtp.gmail.com";
-  const port = Number(process.env.SMTP_PORT) || 587;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+  const port = Number(process.env.SMTP_PORT) || 465;
 
-  if (!user || !pass) {
-    throw new Error("SMTP credentials are not configured in environment variables.");
+  if (user.endsWith("@gmail.com")) {
+    return nodemailer.createTransport({
+      service: "gmail",
+      auth: { user, pass },
+    });
   }
 
   return nodemailer.createTransport({
