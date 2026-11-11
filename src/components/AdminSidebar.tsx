@@ -4,20 +4,13 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  MessageSquare,
-  Phone,
-  Mic,
-  Mail,
   ArrowLeft,
   ShieldCheck,
   Radio,
   LogOut,
-  LayoutDashboard,
-  Users,
   Building2,
   Globe2,
-  KeyRound,
-  FileText
+  KeyRound
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -30,7 +23,6 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
   const [role, setRole] = useState<"superadmin" | "internal" | "external">("superadmin");
 
   useEffect(() => {
-    // Read role from cookie in browser
     const cookies = document.cookie.split(";").reduce((acc: any, cookie) => {
       const [key, val] = cookie.trim().split("=");
       if (key && val) acc[key] = decodeURIComponent(val);
@@ -58,80 +50,11 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
   };
 
   const currentTab = active || (
-    pathname?.startsWith("/inbox") ? "inbox" :
-    pathname?.startsWith("/admin/calls") ? "calls" :
-    pathname?.startsWith("/admin/emails") ? "emails" :
-    pathname?.startsWith("/admin/transcripts") ? "transcripts" :
-    pathname?.startsWith("/admin/external/dashboard") ? "ext_dashboard" :
-    pathname?.startsWith("/admin/external/transcripts") ? "ext_transcripts" :
+    pathname?.startsWith("/admin/internal") ? "internal_root" :
+    pathname?.startsWith("/admin/external") ? "external_root" :
     pathname?.startsWith("/admin/users") ? "users" :
-    "inbox"
+    "users"
   );
-
-  // Section 1: Internal Portal Nav Items
-  const internalItems = [
-    {
-      id: "inbox",
-      label: "SMS Inbox",
-      subtitle: "Two-way text messages",
-      href: "/inbox",
-      icon: MessageSquare,
-      badge: "Live",
-    },
-    {
-      id: "calls",
-      label: "Live Calls & Softphone",
-      subtitle: "WebRTC browser calling",
-      href: "/admin/calls",
-      icon: Phone,
-    },
-    {
-      id: "emails",
-      label: "Email Campaigns",
-      subtitle: "Create, history & analytics",
-      href: "/admin/emails",
-      icon: Mail,
-      badge: "New",
-    },
-    {
-      id: "transcripts",
-      label: "AI Call Transcripts",
-      subtitle: "Vapi AI website logs",
-      href: "/admin/transcripts",
-      icon: Mic,
-    },
-  ];
-
-  // Section 2: External Portal Nav Items
-  const externalItems = [
-    {
-      id: "ext_dashboard",
-      label: "Client Dashboard",
-      subtitle: "Campaign metrics & demos",
-      href: "/admin/external/dashboard",
-      icon: LayoutDashboard,
-      badge: "Client",
-    },
-    {
-      id: "ext_transcripts",
-      label: "Shared Transcripts",
-      subtitle: "Client call logs & analysis",
-      href: "/admin/external/transcripts",
-      icon: FileText,
-    },
-  ];
-
-  // Superadmin Management Items
-  const adminItems = [
-    {
-      id: "users",
-      label: "Portal Access & Users",
-      subtitle: "Manage User IDs & Passwords",
-      href: "/admin/users",
-      icon: KeyRound,
-      badge: "Superadmin",
-    },
-  ];
 
   const showInternal = role === "superadmin" || role === "internal";
   const showExternal = role === "superadmin" || role === "external";
@@ -157,125 +80,67 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
           </div>
         </div>
 
-        {/* Vertical Nav List with Distinct Sections */}
+        {/* Vertical Nav List with Clean Empty Sections */}
         <div className="flex-1 p-3.5 space-y-4 overflow-y-auto">
-          {/* SECTION 1: INTERNAL PORTAL */}
+          {/* SECTION 1: INTERNAL PORTAL (EMPTY FOR NOW) */}
           {showInternal && (
             <div>
-              <div className="flex items-center justify-between px-3 py-1.5 mb-1">
+              <div className="flex items-center justify-between px-3 py-1.5 mb-1.5">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
                   <Building2 size={12} className="text-emerald-600" />
                   Internal Portal
                 </span>
-                <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
-                  Team
+                <span className="text-[9px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
+                  Empty
                 </span>
               </div>
 
-              <div className="space-y-1">
-                {internalItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = currentTab === item.id;
-                  return (
-                    <Link
-                      key={item.id}
-                      href={item.href}
-                      className={`group flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all ${
-                        isActive
-                          ? "bg-emerald-600 text-white font-bold shadow-sm shadow-emerald-700/20"
-                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium"
-                      }`}
-                    >
-                      <div
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                          isActive
-                            ? "bg-white/20 text-white"
-                            : "bg-slate-100 text-slate-600 group-hover:bg-white group-hover:text-emerald-600"
-                        }`}
-                      >
-                        <Icon size={16} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs truncate">{item.label}</span>
-                          {item.badge && !isActive && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                              {item.badge}
-                            </span>
-                          )}
-                        </div>
-                        <p
-                          className={`text-[10px] truncate ${
-                            isActive ? "text-emerald-100 font-normal" : "text-slate-400"
-                          }`}
-                        >
-                          {item.subtitle}
-                        </p>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
+              {/* Clean Empty Placeholder Box */}
+              <Link
+                href="/admin/internal"
+                className={`flex items-center justify-between px-3.5 py-3 rounded-2xl border transition-all ${
+                  currentTab === "internal_root"
+                    ? "bg-emerald-50 border-emerald-300 text-emerald-900 font-bold shadow-xs"
+                    : "bg-slate-50/70 border-dashed border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400/80" />
+                  <span className="text-xs">No items added yet</span>
+                </div>
+                <span className="text-[10px] text-slate-400 font-mono italic">Waiting...</span>
+              </Link>
             </div>
           )}
 
-          {/* SECTION 2: EXTERNAL PORTAL */}
+          {/* SECTION 2: EXTERNAL PORTAL (EMPTY FOR NOW) */}
           {showExternal && (
             <div className={showInternal ? "pt-2 border-t border-slate-100" : ""}>
-              <div className="flex items-center justify-between px-3 py-1.5 mb-1">
+              <div className="flex items-center justify-between px-3 py-1.5 mb-1.5">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-800 flex items-center gap-1.5">
                   <Globe2 size={12} className="text-blue-600" />
                   External Portal
                 </span>
-                <span className="text-[9px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200">
-                  Clients
+                <span className="text-[9px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
+                  Empty
                 </span>
               </div>
 
-              <div className="space-y-1">
-                {externalItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = currentTab === item.id;
-                  return (
-                    <Link
-                      key={item.id}
-                      href={item.href}
-                      className={`group flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all ${
-                        isActive
-                          ? "bg-blue-600 text-white font-bold shadow-sm shadow-blue-700/20"
-                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium"
-                      }`}
-                    >
-                      <div
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                          isActive
-                            ? "bg-white/20 text-white"
-                            : "bg-slate-100 text-slate-600 group-hover:bg-white group-hover:text-blue-600"
-                        }`}
-                      >
-                        <Icon size={16} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs truncate">{item.label}</span>
-                          {item.badge && !isActive && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                              {item.badge}
-                            </span>
-                          )}
-                        </div>
-                        <p
-                          className={`text-[10px] truncate ${
-                            isActive ? "text-blue-100 font-normal" : "text-slate-400"
-                          }`}
-                        >
-                          {item.subtitle}
-                        </p>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
+              {/* Clean Empty Placeholder Box */}
+              <Link
+                href="/admin/external"
+                className={`flex items-center justify-between px-3.5 py-3 rounded-2xl border transition-all ${
+                  currentTab === "external_root"
+                    ? "bg-blue-50 border-blue-300 text-blue-900 font-bold shadow-xs"
+                    : "bg-slate-50/70 border-dashed border-slate-200 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                }`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-2 h-2 rounded-full bg-blue-400/80" />
+                  <span className="text-xs">No items added yet</span>
+                </div>
+                <span className="text-[10px] text-slate-400 font-mono italic">Waiting...</span>
+              </Link>
             </div>
           )}
 
@@ -288,48 +153,41 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
               </div>
 
               <div className="space-y-1">
-                {adminItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = currentTab === item.id;
-                  return (
-                    <Link
-                      key={item.id}
-                      href={item.href}
-                      className={`group flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all ${
-                        isActive
-                          ? "bg-purple-600 text-white font-bold shadow-sm shadow-purple-700/20"
-                          : "text-slate-600 hover:bg-purple-50 hover:text-purple-900 font-medium"
+                <Link
+                  href="/admin/users"
+                  className={`group flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all ${
+                    currentTab === "users"
+                      ? "bg-purple-600 text-white font-bold shadow-sm shadow-purple-700/20"
+                      : "text-slate-600 hover:bg-purple-50 hover:text-purple-900 font-medium"
+                  }`}
+                >
+                  <div
+                    className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                      currentTab === "users"
+                        ? "bg-white/20 text-white"
+                        : "bg-purple-50 text-purple-600 group-hover:bg-white"
+                    }`}
+                  >
+                    <KeyRound size={16} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs truncate">Portal Access & Users</span>
+                      {currentTab !== "users" && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                          PRO
+                        </span>
+                      )}
+                    </div>
+                    <p
+                      className={`text-[10px] truncate ${
+                        currentTab === "users" ? "text-purple-100 font-normal" : "text-slate-400"
                       }`}
                     >
-                      <div
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                          isActive
-                            ? "bg-white/20 text-white"
-                            : "bg-purple-50 text-purple-600 group-hover:bg-white"
-                        }`}
-                      >
-                        <Icon size={16} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs truncate">{item.label}</span>
-                          {item.badge && !isActive && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-                              PRO
-                            </span>
-                          )}
-                        </div>
-                        <p
-                          className={`text-[10px] truncate ${
-                            isActive ? "text-purple-100 font-normal" : "text-slate-400"
-                          }`}
-                        >
-                          {item.subtitle}
-                        </p>
-                      </div>
-                    </Link>
-                  );
-                })}
+                      Manage User IDs & Passwords
+                    </p>
+                  </div>
+                </Link>
               </div>
             </div>
           )}
@@ -380,35 +238,24 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
       <div className="md:hidden flex items-center justify-around bg-white border-t border-slate-200 p-2 fixed bottom-0 left-0 right-0 z-40 select-none shadow-lg">
         {showInternal && (
           <Link
-            href="/inbox"
+            href="/admin/internal"
             className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
-              currentTab === "inbox" ? "text-emerald-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
+              currentTab === "internal_root" ? "text-emerald-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
             }`}
           >
-            <MessageSquare size={18} />
-            <span className="text-[10px] mt-0.5">Inbox</span>
-          </Link>
-        )}
-        {showInternal && (
-          <Link
-            href="/admin/calls"
-            className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
-              currentTab === "calls" ? "text-emerald-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
-            }`}
-          >
-            <Phone size={18} />
-            <span className="text-[10px] mt-0.5">Calls</span>
+            <Building2 size={18} />
+            <span className="text-[10px] mt-0.5">Internal</span>
           </Link>
         )}
         {showExternal && (
           <Link
-            href="/admin/external/dashboard"
+            href="/admin/external"
             className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
-              currentTab === "ext_dashboard" ? "text-blue-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
+              currentTab === "external_root" ? "text-blue-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
             }`}
           >
-            <LayoutDashboard size={18} />
-            <span className="text-[10px] mt-0.5">Client</span>
+            <Globe2 size={18} />
+            <span className="text-[10px] mt-0.5">External</span>
           </Link>
         )}
         {showUserMgmt && (

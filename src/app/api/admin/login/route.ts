@@ -33,7 +33,7 @@ export async function POST(req: Request) {
         success: true,
         role: "superadmin",
         portal_type: "superadmin",
-        redirectUrl: "/inbox",
+        redirectUrl: "/admin/users",
         user: {
           email: "spykeai2026@gmail.com",
           display_name: "Super Administrator",
@@ -106,7 +106,7 @@ export async function POST(req: Request) {
     }
 
     const userPortalType = authData.user.user_metadata?.portal_type || targetPortalType;
-    const redirectUrl = userPortalType === "external" ? "/admin/external/dashboard" : "/inbox";
+    const redirectUrl = userPortalType === "external" ? "/admin/external" : "/admin/internal";
 
     const response = NextResponse.json({
       success: true,

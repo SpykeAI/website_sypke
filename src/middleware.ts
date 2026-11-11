@@ -32,14 +32,14 @@ export function middleware(request: NextRequest) {
       // External users can ONLY access external portal pages
       const isExternalRoute = pathname.startsWith('/admin/external');
       if (!isExternalRoute) {
-        return NextResponse.redirect(new URL('/admin/external/dashboard', request.url));
+        return NextResponse.redirect(new URL('/admin/external', request.url));
       }
     } else if (portalRole === 'internal') {
       // Internal users cannot access User Management or External Portal
       const isSuperadminOnly = pathname.startsWith('/admin/users');
       const isExternalRoute = pathname.startsWith('/admin/external');
       if (isSuperadminOnly || isExternalRoute) {
-        return NextResponse.redirect(new URL('/inbox', request.url));
+        return NextResponse.redirect(new URL('/admin/internal', request.url));
       }
     }
     // Superadmin has full access to all portals and user management
