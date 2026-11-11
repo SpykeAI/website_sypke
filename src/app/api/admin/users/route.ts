@@ -30,7 +30,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { userIdOrEmail, password, portal_type, display_name } = body;
+    const { userIdOrEmail, password, portal_type, display_name, role } = body;
 
     if (!userIdOrEmail || !password || !portal_type) {
       return NextResponse.json(
@@ -60,6 +60,8 @@ export async function POST(req: Request) {
       );
     }
 
+    const assignedRole = role?.trim() || (portal_type === "external" ? "Client" : "Agent");
+
     const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
       email,
       password: password.trim(),
@@ -67,7 +69,7 @@ export async function POST(req: Request) {
       user_metadata: {
         username,
         portal_type: portal_type === "external" ? "external" : "internal",
-        role: portal_type === "external" ? "external" : "internal",
+        role: assignedRole,
         display_name: display_name?.trim() || username,
         status: "active",
       },
@@ -85,6 +87,7 @@ export async function POST(req: Request) {
         email: newUser.user?.email,
         username,
         portal_type,
+        role: assignedRole,
         display_name: display_name?.trim() || username,
       },
     });

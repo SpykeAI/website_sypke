@@ -47,6 +47,7 @@ export default function AdminUsersPage() {
   const [newPassword, setNewPassword] = useState("");
   const [newDisplayName, setNewDisplayName] = useState("");
   const [newPortalType, setNewPortalType] = useState<"internal" | "external">("internal");
+  const [newRole, setNewRole] = useState("Agent");
   const [showPassword, setShowPassword] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -54,6 +55,7 @@ export default function AdminUsersPage() {
     userId: string;
     pass: string;
     portal: string;
+    role?: string;
   } | null>(null);
 
   // Delete User Modal State
@@ -93,6 +95,7 @@ export default function AdminUsersPage() {
           password: newPassword,
           portal_type: newPortalType,
           display_name: newDisplayName,
+          role: newRole,
         }),
       });
 
@@ -103,10 +106,12 @@ export default function AdminUsersPage() {
           userId: newUserId,
           pass: newPassword,
           portal: newPortalType,
+          role: newRole || (newPortalType === "internal" ? "Agent" : "Client"),
         });
         setNewUserId("");
         setNewPassword("");
         setNewDisplayName("");
+        setNewRole(newPortalType === "internal" ? "Agent" : "Client");
         fetchUsers();
       } else {
         setCreateError(data.error || "Failed to create portal user.");
@@ -143,7 +148,7 @@ export default function AdminUsersPage() {
   };
 
   const copyCredentials = (user: PortalUser, rawPass?: string) => {
-    const text = `SpykeAI Portal Login\nPortal: ${user.portal_type.toUpperCase()} PORTAL\nUser ID: ${user.email}\nPassword: ${rawPass || "********"}\nLogin URL: https://spykeai.com/admin/login`;
+    const text = `SpykeAI Portal Login\nPortal: ${user.portal_type.toUpperCase()} PORTAL\nRole: ${user.role}\nUser ID: ${user.email}\nPassword: ${rawPass || "********"}\nLogin URL: https://spykeai.com/admin/login`;
     navigator.clipboard.writeText(text);
     setCopiedId(user.id);
     setTimeout(() => setCopiedId(null), 2500);
@@ -408,6 +413,9 @@ export default function AdminUsersPage() {
                   </div>
                   <div className="bg-white p-3 rounded-xl border border-emerald-200 space-y-1 font-mono text-slate-800">
                     <p><span className="text-slate-400 font-sans">Portal:</span> {createdSuccess.portal.toUpperCase()}</p>
+                    {createdSuccess.role && (
+                      <p><span className="text-slate-400 font-sans">Role:</span> {createdSuccess.role}</p>
+                    )}
                     <p><span className="text-slate-400 font-sans">User ID / Email:</span> {createdSuccess.userId}</p>
                     <p><span className="text-slate-400 font-sans">Password:</span> {createdSuccess.pass}</p>
                     <p className="text-[10px] text-slate-400 pt-1 font-sans">Login URL: https://spykeai.com/admin/login</p>
@@ -420,7 +428,7 @@ export default function AdminUsersPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
-                      const text = `SpykeAI Portal Access\nPortal: ${createdSuccess.portal.toUpperCase()} PORTAL\nUser ID: ${createdSuccess.userId}\nPassword: ${createdSuccess.pass}\nLogin URL: https://spykeai.com/admin/login`;
+                      const text = `SpykeAI Portal Access\nPortal: ${createdSuccess.portal.toUpperCase()} PORTAL\nRole: ${createdSuccess.role || "Member"}\nUser ID: ${createdSuccess.userId}\nPassword: ${createdSuccess.pass}\nLogin URL: https://spykeai.com/admin/login`;
                       navigator.clipboard.writeText(text);
                       alert("Credentials copied to clipboard!");
                     }}
@@ -454,7 +462,12 @@ export default function AdminUsersPage() {
                   <div className="grid grid-cols-2 gap-2.5">
                     <button
                       type="button"
-                      onClick={() => setNewPortalType("internal")}
+                      onClick={() => {
+                        setNewPortalType("internal");
+                        if (!newRole || newRole === "Client" || newRole === "Partner" || newRole === "Investor" || newRole === "Viewer") {
+                          setNewRole("Agent");
+                        }
+                      }}
                       className={`p-3 rounded-xl border text-left flex flex-col transition-all ${
                         newPortalType === "internal"
                           ? "bg-emerald-50 border-emerald-500 text-emerald-900 ring-2 ring-emerald-500/20"
@@ -470,7 +483,12 @@ export default function AdminUsersPage() {
 
                     <button
                       type="button"
-                      onClick={() => setNewPortalType("external")}
+                      onClick={() => {
+                        setNewPortalType("external");
+                        if (!newRole || newRole === "Agent" || newRole === "Manager" || newRole === "Operations" || newRole === "Support") {
+                          setNewRole("Client");
+                        }
+                      }}
                       className={`p-3 rounded-xl border text-left flex flex-col transition-all ${
                         newPortalType === "external"
                           ? "bg-blue-50 border-blue-500 text-blue-900 ring-2 ring-blue-500/20"
@@ -516,6 +534,47 @@ export default function AdminUsersPage() {
                     placeholder="e.g. John Operations or Acme Corp"
                     className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
                   />
+                </div>
+
+                {/* Role Field */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                      Role
+                    </label>
+                    <span className="text-[10px] text-slate-400 font-medium">Designation / Access Level</span>
+                  </div>
+                  <div className="relative">
+                    <UserCheck size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={newRole}
+                      onChange={(e) => setNewRole(e.target.value)}
+                      placeholder={newPortalType === "internal" ? "e.g. Agent, Operations, Manager" : "e.g. Client, Partner, Investor"}
+                      required
+                      className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                    <span className="text-[10px] text-slate-400 font-medium">Quick select:</span>
+                    {(newPortalType === "internal"
+                      ? ["Agent", "Operations", "Manager", "Support", "Caller"]
+                      : ["Client", "Partner", "Investor", "Viewer"]
+                    ).map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setNewRole(r)}
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-lg border transition-all ${
+                          newRole.toLowerCase() === r.toLowerCase()
+                            ? "bg-emerald-50 border-emerald-300 text-emerald-700 font-bold"
+                            : "bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700"
+                        }`}
+                      >
+                        {r}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Password with Auto-Generate */}
