@@ -98,26 +98,34 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
     },
   ];
 
-  // Portals Section
+  // Portals Section (Only visible to dedicated portal roles, hidden for superadmin)
   const portalItems = [
-    {
-      id: "internal_portal",
-      label: "Internal Portal",
-      subtitle: "Team operational workspace",
-      href: "/admin/internal",
-      icon: Building2,
-      badge: "Team",
-      color: "emerald",
-    },
-    {
-      id: "external_portal",
-      label: "External Portal",
-      subtitle: "Client & partner workspace",
-      href: "/admin/external",
-      icon: Globe2,
-      badge: "Client",
-      color: "blue",
-    },
+    ...(role === "internal"
+      ? [
+          {
+            id: "internal_portal",
+            label: "Internal Portal",
+            subtitle: "Team operational workspace",
+            href: "/admin/internal",
+            icon: Building2,
+            badge: "Team",
+            color: "emerald",
+          },
+        ]
+      : []),
+    ...(role === "external"
+      ? [
+          {
+            id: "external_portal",
+            label: "External Portal",
+            subtitle: "Client & partner workspace",
+            href: "/admin/external",
+            icon: Globe2,
+            badge: "Client",
+            color: "blue",
+          },
+        ]
+      : []),
   ];
 
   // Superadmin Management Items
@@ -211,72 +219,74 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
             </div>
           )}
 
-          {/* 2. PORTAL SECTIONS (INTERNAL & EXTERNAL) */}
-          <div className={showCore ? "pt-2 border-t border-slate-100" : ""}>
-            <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Dedicated Portals
-            </div>
+          {/* 2. PORTAL SECTIONS (INTERNAL & EXTERNAL - ONLY FOR RESPECIVE ROLES, NOT SUPERADMIN) */}
+          {portalItems.length > 0 && (
+            <div className={showCore ? "pt-2 border-t border-slate-100" : ""}>
+              <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Dedicated Portals
+              </div>
 
-            <div className="space-y-1 mt-1">
-              {portalItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = currentTab === item.id;
-                const isEmerald = item.color === "emerald";
-                return (
-                  <Link
-                    key={item.id}
-                    href={item.href}
-                    className={`group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${
-                      isActive
-                        ? isEmerald
-                          ? "bg-emerald-600 text-white font-bold shadow-sm shadow-emerald-700/20"
-                          : "bg-blue-600 text-white font-bold shadow-sm shadow-blue-700/20"
-                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium"
-                    }`}
-                  >
-                    <div
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+              <div className="space-y-1 mt-1">
+                {portalItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = currentTab === item.id;
+                  const isEmerald = item.color === "emerald";
+                  return (
+                    <Link
+                      key={item.id}
+                      href={item.href}
+                      className={`group flex items-center gap-3 px-3.5 py-2.5 rounded-2xl transition-all ${
                         isActive
-                          ? "bg-white/20 text-white"
-                          : isEmerald
-                          ? "bg-emerald-50 text-emerald-600 group-hover:bg-white"
-                          : "bg-blue-50 text-blue-600 group-hover:bg-white"
+                          ? isEmerald
+                            ? "bg-emerald-600 text-white font-bold shadow-sm shadow-emerald-700/20"
+                            : "bg-blue-600 text-white font-bold shadow-sm shadow-blue-700/20"
+                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 font-medium"
                       }`}
                     >
-                      <Icon size={16} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs truncate">{item.label}</span>
-                        {item.badge && !isActive && (
-                          <span
-                            className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${
-                              isEmerald
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                : "bg-blue-50 text-blue-700 border-blue-200"
-                            }`}
-                          >
-                            {item.badge}
-                          </span>
-                        )}
-                      </div>
-                      <p
-                        className={`text-[10px] truncate ${
+                      <div
+                        className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
                           isActive
-                            ? isEmerald
-                              ? "text-emerald-100 font-normal"
-                              : "text-blue-100 font-normal"
-                            : "text-slate-400"
+                            ? "bg-white/20 text-white"
+                            : isEmerald
+                            ? "bg-emerald-50 text-emerald-600 group-hover:bg-white"
+                            : "bg-blue-50 text-blue-600 group-hover:bg-white"
                         }`}
                       >
-                        {item.subtitle}
-                      </p>
-                    </div>
-                  </Link>
-                );
-              })}
+                        <Icon size={16} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs truncate">{item.label}</span>
+                          {item.badge && !isActive && (
+                            <span
+                              className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${
+                                isEmerald
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : "bg-blue-50 text-blue-700 border-blue-200"
+                              }`}
+                            >
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                        <p
+                          className={`text-[10px] truncate ${
+                            isActive
+                              ? isEmerald
+                                ? "text-emerald-100 font-normal"
+                                : "text-blue-100 font-normal"
+                              : "text-slate-400"
+                          }`}
+                        >
+                          {item.subtitle}
+                        </p>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* 3. ACCESS & USER MANAGEMENT (SUPERADMIN ONLY) */}
           {showUserMgmt && (
