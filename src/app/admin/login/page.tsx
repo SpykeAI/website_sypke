@@ -14,7 +14,7 @@ export default function AdminLogin() {
 
   // OTP Login Mode (Forgot Password)
   const [isOtpMode, setIsOtpMode] = useState(false);
-  const [otpEmail, setOtpEmail] = useState("spykeai2026@gmail.com");
+  const [otpEmail, setOtpEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [hashPayload, setHashPayload] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -135,7 +135,7 @@ export default function AdminLogin() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent transition text-gray-900 text-sm"
-                placeholder="spykeai2026@gmail.com"
+                placeholder="Enter your email or user ID"
                 required
                 autoComplete="username"
               />
@@ -148,6 +148,7 @@ export default function AdminLogin() {
                   type="button"
                   onClick={() => {
                     setIsOtpMode(true);
+                    if (email) setOtpEmail(email);
                     setError("");
                   }}
                   className="text-xs font-semibold text-emerald-600 hover:text-emerald-700"
@@ -199,11 +200,11 @@ export default function AdminLogin() {
                     value={otpEmail}
                     onChange={(e) => setOtpEmail(e.target.value)}
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#00DF81] focus:border-transparent transition text-gray-900 text-sm"
-                    placeholder="spykeai2026@gmail.com"
+                    placeholder="Enter your email address"
                     required
                   />
                   <p className="text-[11px] text-gray-400 mt-1.5">
-                    We will send a 6-digit code via Gmail SMTP to this address.
+                    We will send a 6-digit verification code to this address.
                   </p>
                 </div>
 
