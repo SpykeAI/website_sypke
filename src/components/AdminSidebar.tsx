@@ -396,15 +396,20 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
           <div className="flex items-center justify-between pt-1">
             <Link
               href="/"
-              className="text-xs font-semibold text-slate-500 hover:text-emerald-600 flex items-center gap-1.5 transition-colors"
+              className={`text-xs font-semibold text-slate-500 flex items-center gap-1.5 transition-colors ${
+                isClientPortal || role === "external" ? "hover:text-blue-600" : "hover:text-emerald-600"
+              }`}
             >
               <ArrowLeft size={14} />
               <span>Back to Website</span>
             </Link>
             <div className="flex items-center gap-2">
               <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                <ShieldCheck size={12} className="text-emerald-500" />
-                <span className="capitalize">{role}</span>
+                <ShieldCheck
+                  size={12}
+                  className={isClientPortal || role === "external" ? "text-blue-500" : "text-emerald-500"}
+                />
+                <span className="capitalize">{isClientPortal || role === "external" ? "Client" : role}</span>
               </span>
               <span className="text-slate-300 text-xs">·</span>
               <button

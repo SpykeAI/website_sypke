@@ -72,6 +72,14 @@ export async function POST(req: Request) {
         path: "/",
       });
 
+      response.cookies.set("portal_email", "spykeai2026@gmail.com", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24,
+        path: "/",
+      });
+
       return response;
     }
 
@@ -124,6 +132,14 @@ export async function POST(req: Request) {
       });
 
       response.cookies.set("portal_role", "superadmin", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24,
+        path: "/",
+      });
+
+      response.cookies.set("portal_email", "spykeai2026@gmail.com", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",

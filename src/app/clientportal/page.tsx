@@ -79,21 +79,6 @@ export default function ClientPortalProfilePage() {
   };
 
   useEffect(() => {
-    // Client-side authentication lock
-    const cookies = document.cookie.split(";").reduce((acc: any, cookie) => {
-      const [key, val] = cookie.trim().split("=");
-      if (key && val) acc[key] = decodeURIComponent(val);
-      return acc;
-    }, {});
-
-    const isAuthenticated = cookies.admin_session === "authenticated";
-    const role = cookies.portal_role;
-
-    if (!isAuthenticated || (role !== "external" && role !== "superadmin")) {
-      window.location.href = "/clientportal/login";
-      return;
-    }
-
     loadProfile();
   }, []);
 
