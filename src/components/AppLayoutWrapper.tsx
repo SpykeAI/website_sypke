@@ -11,11 +11,21 @@ export default function AppLayoutWrapper({ children }: { children: React.ReactNo
   const isInboxOrPhone = pathname?.startsWith("/inbox") || pathname?.startsWith("/phone");
   const isAdmin = pathname?.startsWith("/admin");
   const isClientPortal = pathname?.startsWith("/clientportal");
+  const isContract = pathname?.startsWith("/contract");
 
   // If inside /inbox, /phone, /admin, or /clientportal, render clean full-screen portal without marketing navbar/footer/widgets
   if (isInboxOrPhone || isAdmin || isClientPortal) {
     return (
       <main className="h-screen h-[100dvh] w-full overflow-hidden flex flex-col bg-slate-50">
+        {children}
+      </main>
+    );
+  }
+
+  // Standalone Dark Mode Legal Contract Page
+  if (isContract) {
+    return (
+      <main className="min-h-screen w-full bg-[#080B11] text-slate-100 flex flex-col">
         {children}
       </main>
     );
