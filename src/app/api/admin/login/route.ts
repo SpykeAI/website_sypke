@@ -33,7 +33,7 @@ export async function POST(req: Request) {
         success: true,
         role: "superadmin",
         portal_type: "superadmin",
-        redirectUrl: "/admin/users",
+        redirectUrl: "/inbox",
         user: {
           email: "spykeai2026@gmail.com",
           display_name: "Super Administrator",
