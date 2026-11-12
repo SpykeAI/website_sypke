@@ -56,8 +56,13 @@ export default function ClientPortalProfilePage() {
   const loadProfile = async () => {
     setLoading(true);
     setErrorMessage(null);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
     try {
-      const res = await fetch("/api/client/profile");
+      const res = await fetch("/api/client/profile", { signal: controller.signal });
+      clearTimeout(timeoutId);
+
       if (res.status === 401 || res.status === 403) {
         const errData = await res.json().catch(() => null);
         setErrorMessage(
@@ -74,9 +79,14 @@ export default function ClientPortalProfilePage() {
       } else {
         setErrorMessage(data.error || "Unable to fetch client profile.");
       }
-    } catch {
-      setErrorMessage("Network error while loading profile details.");
+    } catch (err: any) {
+      if (err?.name === "AbortError") {
+        setErrorMessage("Profile loading timed out. Showing local workspace.");
+      } else {
+        setErrorMessage("Network error while loading profile details.");
+      }
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   };

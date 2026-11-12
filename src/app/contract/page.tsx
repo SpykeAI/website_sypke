@@ -40,6 +40,8 @@ interface ExecutedData {
   signatory: string;
   company: string;
   providerSignatory: string;
+  pdfBase64?: string | null;
+  pdfFilename?: string;
 }
 
 export default function ContractPage() {
@@ -123,6 +125,8 @@ export default function ContractPage() {
           signatory: data.signatory,
           company: data.company,
           providerSignatory: data.providerSignatory,
+          pdfBase64: data.pdfBase64,
+          pdfFilename: data.pdfFilename,
         });
         window.scrollTo({ top: 0, behavior: "smooth" });
       } else {
@@ -132,6 +136,33 @@ export default function ContractPage() {
       setErrorMessage("Network error occurred during contract execution. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadPdf = () => {
+    if (!executedData?.pdfBase64) {
+      window.print();
+      return;
+    }
+    try {
+      const byteCharacters = atob(executedData.pdfBase64);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: "application/pdf" });
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = executedData.pdfFilename || `SpykeAI_Client_Agreement_${executedData.agreementId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (e) {
+      console.error("PDF download failed, falling back to print:", e);
+      window.print();
     }
   };
 
@@ -214,13 +245,25 @@ export default function ContractPage() {
                 </div>
               </div>
 
-              <button
-                onClick={handlePrint}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-slate-950 font-bold text-xs hover:bg-slate-200 transition-all cursor-pointer shadow-sm"
-              >
-                <Printer size={15} />
-                <span>Print / Save PDF</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={handleDownloadPdf}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition-all cursor-pointer shadow-md shadow-emerald-950/40"
+                >
+                  <Download size={15} />
+                  <span>Download Official PDF</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handlePrint}
+                  className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-850 hover:bg-slate-800 text-slate-200 border border-slate-700/80 font-bold text-xs transition-all cursor-pointer"
+                >
+                  <Printer size={14} />
+                  <span>Print</span>
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono">
@@ -774,18 +817,26 @@ export default function ContractPage() {
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 pt-4">
+                <button
+                  type="button"
+                  onClick={handleDownloadPdf}
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-950/50"
+                >
+                  <Download size={16} />
+                  <span>Download Official PDF Contract</span>
+                </button>
                 <button
                   type="button"
                   onClick={handlePrint}
-                  className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white text-slate-950 font-bold text-xs hover:bg-slate-200 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+                  className="w-full sm:w-auto px-5 py-3.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-bold text-xs hover:bg-slate-800 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Printer size={15} />
-                  <span>Download / Print Executed Agreement</span>
+                  <span>Print Record</span>
                 </button>
                 <Link
                   href="/"
-                  className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-[#0D121D] border border-slate-700 text-white font-bold text-xs hover:bg-slate-800 transition-all flex items-center justify-center gap-2 text-center"
+                  className="w-full sm:w-auto px-5 py-3.5 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400 hover:text-white font-semibold text-xs hover:bg-slate-850 transition-all flex items-center justify-center gap-2 text-center"
                 >
                   <span>Return to Website</span>
                 </Link>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { supabase } from "@/lib/supabase";
+import { generateContractPdf } from "@/lib/generateContractPdf";
 
 export const dynamic = "force-dynamic";
 
@@ -83,7 +84,26 @@ export async function POST(req: Request) {
       console.warn("Could not insert to Supabase conversations table:", dbErr);
     }
 
-    // 2. Dispatch Email Confirmation to Client & Provider
+    // 2. Generate Legally Binding Official Contract PDF
+    let pdfBuffer: Buffer | null = null;
+    const pdfFilename = `SpykeAI_Client_Agreement_${companyName.replace(/[^a-zA-Z0-9_-]/g, "_")}_${agreementId}.pdf`;
+    try {
+      pdfBuffer = await generateContractPdf({
+        agreementId,
+        formattedDate,
+        companyName,
+        website: website || "N/A",
+        fullName,
+        businessAddress,
+        email,
+        phone,
+        signature,
+      });
+    } catch (pdfErr) {
+      console.error("Failed to generate contract PDF:", pdfErr);
+    }
+
+    // 3. Dispatch Email Confirmation with Attached Official PDF
     try {
       const transporter = createTransporter();
       const mailHtml = `
@@ -95,6 +115,13 @@ export async function POST(req: Request) {
           </div>
           
           <div style="padding: 28px;">
+            <div style="background-color: #0c4a6e; border: 1px solid #0284c7; border-radius: 12px; padding: 16px 18px; margin-bottom: 24px;">
+              <div style="font-size: 13px; font-weight: 700; color: #38bdf8; margin-bottom: 4px;">📎 Official PDF Agreement Attached</div>
+              <p style="font-size: 12px; color: #bae6fd; margin: 0; line-height: 1.5;">
+                A complete, legally binding PDF copy of this signed agreement has been generated and attached directly to this email for your corporate archives and records.
+              </p>
+            </div>
+
             <div style="background-color: #121826; border: 1px solid #1e293b; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
               <h3 style="font-size: 14px; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 14px 0;">Execution Certificate</h3>
               <table style="width: 100%; border-collapse: collapse; font-size: 13px; color: #cbd5e1;">
@@ -166,12 +193,23 @@ export async function POST(req: Request) {
         </div>
       `;
 
+      const attachments = pdfBuffer
+        ? [
+            {
+              filename: pdfFilename,
+              content: pdfBuffer,
+              contentType: "application/pdf",
+            },
+          ]
+        : [];
+
       await transporter.sendMail({
         from: `"Spyke AI Contracts" <${process.env.SMTP_USER || "spykeai2026@gmail.com"}>`,
         to: email,
         cc: "contact@spykeai.com, spykeai2026@gmail.com",
         subject: `[EXECUTED] Spyke AI Client Services Agreement - ${companyName} (${agreementId})`,
         html: mailHtml,
+        attachments,
       });
     } catch (mailErr) {
       console.warn("Failed to send agreement copy email:", mailErr);
@@ -186,6 +224,8 @@ export async function POST(req: Request) {
       company: companyName,
       providerSignatory: "Authorized Corporate Signatory",
       status: "EXECUTED",
+      pdfBase64: pdfBuffer ? pdfBuffer.toString("base64") : null,
+      pdfFilename,
     });
   } catch (error: any) {
     console.error("POST /api/contract/sign error:", error);

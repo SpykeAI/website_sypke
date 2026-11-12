@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 async function getCookieValue(req: NextRequest | Request, name: string): Promise<string | null> {
   try {
     const cookieStore = await cookies();
@@ -48,8 +50,20 @@ export async function GET(req: NextRequest) {
       (portalRole === "superadmin" ? "spykeai2026@gmail.com" : "external.client@spykeai.com")
     ).toLowerCase().trim();
 
-    // Look up user in Supabase
-    const { data, error } = await supabase.auth.admin.listUsers();
+    // Look up user in Supabase with safety timeout
+    let data: any = null;
+    let error: any = null;
+    try {
+      const listPromise = supabase.auth.admin.listUsers();
+      const timeoutPromise = new Promise<{ data: null; error: any }>((resolve) =>
+        setTimeout(() => resolve({ data: null, error: new Error("Supabase listUsers timeout") }), 3500)
+      );
+      const res = await Promise.race([listPromise, timeoutPromise]);
+      data = res.data;
+      error = res.error;
+    } catch (fetchErr) {
+      error = fetchErr;
+    }
     if (error) {
       console.error("Failed to fetch user list for profile:", error);
       // Fallback gracefully rather than returning 500 error
@@ -70,7 +84,7 @@ export async function GET(req: NextRequest) {
     }
 
     const matchedUser = data?.users?.find(
-      (u) => u.email?.toLowerCase() === targetEmail || u.user_metadata?.username?.toLowerCase() === targetEmail
+      (u: any) => u.email?.toLowerCase() === targetEmail || u.user_metadata?.username?.toLowerCase() === targetEmail
     );
 
     if (!matchedUser) {
