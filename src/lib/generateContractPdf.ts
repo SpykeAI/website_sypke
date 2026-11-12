@@ -12,7 +12,32 @@ export interface ContractPdfParams {
   signature: string;
 }
 
-export async function generateContractPdf(params: ContractPdfParams): Promise<Buffer> {
+export function cleanPdfText(text: string): string {
+  if (!text) return "";
+  return String(text)
+    .replace(/[✓✔]/g, "[VERIFIED]")
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-")
+    .replace(/[\u2026]/g, "...")
+    .replace(/[^\x20-\x7E\xA0-\xFF]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export async function generateContractPdf(rawParams: ContractPdfParams): Promise<Buffer> {
+  const params: ContractPdfParams = {
+    agreementId: cleanPdfText(rawParams.agreementId),
+    formattedDate: cleanPdfText(rawParams.formattedDate),
+    companyName: cleanPdfText(rawParams.companyName),
+    website: cleanPdfText(rawParams.website || "N/A"),
+    fullName: cleanPdfText(rawParams.fullName),
+    businessAddress: cleanPdfText(rawParams.businessAddress),
+    email: cleanPdfText(rawParams.email),
+    phone: cleanPdfText(rawParams.phone),
+    signature: cleanPdfText(rawParams.signature),
+  };
+
   const pdfDoc = await PDFDocument.create();
 
   const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -74,7 +99,8 @@ export async function generateContractPdf(params: ContractPdfParams): Promise<Bu
   };
 
   const wrapText = (text: string, font: PDFFont, fontSize: number, maxWidth: number): string[] => {
-    const words = text.split(" ");
+    const clean = cleanPdfText(text);
+    const words = clean.split(" ");
     const lines: string[] = [];
     let currentLine = "";
 
@@ -391,7 +417,7 @@ export async function generateContractPdf(params: ContractPdfParams): Promise<Bu
         color: rgb(16 / 255, 185 / 255, 129 / 255),
       });
 
-      currentPage.drawText("✓ 100% MONEY-BACK GUARANTEE, REFUNDED WITHIN 24 HOURS", {
+      currentPage.drawText("[100% MONEY-BACK GUARANTEE, REFUNDED WITHIN 24 HOURS", {
         x: margin + 12,
         y: gBoxTop - 30,
         size: 9,

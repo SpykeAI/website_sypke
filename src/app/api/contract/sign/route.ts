@@ -86,7 +86,8 @@ export async function POST(req: Request) {
 
     // 2. Generate Legally Binding Official Contract PDF
     let pdfBuffer: Buffer | null = null;
-    const pdfFilename = `SpykeAI_Client_Agreement_${companyName.replace(/[^a-zA-Z0-9_-]/g, "_")}_${agreementId}.pdf`;
+    const cleanCompany = (companyName || "Client").replace(/[^a-zA-Z0-9_-]/g, "_");
+    const pdfFilename = `SpykeAI_Client_Agreement_${cleanCompany}_${agreementId}.pdf`;
     try {
       pdfBuffer = await generateContractPdf({
         agreementId,
@@ -99,8 +100,9 @@ export async function POST(req: Request) {
         phone,
         signature,
       });
+      console.log(`[CONTRACT_SIGN] PDF generated successfully. File: ${pdfFilename}, Bytes: ${pdfBuffer?.length}`);
     } catch (pdfErr) {
-      console.error("Failed to generate contract PDF:", pdfErr);
+      console.error("[CONTRACT_SIGN] Failed to generate contract PDF:", pdfErr);
     }
 
     // 3. Dispatch Email Confirmation with Attached Official PDF
@@ -193,7 +195,7 @@ export async function POST(req: Request) {
         </div>
       `;
 
-      const attachments = pdfBuffer
+      const attachments = (pdfBuffer && pdfBuffer.length > 0)
         ? [
             {
               filename: pdfFilename,
@@ -203,7 +205,9 @@ export async function POST(req: Request) {
           ]
         : [];
 
-      await transporter.sendMail({
+      console.log(`[CONTRACT_SIGN] Sending email to ${email} with ${attachments.length} attachments`);
+
+      const mailResult = await transporter.sendMail({
         from: `"Spyke AI Contracts" <${process.env.SMTP_USER || "spykeai2026@gmail.com"}>`,
         to: email,
         cc: "contact@spykeai.com, spykeai2026@gmail.com",
@@ -211,6 +215,8 @@ export async function POST(req: Request) {
         html: mailHtml,
         attachments,
       });
+
+      console.log(`[CONTRACT_SIGN] Email dispatched successfully. MessageId: ${mailResult.messageId}`);
     } catch (mailErr) {
       console.warn("Failed to send agreement copy email:", mailErr);
     }
