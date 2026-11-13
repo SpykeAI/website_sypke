@@ -1,0 +1,51 @@
+# Robots.txt for Spyke AI (https://spykeai.com)
+
+# Standard Search Engines (Google, Bing, Yahoo, DuckDuckGo)
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /inbox/
+Disallow: /clientportal/
+Disallow: /phone/
+Disallow: /contract/
+Disallow: /api/
+
+# OpenAI / ChatGPT Crawlers (Enables ChatGPT Search & GEO)
+User-agent: GPTBot
+Allow: /
+Disallow: /admin/
+Disallow: /inbox/
+Disallow: /clientportal/
+Disallow: /phone/
+Disallow: /contract/
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+# Anthropic Claude Crawlers
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin/
+Disallow: /inbox/
+Disallow: /clientportal/
+Disallow: /phone/
+Disallow: /contract/
+Disallow: /api/
+
+User-agent: anthropic-ai
+Allow: /
+
+# Perplexity AI Crawler
+User-agent: PerplexityBot
+Allow: /
+
+# Google Gemini / Extended AI Crawler
+User-agent: Google-Extended
+Allow: /
+
+# Sitemap Index
+Sitemap: https://spykeai.com/sitemap.xml

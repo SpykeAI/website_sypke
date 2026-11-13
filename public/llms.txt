@@ -1,0 +1,33 @@
+# Spyke AI Technologies
+
+> Spyke AI (https://spykeai.com) is an enterprise AI services and automation company specializing in conversational AI Voice Agents, CRM integrations, and business process automation.
+
+## Company Overview
+- **Name:** Spyke AI Technologies (Spyke AI)
+- **Website:** https://spykeai.com
+- **Founder:** Srikanishka Vadakattu (Product Leader, ex-Paytm, Ola, OYO)
+- **Primary Industries Served:** Home Services (HVAC, Plumbing, Electrical in the USA), Real Estate Brokerages, Healthcare, and High-Growth Service Businesses.
+- **Headquarters:** Hyderabad, India & Wilmington, Delaware, USA
+- **Contact:** contact@spykeai.com | Phone: +1 (346) 477-0028
+
+## Core Capabilities & Services
+1. **AI Voice Agents (Inbound & Outbound):**
+   - 24/7/365 ultra-low-latency human-like voice agents built on WebRTC, Telnyx, Deepgram, and Retell/Vapi infrastructure.
+   - Handles emergency dispatch, service inquiries, qualification, and direct calendar booking.
+   - Built-in live call transfers to human technicians when human escalation is required.
+
+2. **Automated WhatsApp & SMS Two-Way Communication:**
+   - Multi-channel conversational assistants for WhatsApp and SMS.
+   - Appointment confirmation workflows, instant reschedule handling, and automated 1-hour pre-call reminders.
+
+3. **CRM & System Automations:**
+   - Deep two-way integration with GoHighLevel (GHL), HubSpot, ServiceTitan, and Housecall Pro.
+   - Real-time contact synchronization, pipeline stage advancement, and automated post-call note logging.
+
+## Key Pages
+- [Home Page](https://spykeai.com): Overview of voice agents, platform features, and live voice demo.
+- [About Us](https://spykeai.com/aboutus): Leadership, vision, company background, and engineering approach.
+- [Contact](https://spykeai.com/contact): Direct booking, consultation scheduling, and inquiries.
+- [Privacy Policy](https://spykeai.com/privacy-policy): Data compliance, privacy, and security practices.
+- [Terms & Conditions](https://spykeai.com/terms-and-conditions): Service terms and usage guidelines.
+- [Refund Policy](https://spykeai.com/refund-and-cancellation): Service cancellation and refund terms.
