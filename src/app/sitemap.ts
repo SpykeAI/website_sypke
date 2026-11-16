@@ -1,8 +1,16 @@
 import { MetadataRoute } from "next";
+import { BLOG_POSTS } from "@/data/blogPosts";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://spykeai.com";
   const now = new Date();
+
+  const blogUrls: MetadataRoute.Sitemap = BLOG_POSTS.map((post) => ({
+    url: `${baseUrl}/blog/${post.slug}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.8,
+  }));
 
   return [
     {
@@ -11,6 +19,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1.0,
     },
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    ...blogUrls,
     {
       url: `${baseUrl}/aboutus`,
       lastModified: now,

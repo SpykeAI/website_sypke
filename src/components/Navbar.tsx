@@ -29,8 +29,10 @@ export default function Navbar() {
           <nav className="hidden md:flex space-x-6 lg:space-x-8 items-center">
             <Link href="/" className="text-gray-600 hover:text-[#00DF81] font-bold transition text-sm">Home</Link>
             <Link href="/aboutus" className="text-gray-600 hover:text-[#00DF81] font-bold transition text-sm">About Us</Link>
-            <Link href="/privacy-policy" className="text-gray-600 hover:text-[#00DF81] font-bold transition text-sm">Privacy Policy</Link>
-            <Link href="/terms-and-conditions" className="text-gray-600 hover:text-[#00DF81] font-bold transition text-sm">Terms & Conditions</Link>
+            <Link href="/blog" className="text-gray-600 hover:text-[#00DF81] font-bold transition text-sm flex items-center gap-1.5">
+              <span>Blog</span>
+              <span className="bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase px-1.5 py-0.5 rounded border border-emerald-200">New</span>
+            </Link>
             <Link href="/contact" className="text-gray-600 hover:text-[#00DF81] font-bold transition text-sm">Contact Us</Link>
           </nav>
           
@@ -67,9 +69,13 @@ export default function Navbar() {
           <div className="px-4 pt-2 pb-6 space-y-2">
             <Link href="/" className="block px-3 py-3 rounded-md text-base font-bold text-gray-700 hover:text-[#00DF81] hover:bg-gray-50" onClick={closeMenu}>Home</Link>
             <Link href="/aboutus" className="block px-3 py-3 rounded-md text-base font-bold text-gray-700 hover:text-[#00DF81] hover:bg-gray-50" onClick={closeMenu}>About Us</Link>
-            <Link href="/privacy-policy" className="block px-3 py-3 rounded-md text-base font-bold text-gray-700 hover:text-[#00DF81] hover:bg-gray-50" onClick={closeMenu}>Privacy Policy</Link>
-            <Link href="/terms-and-conditions" className="block px-3 py-3 rounded-md text-base font-bold text-gray-700 hover:text-[#00DF81] hover:bg-gray-50" onClick={closeMenu}>Terms & Conditions</Link>
+            <Link href="/blog" className="flex items-center justify-between px-3 py-3 rounded-md text-base font-bold text-gray-700 hover:text-[#00DF81] hover:bg-gray-50" onClick={closeMenu}>
+              <span>Blog</span>
+              <span className="bg-emerald-50 text-emerald-700 text-xs font-black uppercase px-2 py-0.5 rounded border border-emerald-200">New</span>
+            </Link>
             <Link href="/contact" className="block px-3 py-3 rounded-md text-base font-bold text-gray-700 hover:text-[#00DF81] hover:bg-gray-50" onClick={closeMenu}>Contact Us</Link>
+            <Link href="/privacy-policy" className="block px-3 py-2 rounded-md text-sm font-semibold text-gray-500 hover:text-gray-900" onClick={closeMenu}>Privacy Policy</Link>
+            <Link href="/terms-and-conditions" className="block px-3 py-2 rounded-md text-sm font-semibold text-gray-500 hover:text-gray-900" onClick={closeMenu}>Terms & Conditions</Link>
             <div className="pt-4 pb-2 px-3">
               <a
                 href="/#lead-form"

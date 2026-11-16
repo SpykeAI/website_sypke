@@ -74,6 +74,7 @@ export default function AppLayoutWrapper({ children }: { children: React.ReactNo
               <ul className="space-y-4 font-medium text-gray-600">
                 <li><Link href="/" className="hover:text-[#00DF81] transition">Home</Link></li>
                 <li><Link href="/aboutus" className="hover:text-[#00DF81] transition">About Us</Link></li>
+                <li><Link href="/blog" className="hover:text-[#00DF81] transition">HVAC AI Blog</Link></li>
                 <li><Link href="/contact" className="hover:text-[#00DF81] transition">Contact Us</Link></li>
               </ul>
             </div>

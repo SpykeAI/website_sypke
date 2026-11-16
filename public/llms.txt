@@ -27,6 +27,11 @@
 ## Key Pages
 - [Home Page](https://spykeai.com): Overview of voice agents, platform features, and live voice demo.
 - [About Us](https://spykeai.com/aboutus): Leadership, vision, company background, and engineering approach.
+- [HVAC AI Blog](https://spykeai.com/blog): Tactical breakdowns, pricing guides, and zero-latency dispatch playbooks for HVAC & trade contractors.
+  - [HVAC AI Receptionist Cost Guide](https://spykeai.com/blog/how-much-does-an-ai-receptionist-cost-for-hvac-contractors): Transparent pricing comparison (in-house vs. answering services vs. AI).
+  - [After-Hours Emergency Call Playbook](https://spykeai.com/blog/never-miss-after-hours-emergency-calls-hvac-playbook): Dispatch protocols to capture after-hours replacement jobs.
+  - [ServiceTitan & Housecall Pro Integration](https://spykeai.com/blog/hvac-lead-capture-servicetitan-housecallpro-integration): Two-way CRM sync and automated dispatch.
+  - [5 Critical Questions for HVAC AI Agents](https://spykeai.com/blog/5-critical-questions-hvac-ai-voice-agent-must-answer): Operational call-flow logic for 92% first-call resolution.
 - [Contact](https://spykeai.com/contact): Direct booking, consultation scheduling, and inquiries.
 - [Privacy Policy](https://spykeai.com/privacy-policy): Data compliance, privacy, and security practices.
 - [Terms & Conditions](https://spykeai.com/terms-and-conditions): Service terms and usage guidelines.
