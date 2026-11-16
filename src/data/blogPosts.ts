@@ -47,7 +47,7 @@ export const BLOG_POSTS: BlogPost[] = [
     author: {
       name: "Srikanishka Vadakattu",
       role: "Founder & AI Systems Architect, Spyke AI",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+      avatar: "/images/authors/srikanishka.png",
     },
     content: {
       tableOfContents: [
@@ -142,7 +142,7 @@ export const BLOG_POSTS: BlogPost[] = [
     author: {
       name: "Srikanishka Vadakattu",
       role: "Founder & AI Systems Architect, Spyke AI",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+      avatar: "/images/authors/srikanishka.png",
     },
     content: {
       tableOfContents: [
@@ -210,7 +210,7 @@ export const BLOG_POSTS: BlogPost[] = [
     author: {
       name: "Srikanishka Vadakattu",
       role: "Founder & AI Systems Architect, Spyke AI",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+      avatar: "/images/authors/srikanishka.png",
     },
     content: {
       tableOfContents: [
@@ -280,7 +280,7 @@ export const BLOG_POSTS: BlogPost[] = [
     author: {
       name: "Srikanishka Vadakattu",
       role: "Founder & AI Systems Architect, Spyke AI",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+      avatar: "/images/authors/srikanishka.png",
     },
     content: {
       tableOfContents: [

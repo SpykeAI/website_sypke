@@ -307,7 +307,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               <img
                 src={post.author.avatar}
                 alt={post.author.name}
-                className="w-14 h-14 rounded-2xl object-cover border border-slate-200 shrink-0"
+                className="w-14 h-14 rounded-full object-cover border border-slate-200 shrink-0"
               />
               <div>
                 <h5 className="text-sm font-bold text-slate-900">{post.author.name}</h5>
