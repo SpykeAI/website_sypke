@@ -112,7 +112,7 @@ export async function POST(req: Request) {
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; background-color: #0b0f17; color: #f1f5f9; border-radius: 16px; overflow: hidden; border: 1px solid #1e293b;">
           <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 32px 28px; border-bottom: 1px solid #334155; text-align: center;">
             <div style="font-size: 13px; font-weight: 700; color: #ef4444; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;">Spyke AI Technologies</div>
-            <h1 style="font-size: 24px; font-weight: 800; color: #ffffff; margin: 0 0 8px 0; letter-spacing: -0.5px;">Client Services Agreement Executed</h1>
+            <h1 style="font-size: 24px; font-weight: 800; color: #ffffff; margin: 0 0 8px 0; letter-spacing: -0.5px;">HVAC Booking Engine Agreement Executed</h1>
             <p style="font-size: 13px; color: #94a3b8; margin: 0;">Authoritative Electronic Record · Ref: <strong>${agreementId}</strong></p>
           </div>
           
@@ -178,9 +178,9 @@ export async function POST(req: Request) {
             </div>
 
             <div style="background-color: #0d1e19; border: 1px solid #065f46; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
-              <div style="font-size: 12px; font-weight: 700; color: #34d399; margin-bottom: 4px;">✓ 100% Money-Back Guarantee Activated</div>
+              <div style="font-size: 12px; font-weight: 700; color: #34d399; margin-bottom: 4px;">✓ 30-Day Performance Guarantee Activated</div>
               <p style="font-size: 12px; color: #a7f3d0; margin: 0; line-height: 1.5;">
-                Your agreement is backed by our full 60-day guarantee upon Full Implementation as specified in §5 of the contract.
+                Your agreement is backed by our full 30-Day Guarantee: 10 Booked Jobs in 30 Days or your booking fees for that month are 100% free as specified in §7 of the Agreement.
               </p>
             </div>
 
@@ -211,7 +211,7 @@ export async function POST(req: Request) {
         from: `"Spyke AI Contracts" <${process.env.SMTP_USER || "spykeai2026@gmail.com"}>`,
         to: email,
         cc: "contact@spykeai.com, spykeai2026@gmail.com",
-        subject: `[EXECUTED] Spyke AI Client Services Agreement - ${companyName} (${agreementId})`,
+        subject: `[EXECUTED] HVAC Booking Engine Client Agreement - ${companyName} (${agreementId})`,
         html: mailHtml,
         attachments,
       });

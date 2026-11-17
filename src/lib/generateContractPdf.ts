@@ -63,7 +63,7 @@ export async function generateContractPdf(rawParams: ContractPdfParams): Promise
 
     // Header line on subsequent pages
     if (pageNumber > 1) {
-      currentPage.drawText("SPYKE AI TECHNOLOGIES · CLIENT SERVICES AGREEMENT", {
+      currentPage.drawText("SPYKE AI TECHNOLOGIES · HVAC BOOKING ENGINE AGREEMENT", {
         x: margin,
         y: pageHeight - 30,
         size: 8,
@@ -163,7 +163,7 @@ export async function generateContractPdf(rawParams: ContractPdfParams): Promise
   y -= 38;
 
   // Title
-  currentPage.drawText("Spyke AI Client Services Agreement", {
+  currentPage.drawText("HVAC Booking Engine: Client Agreement", {
     x: margin,
     y: y - 18,
     size: 20,
@@ -172,7 +172,7 @@ export async function generateContractPdf(rawParams: ContractPdfParams): Promise
   });
   y -= 26;
 
-  currentPage.drawText("Legally Binding Electronic Client Agreement, System Implementation & Service Terms", {
+  currentPage.drawText("The HVAC Booking Engine: Final Offer, Commercial Terms & Master Service Agreement", {
     x: margin,
     y: y - 10,
     size: 9.5,
@@ -310,84 +310,79 @@ export async function generateContractPdf(rawParams: ContractPdfParams): Promise
   const clauses = [
     {
       num: "1",
-      title: "Services, The Spyke AI System",
-      text: "Upon payment of the Fee (§2), we grant you access to the Spyke AI System, which includes: the complete AI Voice & Messaging infrastructure and all its modules; niche customization and voice agent workflow building with our team; the inbound & outbound call handling systems and software tools we provision for members; funnel, CRM, webhook and automation frameworks; our templates, scripts and resources; the client community; and the support channels described in §4. Your access does not expire, you keep the System for as long as the Spyke AI System operates, with no renewal fees and no re-purchase (§12). If your written offer, checkout page, or invoice includes the Inbound Engine / Growth package, the Services also include: your AI voice agent configuration, booking flow built for you; scripts and system setup from our playbook; telephony, Twilio/Telnyx line and tracking setup; campaign structure built in your account; a joint launch; and follow-up flows connected to your CRM. Ad spend/carrier usage is paid by you directly to the platforms and is never part of any Fee. We may improve, update or substitute components of the System over time, provided the overall substance of what you purchased is preserved or improved.",
+      title: "Parties, Scope & Definitions",
+      text: "This agreement is between Spyke AI Technologies (Spyke) and the Client, an HVAC business. Scope: Spyke operates the HVAC Booking Engine: it answers inbound calls, calls back missed calls, website forms and ad leads, books jobs into the calendar, follows up open estimates, and sends confirmations. Definitions: Booking Line: dedicated local number provided by Spyke, plus Client forwarded numbers. Go-Live Day: day the Booking Line answers with AI and existing numbers are forwarded, confirmed by email. Booked Job: a homeowner in agreed service area with a real HVAC need placed on the calendar, whose first contact came through the Booking Line or Spyke outbound call within 30 days. Repair Job: Booked Job for repair, service, diagnosis or maintenance. Replacement Estimate: Booked Job for in-home estimate on a new or replacement heating/cooling system. AI Minutes: minutes of calls handled by AI, rounded up to nearest minute. Spam: robocalls, wrong numbers, and calls under 15 seconds. Statement: weekly itemized email showing each Booked Job with recording link and amount due.",
     },
     {
       num: "2",
-      title: "Fees & Payment",
-      text: "Your Fee is the exact price you were quoted and agreed in writing before signing, on your invoice, checkout page, or written payment agreement (the 'Fee'), including any installment or milestone schedule agreed there. Nothing on this page adds to it: no hidden costs, no required upsells, no renewal or maintenance fees, ever. Access is granted on receipt of the first payment. If a scheduled payment is not made when due, we may pause access until it is, and if that happens, your §5 guarantee clock simply pauses too and resumes when access is restored; a pause never resets your progress. All amounts are in USD unless stated otherwise.",
+      title: "What the Client Provides",
+      text: "Go-Live and the 30-day guarantee period depend on the Client providing: business details (legal name, EIN, address, service ZIPs) at signing for carrier 10DLC registration; services offered, exclusions, and pricing rules (diagnostic fee) at signing; calendar or FSM access (ServiceTitan, Jobber, Housecall Pro, or Google Calendar) before Go-Live; call forwarding from existing business number before Go-Live; on-call technician mobile number and emergency escalation rules before Go-Live; listings manager access in Week 1; card or US bank account on file with payment authorization at signing; and a named contact who replies within 1 business day.",
     },
     {
       num: "3",
-      title: "Onboarding & Implementation",
-      text: "After purchase, we run onboarding with you, which includes niche finalization and voice agent / workflow building together with our team, followed by installation of the automated system (the 'Setup Phase'). We complete installation within 14 days of you finishing your onboarding steps, usually much faster. You agree to participate in onboarding, provide the information and account access reasonably needed, and complete the steps that only you can perform (e.g. account signups, verifications, recordings). 'Full Implementation' means: onboarding completed; niche and offer finalized with our team; the outreach/voice agent system installed; the automations switched ON and running continuously at the settings we give you in writing at onboarding (so the target never moves on you); and your booking calendar connected. Full Implementation is reached, at the latest, when at least four (4) outreach/system channels are live and running. Most clients are fully live within 7 to 10 days of starting onboarding; fast movers do it in 4. The moment Full Implementation is reached, we confirm it to you in writing, and that confirmation is the official start of your 60-day guarantee window (§5), so you always know exactly where you stand.",
+      title: "Setup, Go-Live & Rollout",
+      text: "Voice goes live within 5 to 7 days after signing. Day 0 (Signing): setup fee paid, payment authorization signed, details received, 10DLC carrier texting registration submitted. Days 1 to 7 (Voice Build): Spyke provisions the dedicated Booking Line, trains the AI on Client services, connects calendar, and executes test calls. Go-Live Day: the Booking Line answers with AI, existing number is forwarded, confirmation emailed, and the 30-day guarantee starts. Weeks 1 to 2: Booking Line added to Google Business Profile, website, and local directories. Carrier approval: missed-call text-back, booking confirmations, reminders, and review requests activate.",
     },
     {
       num: "4",
-      title: "Support, Unlimited, in Writing",
-      text: "From the moment your offer building and niche finalization are complete, you may raise unlimited support requests, questions, reviews, fixes, anything related to the System, via email, our ticketing system, or SMS. There is no cap on the number of tickets or requests. We respond in the order received and within a commercially reasonable time. Support covers the System and its implementation; it does not include us operating your business for you.",
+      title: "Fees & Payment Schedule",
+      text: "Setup fee: $2,000 one-time at signing. Per Booked Repair Job: $100. Per Booked Replacement Estimate: $200. Monthly retainer: $0. Software, calls, texts, and carrier fees: $0, Spyke pays. AI minutes beyond fair-use allowance: $0.15 per minute. All amounts are in USD and charged weekly after a 48-hour review window.",
     },
     {
       num: "5",
-      title: "The Refund Guarantee (100% Money-Back)",
-      isGuarantee: true,
-      text: "Implement the system, keep it live for 60 days, and if it doesn't book you at least 2 sales calls every single day, we refund 100% of what you paid. Happily, and within 24 hours of verifying. No partial refunds, no credits-instead-of-cash, no hoops.\n• 5.1, When it applies. (a) You reached Full Implementation (§3), (b) the outreach system was live, automations on and running, for 60 consecutive days at the prescribed settings, and (c) during that period it did not book you at least two (2) Qualified Sales Calls every single day (defined in 5.2), as shown by the System's own logs and your connected calendar.\n• 5.2, Qualified Calls. A Qualified Call is an attended conversation with an eligible prospect in your target niche who expressed clear interest in your service offering.",
+      title: "Fair Use: 60 AI Minutes per Booked Job",
+      text: "Each Booked Job includes 60 AI Minutes, pooled across the calendar month. Allowance = Booked Jobs in month x 60 minutes. Overage = [AI Minutes used - Allowance (if positive)] x $0.15. Time after a call is transferred to the Client staff does not count toward AI Minutes. Fair use protects against heavy call volume with minimal bookings without charging a monthly retainer.",
     },
     {
       num: "6",
-      title: "Your Responsibilities",
-      text: "You agree to: (a) complete onboarding and the steps only you can do, within a reasonable time of our requests; (b) keep your accounts, tools and integrations connected and in good standing; (c) use the System only for lawful business purposes; (d) not share, resell, or provide access to the System or its materials to any third party; and (e) tell us promptly, through support, when something isn't working, so we can fix it.",
+      title: "What Is Billable: The 30-Day First-Contact Test",
+      text: "One objective test decides every case: did this customer first contact come through the Booking Line, or a Spyke outbound call, in the 30 days before the job was booked? If yes, it is billable. Includes: inbound AI booked, forwarded calls, AI qualified transferred to staff who books, web forms and ad leads called by Spyke and booked within 30 days, missed-call callbacks, and old estimate reactivations. Customer cancellations at any time are charged a flat $10 fee. No-shows are billable. Walk-ins, direct calls to technician personal phones, out-of-area calls, and spam are not billable ($0).",
     },
     {
       num: "7",
-      title: "Compliance Is Yours",
-      text: "You are the sender and operator of your own outreach. You are responsible for your compliance with the laws and platform rules that apply to your messages and your market, including (as applicable) CAN-SPAM, TCPA, A2P/carrier rules, GDPR/UK-GDPR, PECR, and each platform's terms of service. We provide tools, training and prescribed settings designed for sensible use; we are not your lawyer and do not warrant your outreach's legal compliance in your jurisdiction. Our side of it: we will never knowingly configure the System, or instruct you, to run outreach that violates applicable laws, carrier requirements, or platform policies. The prescribed settings are designed to operate within them.",
+      title: "The Guarantee (10 Booked Jobs in 30 Days)",
+      isGuarantee: true,
+      text: "10 Booked Jobs in the first 30 days after Go-Live, or booking fees for that period are free ($0). The setup fee is not part of the guarantee.\nExample: Spyke books 7 jobs in the first 30 days. The Client would have owed $700. The Client pays $0 for those bookings and keeps the jobs.\nPeriod: The 30 days starting on Go-Live Day, as confirmed by email. Applies once, to the first 30 days only. Standard per-booking fees resume on day 31.\nConditions: Business receives at least 150 inbound calls and form leads during the 30 days; call forwarding stays active; calendar access remains connected with open slots; client attends booked appointments; and service area matches signing details.",
     },
     {
       num: "8",
-      title: "Intellectual Property",
-      text: "The System, trainings, scripts, templates, software, prompts, frameworks, and materials, is and remains our intellectual property (or that of our licensors). You receive a non-exclusive, non-transferable license to use it for your own business while you have access. Assets we create for you during implementation (your funnel copy, your creatives, your configured systems) are yours to keep and use for your business, and if your access ever ends, those assets remain yours and we will provide a reasonable export of your CRM data on request.",
+      title: "Refunds and Credits",
+      text: "The setup fee is not refundable as it covers build work and carrier registration. Billing mistakes and valid disputes are resolved as statement credits on the next weekly cycle, not cash refunds. Unused credits upon account termination are refunded via cash within 14 days.",
     },
     {
       num: "9",
-      title: "Confidentiality",
-      text: "Each party will keep the other's non-public information confidential and use it only for purposes of this Agreement. This survives termination. We may state that you are a client; we will only publish your specific results with your consent.",
+      title: "How the Client Is Charged",
+      text: "Client card or US bank account is charged automatically every week. Every Monday, Spyke emails the Statement for the prior Monday-Sunday cycle with links to each call recording. A 48-hour review window applies until Wednesday. On Wednesday, the total minus any lines under active dispute is charged automatically. If payment fails, Spyke retries over 3 days; after 3 days, AI pauses and calls forward directly to Client phone.",
     },
     {
       num: "10",
-      title: "No Other Earnings Promises",
-      text: "Business results vary with markets, effort and execution. Other than the express Refund Guarantee in §5, which is real, and honored exactly as written, we make no other guarantee of income, revenue, or results, and any figures shown in our marketing are examples, not promises.",
+      title: "Disputes",
+      text: "Disputes must be raised by replying to the Statement email within 48 hours, stating the line and valid reason (spam, out-of-area, duplicate, customer cancelled). Disputed lines are held from billing while Spyke reviews call recordings and issues a determination within 2 business days.",
     },
     {
       num: "11",
-      title: "Limitation of Liability",
-      text: "To the maximum extent permitted by law: neither party is liable for indirect, incidental, special or consequential damages; and our total aggregate liability under this Agreement is capped at the Fee you actually paid. Nothing in this Agreement limits liability that cannot lawfully be limited (including fraud).",
+      title: "Phone Numbers, Forwarding & Listings",
+      text: "Spyke provisions a dedicated local Booking Line with Client caller ID. The Client existing number always remains Client property and is forwarded to Spyke. Emergency calls (gas odor, no heat in freezing temperatures) route immediately to the on-call technician.",
     },
     {
       num: "12",
-      title: "Term & Termination",
-      text: "This Agreement starts on the Effective Date (the date you sign below). Your access does not expire, it continues for as long as the Spyke AI System operates, with no renewal fees. We may terminate for your material breach (including non-payment or sharing access) that remains uncured 14 days after written notice. You are protected the same way: if we materially fail to deliver the services (for example, you request a call or support and hear nothing back within 3 business days), tell us in writing. If we have not fixed it within 14 days of that notice, you may terminate this Agreement and receive a full refund of the Fee you have actually paid. Otherwise, you may stop using the System at any time; fees already paid are only refundable under §5 or this clause.",
+      title: "Term, Cancellation and Exit",
+      text: "Minimum initial term of 6 months from Go-Live Day, continuing month-to-month thereafter with 30 days written notice. After 6 months, the Booking Line transfers to the Client for free ($1,000 transfer fee if terminated prior). Customer data and recordings are exported within 7 days. AI agents, workflows, and prompts remain Spyke intellectual property.",
     },
     {
       num: "13",
-      title: "Governing Law & Disputes",
-      text: "This Agreement is governed by the laws of the State of Texas, USA, without regard to conflict-of-law rules. The parties will first attempt in good faith to resolve any dispute through the support channels and direct discussion within 30 days before starting formal proceedings. Venue for formal proceedings is Dallas County, Texas, except that either party may seek injunctive relief for IP or confidentiality breaches in any competent court.",
+      title: "Compliance",
+      text: "Calls are announced as recorded at the start of every call. The AI discloses its automated nature when asked. Spyke only contacts individuals who called, submitted forms, or requested quotes; no cold calling is performed. Carrier 10DLC registration is maintained.",
     },
     {
       num: "14",
-      title: "Electronic Signature & Records",
-      text: "Both parties agree to do business electronically. Your typed name below, submitted with the consent box checked, is your electronic signature and is legally binding under the U.S. E-SIGN Act and UETA, and the UK's Electronic Communications Act 2000 / eIDAS as applicable. Our counter-signature is applied in advance and delivered with this document. The executed record, including both signatures, your details, the date-time stamp and the signing IP address, is stored by us and emailed to you; that record is the authoritative copy.",
+      title: "Data and Ownership",
+      text: "The Client owns all customer data, names, phone numbers, job addresses, and call recordings. Spyke owns the AI voice agent technology, software, and workflows. Recordings are retained for 12 months.",
     },
     {
       num: "15",
-      title: "Notices",
-      text: "Notices to us: contact@spykeai.com, or post to either address in the Parties section. Notices to you: the email address you provide below. Email notice is effective on sending, absent a bounce.",
-    },
-    {
-      num: "16",
-      title: "General",
-      text: "This document plus your invoice/payment agreement is the entire agreement and supersedes prior discussions. If any clause is unenforceable, the rest stands. Amendments must be in writing (email suffices) and agreed by both parties. You may not assign this Agreement without our written consent; we may assign to an affiliate. Nothing here creates a partnership, employment or agency relationship.",
+      title: "Service Levels, Liability & General Terms",
+      text: "The Booking Line operates 24/7 with automated human fallback. Support replies within 48 hours. Total aggregate liability is capped at the setup fee paid ($2,000). Governed by Texas law (Dallas County venue). Electronic signatures are valid under the U.S. E-SIGN Act and UETA.",
     },
   ];
 

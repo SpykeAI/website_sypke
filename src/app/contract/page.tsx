@@ -20,6 +20,18 @@ import {
   ExternalLink,
   Check,
   Sparkles,
+  Calendar,
+  Clock,
+  DollarSign,
+  Flame,
+  Zap,
+  PhoneCall,
+  MessageSquare,
+  Gift,
+  HelpCircle,
+  BadgeCheck,
+  TrendingUp,
+  Award,
 } from "lucide-react";
 
 interface ContractFormData {
@@ -78,7 +90,7 @@ export default function ContractPage() {
 
     // Validation
     if (!formData.companyName.trim()) {
-      setErrorMessage("Please enter your Company / Business Name.");
+      setErrorMessage("Please enter your HVAC Company / Business Name.");
       return;
     }
     if (!formData.fullName.trim()) {
@@ -155,7 +167,7 @@ export default function ContractPage() {
       const blobUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = blobUrl;
-      link.download = executedData.pdfFilename || `SpykeAI_Client_Agreement_${executedData.agreementId}.pdf`;
+      link.download = executedData.pdfFilename || `SpykeAI_HVAC_Agreement_${executedData.agreementId}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -183,7 +195,7 @@ export default function ContractPage() {
           </Link>
           <span className="h-4 w-[1px] bg-slate-800 hidden sm:inline" />
           <span className="text-xs font-bold tracking-wider uppercase text-slate-400 hidden sm:inline">
-            Client Services Agreement
+            HVAC Booking Engine Agreement
           </span>
         </div>
 
@@ -204,25 +216,27 @@ export default function ContractPage() {
       </nav>
 
       {/* MAIN CONTAINER */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14 space-y-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14 space-y-12">
         {/* HERO TITLE HEADER */}
-        <div className="space-y-3">
+        <div className="space-y-3.5">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-red-950/60 text-red-400 border border-red-500/30">
             <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-            CLIENT SERVICES & IMPLEMENTATION AGREEMENT
+            THE HVAC BOOKING ENGINE · CLIENT SERVICES AGREEMENT
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-            Spyke AI Client Agreement
+            The HVAC Booking Engine: Final Offer &amp; Agreement
           </h1>
-          <p className="text-slate-400 text-sm sm:text-base max-w-2xl leading-relaxed">
-            Legally binding electronic agreement for the deployment, configuration, and implementation of the Spyke AI Voice & Messaging System.
+          <p className="text-slate-300 text-sm sm:text-base max-w-3xl leading-relaxed">
+            10 booked jobs in 30 days guaranteed from the calls &amp; leads you already get. 24/7 call answering, 60-second callbacks, automated calendar booking, and estimate follow-up without hiring staff or paying a monthly retainer.
           </p>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 pt-1 text-xs text-slate-400 font-mono">
-            <span>REF: SPYKE-MASTER-2026</span>
+            <span>REF: HVAC-ENGINE-2026</span>
             <span>·</span>
-            <span>GOVERNING LAW: TEXAS, USA</span>
+            <span>PAY-FOR-PERFORMANCE MODEL</span>
             <span>·</span>
-            <span>E-SIGN & UETA COMPLIANT</span>
+            <span>10-JOB 30-DAY GUARANTEE</span>
+            <span>·</span>
+            <span>E-SIGN &amp; UETA COMPLIANT</span>
           </div>
         </div>
 
@@ -237,7 +251,7 @@ export default function ContractPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-500 text-slate-950">
-                      EXECUTED & BINDING
+                      EXECUTED &amp; BINDING
                     </span>
                     <span className="text-xs font-mono text-emerald-400">{executedData.agreementId}</span>
                   </div>
@@ -286,12 +300,294 @@ export default function ContractPage() {
             </div>
 
             <p className="text-xs text-slate-400 leading-relaxed">
-              ✓ An authoritative copy of this signed agreement along with full timestamp, cryptographic record, and execution details has been sent to your email. You can download or print this page at any time for your corporate records.
+              An authoritative copy of this signed agreement along with full timestamp, cryptographic record, and execution details has been sent to your email. You can download or print this page at any time for your corporate records.
             </p>
           </div>
         )}
 
-        {/* SECTION 1: THE PARTIES */}
+        {/* SECTION 1: THE COMMERCIAL OFFER & VALUE STACK */}
+        <section className="space-y-6">
+          <div className="flex items-center gap-3">
+            <span className="text-red-500 font-extrabold text-[11px] uppercase tracking-[0.2em]">
+              THE COMMERCIAL OFFER
+            </span>
+            <div className="flex-1 h-[1px] bg-red-900/30" />
+          </div>
+
+          {/* PROMISE & HOW IT WORKS CARDS */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* The Promise */}
+            <div className="bg-gradient-to-br from-[#0e1626] to-[#0b0f19] rounded-2xl border border-blue-500/30 p-6 sm:p-7 space-y-3 shadow-xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all" />
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-blue-950/80 text-blue-400 border border-blue-500/30">
+                <Award size={13} />
+                <span>1. The Promise</span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
+                10 booked jobs in 30 days.
+              </h3>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                From the calls &amp; leads you <strong className="text-white">already get</strong>. We turn your missed calls, website forms, and open estimates into confirmed jobs on your calendar.
+              </p>
+            </div>
+
+            {/* How */}
+            <div className="bg-gradient-to-br from-[#121c17] to-[#0b0f19] rounded-2xl border border-emerald-500/30 p-6 sm:p-7 space-y-3 shadow-xl relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all" />
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-950/80 text-emerald-400 border border-emerald-500/30">
+                <Zap size={13} />
+                <span>2. How It Works</span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
+                The HVAC Booking Engine
+              </h3>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                Answers, calls back, and books every customer who reaches you — <strong className="text-white">without hiring more staff or paying a monthly retainer</strong>.
+              </p>
+            </div>
+          </div>
+
+          {/* WHAT IT DOES: 5 CORE PILLARS */}
+          <div className="bg-[#0B0F19] rounded-2xl border border-slate-800 p-6 sm:p-8 space-y-5 shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-4">
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                  CORE CAPABILITIES
+                </span>
+                <h3 className="text-lg font-black text-white">3. What It Does</h3>
+              </div>
+              <span className="text-xs font-mono text-emerald-400 font-bold">
+                Automated 24/7/365 Answering &amp; Dispatch
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+              <div className="p-4 rounded-xl bg-[#090D15] border border-slate-800/80 space-y-1.5 hover:border-slate-700 transition-colors">
+                <div className="flex items-center justify-between">
+                  <PhoneCall size={18} className="text-emerald-400" />
+                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-500/30">24/7 Live</span>
+                </div>
+                <h4 className="font-bold text-white text-xs pt-1">Answers Every Call</h4>
+                <p className="text-[11px] text-slate-400">24/7, nights and weekends, in under 3 rings.</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-[#090D15] border border-slate-800/80 space-y-1.5 hover:border-slate-700 transition-colors">
+                <div className="flex items-center justify-between">
+                  <Clock size={18} className="text-cyan-400" />
+                  <span className="text-[10px] font-bold text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-500/30">60 Seconds</span>
+                </div>
+                <h4 className="font-bold text-white text-xs pt-1">Calls Back Missed Calls</h4>
+                <p className="text-[11px] text-slate-400">Instant outbound callback before they dial your competitor.</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-[#090D15] border border-slate-800/80 space-y-1.5 hover:border-slate-700 transition-colors">
+                <div className="flex items-center justify-between">
+                  <Flame size={18} className="text-amber-400" />
+                  <span className="text-[10px] font-bold text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-500/30">Instant</span>
+                </div>
+                <h4 className="font-bold text-white text-xs pt-1">Calls Web &amp; Ad Leads</h4>
+                <p className="text-[11px] text-slate-400">Calls every website form &amp; ad lead within 60 seconds.</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-[#090D15] border border-slate-800/80 space-y-1.5 hover:border-slate-700 transition-colors">
+                <div className="flex items-center justify-between">
+                  <Calendar size={18} className="text-emerald-400" />
+                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-500/30">Integrated</span>
+                </div>
+                <h4 className="font-bold text-white text-xs pt-1">Books Jobs Directly</h4>
+                <p className="text-[11px] text-slate-400">Straight into your calendar (ServiceTitan, Jobber, Housecall, Google).</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-[#090D15] border border-slate-800/80 space-y-1.5 hover:border-slate-700 transition-colors">
+                <div className="flex items-center justify-between">
+                  <MessageSquare size={18} className="text-purple-400" />
+                  <span className="text-[10px] font-bold text-purple-400 bg-purple-950/60 px-2 py-0.5 rounded-full border border-purple-500/30">Automated</span>
+                </div>
+                <h4 className="font-bold text-white text-xs pt-1">Follows Up Estimates</h4>
+                <p className="text-[11px] text-slate-400">Multi-touch text and call follow-up until the customer decides.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* VALUE STACK VS WHAT YOU PAY (SIDE BY SIDE COMPARISON) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            {/* Left: What It's Worth */}
+            <div className="lg:col-span-7 bg-[#0B0F19] rounded-2xl border border-slate-800 p-6 sm:p-7 space-y-5 shadow-xl">
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+                  MARKET COMPARISON
+                </span>
+                <h3 className="text-lg font-black text-white mt-1">4. What It&apos;s Worth (Market Value)</h3>
+                <p className="text-xs text-slate-400">Equivalent cost if hiring full-time staff and software licenses.</p>
+              </div>
+
+              <div className="space-y-2.5 text-xs">
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#090D15] border border-slate-800">
+                  <span className="text-slate-300 font-medium">24/7 call answering (dedicated receptionist)</span>
+                  <span className="font-mono font-bold text-white">$3,170/mo</span>
+                </div>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#090D15] border border-slate-800">
+                  <span className="text-slate-300 font-medium">60-second callbacks (appointment setter)</span>
+                  <span className="font-mono font-bold text-white">$3,000/mo</span>
+                </div>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#090D15] border border-slate-800">
+                  <span className="text-slate-300 font-medium">Estimate follow-up (sales coordinator)</span>
+                  <span className="font-mono font-bold text-white">$1,500/mo</span>
+                </div>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#090D15] border border-slate-800">
+                  <span className="text-slate-300 font-medium">All software, telecom, carrier calls, texts, emails</span>
+                  <span className="font-mono font-bold text-white">$799/mo</span>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/90 border border-slate-700/80 font-bold">
+                  <span className="text-white">Monthly Service Total</span>
+                  <span className="font-mono text-emerald-400 font-black text-sm">~$8,500/mo</span>
+                </div>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#090D15] border border-slate-800">
+                  <span className="text-slate-300 font-medium">Custom AI Agent built &amp; trained for your business</span>
+                  <span className="font-mono font-bold text-white">$6,500 one-time</span>
+                </div>
+              </div>
+
+              {/* BONUSES */}
+              <div className="pt-2 border-t border-slate-800/80 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Gift size={16} className="text-amber-400" />
+                  <h4 className="text-xs font-black uppercase tracking-wider text-amber-300">
+                    5. Bonuses Included Free
+                  </h4>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                  <div className="p-2 rounded-lg bg-[#090D15] border border-slate-800 flex justify-between">
+                    <span className="text-slate-400">Old customer &amp; estimate callbacks</span>
+                    <span className="font-mono font-bold text-amber-300">$1,000</span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-[#090D15] border border-slate-800 flex justify-between">
+                    <span className="text-slate-400">5-star review requests after every job</span>
+                    <span className="font-mono font-bold text-amber-300">$300/mo</span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-[#090D15] border border-slate-800 flex justify-between">
+                    <span className="text-slate-400">Seasonal tune-up reminder engine</span>
+                    <span className="font-mono font-bold text-amber-300">$500/mo</span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-[#090D15] border border-slate-800 flex justify-between">
+                    <span className="text-slate-400">Live dashboard &amp; audio recordings</span>
+                    <span className="font-mono font-bold text-amber-300">$300/mo</span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-[#090D15] border border-slate-800 flex justify-between">
+                    <span className="text-slate-400">Emergency tech instant transfer</span>
+                    <span className="font-mono font-bold text-emerald-400">Included</span>
+                  </div>
+                  <div className="p-2 rounded-lg bg-[#090D15] border border-slate-800 flex justify-between">
+                    <span className="text-slate-400">English + Spanish bilingual voice</span>
+                    <span className="font-mono font-bold text-emerald-400">Included</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-gradient-to-r from-slate-900 to-[#101726] border border-slate-700 text-center">
+                <span className="text-xs text-slate-400 block font-mono">6. Total Combined Market Value</span>
+                <span className="text-base sm:text-lg font-black text-white">~$10,000/month + $7,500 one-time build</span>
+              </div>
+            </div>
+
+            {/* Right: What You Pay */}
+            <div className="lg:col-span-5 bg-gradient-to-br from-[#0c1322] via-[#0B0F19] to-[#0A1118] rounded-2xl border-2 border-emerald-500/40 p-6 sm:p-7 space-y-5 shadow-2xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-emerald-400">
+                    PAY-FOR-PERFORMANCE
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-950 text-emerald-400 border border-emerald-500/40">
+                    NO RETAINER
+                  </span>
+                </div>
+                <h3 className="text-xl font-black text-white mt-1">7. What You Pay</h3>
+                <p className="text-xs text-slate-300">You only pay when we deliver actual booked jobs.</p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="p-3.5 rounded-xl bg-[#070b14] border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-white block">Setup Fee (One-Time)</span>
+                    <span className="text-[10px] text-slate-400">AI build, phone line, calendar &amp; carrier registration</span>
+                  </div>
+                  <span className="text-lg font-mono font-black text-white">$2,000</span>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/40 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-emerald-300 block">Per Booked Repair Job</span>
+                    <span className="text-[10px] text-slate-400">Confirmed service call placed on your calendar</span>
+                  </div>
+                  <span className="text-xl font-mono font-black text-emerald-400">$100</span>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/40 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs font-bold text-emerald-300 block">Per Booked Replacement Estimate</span>
+                    <span className="text-[10px] text-slate-400">In-home HVAC quote booked on your calendar</span>
+                  </div>
+                  <span className="text-xl font-mono font-black text-emerald-400">$200</span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#070b14] border border-slate-800 flex items-center justify-between text-xs">
+                  <span className="text-slate-300">Software, Calls &amp; Carrier Texts</span>
+                  <span className="font-mono font-bold text-emerald-400">$0, We Pay</span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#070b14] border border-slate-800 flex items-center justify-between text-xs">
+                  <span className="text-slate-300">Monthly Retainer</span>
+                  <span className="font-mono font-bold text-emerald-400">$0</span>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-[#081512] border border-emerald-500/30 text-xs text-slate-300 space-y-1">
+                <span className="text-emerald-400 font-bold block text-[11px] uppercase tracking-wider">9. The Math</span>
+                <p>You get: <strong className="text-white">~$10,000/mo</strong> of work.</p>
+                <p>You pay: <strong className="text-emerald-400">~$1,200/mo</strong> (at 10 bookings).</p>
+                <p className="text-white font-medium pt-1 text-[11px]">
+                  💡 One single replacement job pays for half a year of bookings.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* THE GUARANTEE HIGHLIGHT CARD */}
+          <div className="bg-gradient-to-br from-[#071a14] via-[#091512] to-[#071310] border-2 border-emerald-500 rounded-3xl p-6 sm:p-8 space-y-4 shadow-2xl shadow-emerald-950/40">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-emerald-400 shrink-0">
+                  <ShieldCheck size={22} />
+                </div>
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">
+                    8. THE 30-DAY PERFORMANCE GUARANTEE
+                  </span>
+                  <h3 className="text-xl sm:text-2xl font-black text-white">
+                    10 booked jobs in 30 days, or that month&apos;s bookings are free.
+                  </h3>
+                </div>
+              </div>
+              <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500 text-slate-950 self-start sm:self-auto">
+                Risk-Free Performance
+              </span>
+            </div>
+
+            <p className="text-sm text-emerald-100/90 leading-relaxed font-medium">
+              If we don&apos;t book you at least 10 qualified jobs in the first 30 days after Go-Live from your incoming calls and leads, every single booking fee for that month is waived ($0). You keep every dollar of work performed.
+            </p>
+          </div>
+
+          {/* ONE-PARAGRAPH VERSION */}
+          <div className="p-5 sm:p-6 rounded-2xl bg-[#090D15] border border-slate-800 text-slate-300 text-xs sm:text-[13px] leading-relaxed italic relative">
+            <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 block not-italic mb-1.5">
+              THE AGREEMENT IN ONE PARAGRAPH (SAY IT OUT LOUD)
+            </span>
+            &quot;We&apos;ll book you 10 HVAC jobs in 30 days, from the calls &amp; leads you already get. The HVAC Booking Engine answers every call 24/7, calls back every missed call, form and ad lead in 60 seconds, and follows up every estimate, without hiring more staff or paying a monthly retainer. That&apos;s $10,000 a month of work, and we pay all software and call costs. You pay $2,000 to set up, then $100 per booked repair and $200 per booked replacement estimate. If we don&apos;t book 10 jobs in 30 days, that month&apos;s bookings are free.&quot;
+          </div>
+        </section>
+
+        {/* SECTION 2: THE PARTIES */}
         <section className="space-y-4">
           <div className="flex items-center gap-3">
             <span className="text-red-500 font-extrabold text-[11px] uppercase tracking-[0.2em]">
@@ -301,21 +597,21 @@ export default function ContractPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* 1A: THE PROVIDER */}
+            {/* 2A: THE PROVIDER */}
             <div className="bg-[#0B0F19] rounded-2xl border border-slate-800 p-6 sm:p-7 space-y-4 shadow-xl">
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
-                  THE PROVIDER (&quot;SPYKE AI&quot;, &quot;WE&quot;)
+                  THE PROVIDER (&quot;SPYKE&quot;, &quot;WE&quot;)
                 </span>
                 <h3 className="text-lg font-black text-white mt-1">Spyke AI Technologies</h3>
               </div>
 
               <div className="text-xs text-slate-400 space-y-3 leading-relaxed">
                 <p>
-                  <strong className="text-white">Spyke AI Technologies</strong> is the contracting entity under this Agreement and is responsible for delivering the services and honoring the guarantee and refund obligations.
+                  <strong className="text-white">Spyke AI Technologies</strong> is the contracting provider under this Agreement and is solely responsible for engineering, deploying, and operating the HVAC Booking Engine, providing telecommunications lines, and honoring the performance guarantee.
                 </p>
                 <p>
-                  <strong className="text-slate-300">Global Operations &amp; Delivery:</strong> Dallas, TX 75208, United States &amp; Hyderabad, Telangana, India. Your Agreement is directly with Spyke AI Technologies.
+                  <strong className="text-slate-300">Operations &amp; Corporate Delivery:</strong> Dallas, TX 75208, United States &amp; Hyderabad, Telangana, India. Your agreement is directly with Spyke AI Technologies.
                 </p>
               </div>
 
@@ -335,20 +631,20 @@ export default function ContractPage() {
               </div>
             </div>
 
-            {/* 1B: THE CLIENT */}
+            {/* 2B: THE CLIENT FORM */}
             <div className="bg-[#0B0F19] rounded-2xl border border-slate-800 p-6 sm:p-7 space-y-4 shadow-xl">
               <div>
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
                   THE CLIENT (&quot;YOU&quot;)
                 </span>
-                <h3 className="text-lg font-black text-white mt-1">Your Details</h3>
+                <h3 className="text-lg font-black text-white mt-1">Your Business Details</h3>
               </div>
 
               <div className="space-y-3.5">
                 {/* Company Name */}
                 <div>
                   <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                    Company / Business Name <span className="text-red-500">*</span>
+                    HVAC Company / Legal Entity Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -356,7 +652,7 @@ export default function ContractPage() {
                     disabled={!!executedData}
                     value={formData.companyName}
                     onChange={(e) => handleInputChange("companyName", e.target.value)}
-                    placeholder="Your Company LLC"
+                    placeholder="e.g. Apex Heating & Air Conditioning LLC"
                     className="w-full px-3.5 py-2.5 bg-[#090D15] border border-slate-800 rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500 transition-all disabled:opacity-60 font-medium"
                   />
                 </div>
@@ -364,14 +660,14 @@ export default function ContractPage() {
                 {/* Website */}
                 <div>
                   <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                    Website
+                    Website Address
                   </label>
                   <input
                     type="text"
                     disabled={!!executedData}
                     value={formData.website}
                     onChange={(e) => handleInputChange("website", e.target.value)}
-                    placeholder="yourcompany.com"
+                    placeholder="e.g. apexhvacservices.com"
                     className="w-full px-3.5 py-2.5 bg-[#090D15] border border-slate-800 rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500 transition-all disabled:opacity-60 font-medium"
                   />
                 </div>
@@ -379,7 +675,7 @@ export default function ContractPage() {
                 {/* Signatory Full Name */}
                 <div>
                   <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                    Full Legal Name (signatory) <span className="text-red-500">*</span>
+                    Full Legal Name (Authorized Signatory) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -387,7 +683,7 @@ export default function ContractPage() {
                     disabled={!!executedData}
                     value={formData.fullName}
                     onChange={(e) => handleInputChange("fullName", e.target.value)}
-                    placeholder="Your full name"
+                    placeholder="e.g. Johnathan Miller"
                     className="w-full px-3.5 py-2.5 bg-[#090D15] border border-slate-800 rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500 transition-all disabled:opacity-60 font-medium"
                   />
                 </div>
@@ -395,7 +691,7 @@ export default function ContractPage() {
                 {/* Business Address */}
                 <div>
                   <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                    Business Address <span className="text-red-500">*</span>
+                    Business Address &amp; Service Area <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -403,7 +699,7 @@ export default function ContractPage() {
                     disabled={!!executedData}
                     value={formData.businessAddress}
                     onChange={(e) => handleInputChange("businessAddress", e.target.value)}
-                    placeholder="Street, City, State/Region, Country"
+                    placeholder="Street, City, State/Region, Postal Code"
                     className="w-full px-3.5 py-2.5 bg-[#090D15] border border-slate-800 rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500 transition-all disabled:opacity-60 font-medium"
                   />
                 </div>
@@ -412,7 +708,7 @@ export default function ContractPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                      Email <span className="text-red-500">*</span>
+                      Business Email <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
@@ -420,13 +716,13 @@ export default function ContractPage() {
                       disabled={!!executedData}
                       value={formData.email}
                       onChange={(e) => handleInputChange("email", e.target.value)}
-                      placeholder="you@yourcompany.com"
+                      placeholder="owner@apexhvac.com"
                       className="w-full px-3.5 py-2.5 bg-[#090D15] border border-slate-800 rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500 transition-all disabled:opacity-60 font-medium"
                     />
                   </div>
                   <div>
                     <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                      Phone <span className="text-red-500">*</span>
+                      Phone Number <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
@@ -444,210 +740,485 @@ export default function ContractPage() {
           </div>
         </section>
 
-        {/* SECTION 2: THE AGREEMENT */}
+        {/* SECTION 3: HVAC BOOKING ENGINE: CLIENT TERMS (THE 15 CLAUSES) */}
         <section className="space-y-4">
           <div className="flex items-center gap-3">
             <span className="text-red-500 font-extrabold text-[11px] uppercase tracking-[0.2em]">
-              THE AGREEMENT
+              THE CLIENT TERMS &amp; CONDITIONS
             </span>
             <div className="flex-1 h-[1px] bg-red-900/30" />
           </div>
 
-          <div className="bg-[#0B0F19] rounded-2xl border border-slate-800 p-6 sm:p-9 space-y-8 shadow-xl text-xs sm:text-[13px] leading-relaxed text-slate-300">
+          <div className="bg-[#0B0F19] rounded-2xl border border-slate-800 p-6 sm:p-9 space-y-9 shadow-xl text-xs sm:text-[13px] leading-relaxed text-slate-300">
             {/* Clause 1 */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
                 <span className="text-red-500 font-black">1.</span>
-                <span>Services, The Spyke AI System</span>
+                <span>Parties, Scope &amp; Definitions</span>
               </h4>
               <p className="text-slate-400">
-                Upon payment of the Fee (§2), we grant you access to the <strong className="text-white">Spyke AI System</strong>, which includes: the complete AI voice agent, softphone and messaging infrastructure and all its modules; niche customization and voice agent workflow building with our team; the inbound and outbound call handling systems and software tools we provision for members; funnel, CRM, webhook and automation frameworks; our templates, scripts and resources; the client community; and the support channels described in §4. <strong className="text-white">Your access does not expire</strong>, you keep the System for as long as the Spyke AI System operates, with no renewal fees and no re-purchase (§12). <strong className="text-white">If your written offer, checkout page, or invoice includes the Inbound Engine / Growth package</strong>, the Services also include: your custom AI Voice Agent (landing page, application and booking flow) built for you; ad creatives and scripts from our playbook; telephony, Twilio/Telnyx line and pixel tracking setup; campaign structure built in your account; a joint launch; and retargeting and follow-up flows connected to your CRM. Ad spend and carrier telecommunication fees are paid by you directly to the platforms and are never part of any Fee. We may improve, update or substitute components of the System over time, provided the overall substance of what you purchased is preserved or improved.
+                This agreement is between <strong className="text-white">Spyke AI Technologies</strong> (&quot;Spyke&quot;) and the client identified above (&quot;the Client&quot;), an HVAC business. <strong className="text-white">Scope:</strong> Spyke runs the HVAC Booking Engine for the Client: it answers every inbound call, calls back missed calls, website forms and ad leads, books jobs into the Client&apos;s calendar, follows up open estimates and sends confirmations and reminders.
               </p>
+
+              {/* Definitions Table */}
+              <div className="overflow-x-auto rounded-xl border border-slate-800 mt-2">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#0e1626] border-b border-slate-800 text-slate-300 font-bold">
+                      <th className="py-2.5 px-3.5 w-1/4">Term</th>
+                      <th className="py-2.5 px-3.5">Meaning</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3.5 font-bold text-white">Booking Line</td>
+                      <td className="py-2 px-3.5 text-slate-400 font-sans">The dedicated local phone number Spyke provides, plus the Client&apos;s existing number when forwarded to Spyke.</td>
+                    </tr>
+                    <tr className="bg-[#0b101c]">
+                      <td className="py-2 px-3.5 font-bold text-white">Go-Live Day</td>
+                      <td className="py-2 px-3.5 text-slate-400 font-sans">The day the Booking Line answers calls with AI and existing numbers are forwarded. Confirmed via email.</td>
+                    </tr>
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3.5 font-bold text-white">Booked Job</td>
+                      <td className="py-2 px-3.5 text-slate-400 font-sans">A homeowner in the agreed service area with a real HVAC need placed on the Client&apos;s calendar, whose first contact came through the Booking Line or Spyke outbound call within 30 days.</td>
+                    </tr>
+                    <tr className="bg-[#0b101c]">
+                      <td className="py-2 px-3.5 font-bold text-white">Repair Job</td>
+                      <td className="py-2 px-3.5 text-slate-400 font-sans">A Booked Job for repair, service, diagnosis or maintenance.</td>
+                    </tr>
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3.5 font-bold text-white">Replacement Estimate</td>
+                      <td className="py-2 px-3.5 text-slate-400 font-sans">A Booked Job for an in-home estimate on a new or replacement heating/cooling system.</td>
+                    </tr>
+                    <tr className="bg-[#0b101c]">
+                      <td className="py-2 px-3.5 font-bold text-white">AI Minutes</td>
+                      <td className="py-2 px-3.5 text-slate-400 font-sans">Minutes of calls handled by Spyke&apos;s AI, inbound and outbound, rounded up to the nearest minute per call.</td>
+                    </tr>
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3.5 font-bold text-white">Spam</td>
+                      <td className="py-2 px-3.5 text-slate-400 font-sans">Robocalls, recorded sales pitches, wrong numbers, and hang-up calls under 15 seconds.</td>
+                    </tr>
+                    <tr className="bg-[#0b101c]">
+                      <td className="py-2 px-3.5 font-bold text-white">Statement</td>
+                      <td className="py-2 px-3.5 text-slate-400 font-sans">The weekly itemized email listing each Booked Job, call recording link, and amount due.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Clause 2 */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
                 <span className="text-red-500 font-black">2.</span>
-                <span>Fees &amp; Payment</span>
+                <span>What the Client Provides</span>
               </h4>
               <p className="text-slate-400">
-                Your Fee is the exact price you were quoted and agreed <strong className="text-white">in writing before signing</strong>, on your invoice, checkout page, or written payment agreement (the <strong className="text-white">&quot;Fee&quot;</strong>), including any installment or milestone schedule agreed there. <strong className="text-white">Nothing on this page adds to it</strong>: no hidden costs, no required upsells, no renewal or maintenance fees, ever. Access is granted on receipt of the first payment. If a scheduled payment is not made when due, we may pause access until it is, and if that happens, your §5 guarantee clock simply pauses too and resumes when access is restored; a pause never resets your progress. All amounts are in USD unless stated otherwise.
+                Go-Live depends on these items. Spyke cannot start the 30-day guarantee period until the items marked &quot;Before Go-Live&quot; are provided.
               </p>
+
+              <div className="overflow-x-auto rounded-xl border border-slate-800 mt-2">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#0e1626] border-b border-slate-800 text-slate-300 font-bold">
+                      <th className="py-2.5 px-3.5 w-1/2">Item</th>
+                      <th className="py-2.5 px-3.5 w-1/4">When</th>
+                      <th className="py-2.5 px-3.5">Why Needed</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 text-[11px]">
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3.5 font-bold text-white">Business details: legal name, EIN, address, service area (ZIPs)</td>
+                      <td className="py-2 px-3.5 text-emerald-400 font-mono">At signing</td>
+                      <td className="py-2 px-3.5 text-slate-400">Phone setup &amp; carrier 10DLC registration</td>
+                    </tr>
+                    <tr className="bg-[#0b101c]">
+                      <td className="py-2 px-3.5 font-bold text-white">Services offered, exclusions, pricing rules (diagnostic fee), hours</td>
+                      <td className="py-2 px-3.5 text-emerald-400 font-mono">At signing</td>
+                      <td className="py-2 px-3.5 text-slate-400">Training AI to answer &amp; quote correctly</td>
+                    </tr>
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3.5 font-bold text-white">Calendar/FSM access (ServiceTitan, Jobber, Housecall Pro, Google)</td>
+                      <td className="py-2 px-3.5 text-amber-400 font-mono font-bold">Before Go-Live</td>
+                      <td className="py-2 px-3.5 text-slate-400">Booking jobs directly &amp; matching call logs</td>
+                    </tr>
+                    <tr className="bg-[#0b101c]">
+                      <td className="py-2 px-3.5 font-bold text-white">Call forwarding from existing business number to Booking Line</td>
+                      <td className="py-2 px-3.5 text-amber-400 font-mono font-bold">Before Go-Live</td>
+                      <td className="py-2 px-3.5 text-slate-400">So zero calls reach voicemail</td>
+                    </tr>
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3.5 font-bold text-white">On-call technician mobile number and emergency escalation rules</td>
+                      <td className="py-2 px-3.5 text-amber-400 font-mono font-bold">Before Go-Live</td>
+                      <td className="py-2 px-3.5 text-slate-400">Live human transfer for gas smell/no heat</td>
+                    </tr>
+                    <tr className="bg-[#0b101c]">
+                      <td className="py-2 px-3.5 font-bold text-white">Listings manager access (Google Business Profile, Yelp, Website)</td>
+                      <td className="py-2 px-3.5 text-slate-400 font-mono">Week 1</td>
+                      <td className="py-2 px-3.5 text-slate-400">Displaying Booking Line on all channels</td>
+                    </tr>
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3.5 font-bold text-white">Card or US bank account on file with payment authorization</td>
+                      <td className="py-2 px-3.5 text-emerald-400 font-mono">At signing</td>
+                      <td className="py-2 px-3.5 text-slate-400">Weekly automatic billing</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Clause 3 */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
                 <span className="text-red-500 font-black">3.</span>
-                <span>Onboarding &amp; Implementation</span>
+                <span>Setup, Go-Live &amp; Rollout</span>
               </h4>
               <p className="text-slate-400">
-                After purchase, we run onboarding with you, which includes <strong className="text-white">niche finalization</strong> and <strong className="text-white">voice agent / workflow building</strong> together with our team, followed by installation of the outreach and automated calling system (the <strong className="text-white">&quot;Setup Phase&quot;</strong>). We complete installation within <strong className="text-white">14 days</strong> of you finishing your onboarding steps, usually much faster. You agree to participate in onboarding, provide the information and account access reasonably needed, and complete the steps that only you can perform (e.g. account signups, verifications, audio recordings). <strong className="text-white">&quot;Full Implementation&quot;</strong> means: onboarding completed; niche and offer finalized with our team; the outreach system installed; the automations <strong className="text-white">switched ON and running continuously</strong> at the settings we give you <strong className="text-white">in writing at onboarding</strong> (so the target never moves on you); and your booking calendar connected. <strong className="text-white">Full Implementation is reached, at the latest, when at least four (4) outreach channels are live and running.</strong> Most clients are fully live within 7 to 10 days of starting onboarding; fast movers do it in 4. The moment Full Implementation is reached, <strong className="text-white">we confirm it to you in writing, and that confirmation is the official start of your 60-day guarantee window (§5)</strong>, so you always know exactly where you stand.
+                Voice goes live in about <strong className="text-white">5 to 7 days after signing</strong>. Texting follows once US carriers approve the Client&apos;s registration, which usually takes 1 to 4 weeks.
               </p>
+              <ul className="list-disc list-inside space-y-1.5 text-slate-300 text-xs pl-2">
+                <li><strong className="text-white">Day 0, signing:</strong> setup fee paid, payment authorization signed, Client details received. Spyke submits texting carrier registration the same day.</li>
+                <li><strong className="text-white">Days 1 to 7, voice build:</strong> Spyke sets up the dedicated Booking Line, trains the AI on Client services, connects calendar, and executes comprehensive test calls.</li>
+                <li><strong className="text-white">Go-Live Day:</strong> the Booking Line answers with AI and the existing number is forwarded. Spyke emails confirmation. The 30-day guarantee period officially starts this day.</li>
+                <li><strong className="text-white">Weeks 1 to 2, listings:</strong> the Booking Line is added to Google Business Profile (as primary, with existing number retained as secondary), website, Yelp, and local directories.</li>
+                <li><strong className="text-white">Carrier approval:</strong> missed-call text-back, booking confirmations, reminders and review requests switch on automatically. The guarantee does not depend on texting.</li>
+              </ul>
             </div>
 
             {/* Clause 4 */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
                 <span className="text-red-500 font-black">4.</span>
-                <span>Support, Unlimited, in Writing</span>
+                <span>Fees</span>
               </h4>
               <p className="text-slate-400">
-                From the moment your offer building and niche finalization are complete, you may raise <strong className="text-white">unlimited support requests</strong>, questions, reviews, fixes, anything related to the System, via <strong className="text-white">email, our ticketing system, or SMS</strong>. There is no cap on the number of tickets or requests. We respond in the order received and within a commercially reasonable time. Support covers the System and its implementation; it does not include us operating your business for you.
+                The Client pays a one-time setup fee and a fee per Booked Job. There is <strong className="text-white">no monthly retainer or subscription</strong>.
               </p>
+
+              <div className="overflow-x-auto rounded-xl border border-slate-800 mt-2">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#0e1626] border-b border-slate-800 text-slate-300 font-bold">
+                      <th className="py-2.5 px-3.5">Fee</th>
+                      <th className="py-2.5 px-3.5">Amount (USD)</th>
+                      <th className="py-2.5 px-3.5">When Charged</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3.5 font-bold text-white font-sans">Setup fee</td>
+                      <td className="py-2 px-3.5 text-white font-bold">$2,000, one-time</td>
+                      <td className="py-2 px-3.5 text-slate-400 font-sans">At signing</td>
+                    </tr>
+                    <tr className="bg-[#0b101c]">
+                      <td className="py-2 px-3.5 font-bold text-emerald-400 font-sans">Per Booked Repair Job</td>
+                      <td className="py-2 px-3.5 text-emerald-400 font-bold">$100</td>
+                      <td className="py-2 px-3.5 text-slate-400 font-sans">Weekly, after 48-hour review window</td>
+                    </tr>
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3.5 font-bold text-emerald-400 font-sans">Per Booked Replacement Estimate</td>
+                      <td className="py-2 px-3.5 text-emerald-400 font-bold">$200</td>
+                      <td className="py-2 px-3.5 text-slate-400 font-sans">Weekly, after 48-hour review window</td>
+                    </tr>
+                    <tr className="bg-[#0b101c]">
+                      <td className="py-2 px-3.5 font-bold text-slate-300 font-sans">AI Minutes beyond fair-use allowance</td>
+                      <td className="py-2 px-3.5 text-slate-300 font-bold">$0.15 per min</td>
+                      <td className="py-2 px-3.5 text-slate-400 font-sans">Weekly, after review window (§5)</td>
+                    </tr>
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3.5 font-bold text-emerald-400 font-sans">Monthly retainer</td>
+                      <td className="py-2 px-3.5 text-emerald-400 font-bold">$0</td>
+                      <td className="py-2 px-3.5 text-slate-400 font-sans">Not charged</td>
+                    </tr>
+                    <tr className="bg-[#0b101c]">
+                      <td className="py-2 px-3.5 font-bold text-slate-300 font-sans">Software, phone calls and texts</td>
+                      <td className="py-2 px-3.5 text-emerald-400 font-bold">$0, Spyke pays</td>
+                      <td className="py-2 px-3.5 text-slate-400 font-sans">Included in service</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
-            {/* Clause 5: THE REFUND GUARANTEE (HIGHLIGHTED GREEN CARD) */}
-            <div className="bg-[#091512] border-2 border-emerald-500/40 rounded-2xl p-6 sm:p-7 space-y-4 shadow-lg shadow-emerald-950/20">
+            {/* Clause 5 */}
+            <div className="space-y-3">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
-                <span className="text-emerald-400 font-black">5.</span>
-                <span>The Refund Guarantee</span>
+                <span className="text-red-500 font-black">5.</span>
+                <span>Fair Use: 60 AI Minutes per Booked Job</span>
               </h4>
-
-              <div className="flex items-center gap-2 text-emerald-400 font-black text-base sm:text-lg tracking-tight">
-                <Check size={20} className="stroke-[3]" />
-                <span>100% Money-Back Guarantee, refunded within 24 hours</span>
-              </div>
-
-              <p className="text-emerald-100 text-xs sm:text-sm leading-relaxed font-medium">
-                Implement the system, keep it live for 60 days, and if it doesn&apos;t book you at least 2 sales calls every single day, we refund 100% of what you paid. Happily, and within 24 hours of verifying. No partial refunds, no credits-instead-of-cash, no hoops.
+              <p className="text-slate-400">
+                Each Booked Job includes <strong className="text-white">60 AI Minutes</strong>, pooled across the calendar month. Minutes above the pool are billed at <strong className="text-white">$0.15 per minute</strong>.
               </p>
-
-              <div className="pt-3 border-t border-emerald-900/40 text-xs text-emerald-200/80 space-y-2 leading-relaxed">
-                <p>
-                  • <strong className="text-emerald-300">5.1, When it applies.</strong> (a) You reached <strong className="text-white">Full Implementation</strong> (§3), (b) the outreach system was <strong className="text-white">live, automations on and running, for 60 consecutive days</strong> at the prescribed settings, and (c) during that period it did not book you at least <strong className="text-white">two (2) Qualified Sales Calls every single day</strong> (defined in 5.2), as shown by the System&apos;s own logs and your connected calendar.
-                </p>
-                <p>
-                  • <strong className="text-emerald-300">5.2, Qualified Calls.</strong> A Qualified Call is an attended conversation with an eligible prospect in your target niche who expressed clear interest in your service offering.
-                </p>
+              <div className="p-3 bg-[#090D15] rounded-xl border border-slate-800 text-xs font-mono text-slate-300 space-y-1">
+                <div>Allowance = Booked Jobs in month × 60 minutes</div>
+                <div>Overage = [AI Minutes used − Allowance (if positive)] × $0.15</div>
+                <div className="text-slate-400 text-[11px] font-sans pt-1">
+                  * Time after a call is transferred to the Client&apos;s staff does not count toward AI Minutes.
+                </div>
               </div>
+              <p className="text-xs text-slate-400">
+                <strong className="text-white">Why this exists:</strong> Most clients never pay overage. It covers months with heavy call volume and very few bookings, ensuring Spyke&apos;s telephony carrier costs are covered without charging any monthly retainer.
+              </p>
             </div>
 
             {/* Clause 6 */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
                 <span className="text-red-500 font-black">6.</span>
-                <span>Your Responsibilities</span>
+                <span>What Is Billable: The 30-Day First-Contact Test</span>
               </h4>
               <p className="text-slate-400">
-                You agree to: (a) complete onboarding and the steps only you can do, within a reasonable time of our requests; (b) keep your accounts, tools and integrations connected and in good standing; (c) use the System only for lawful business purposes; (d) not share, resell, or provide access to the System or its materials to any third party; and (e) tell us promptly, through support, when something isn&apos;t working, so we can fix it.
+                One objective test decides every case: <strong className="text-white">did this customer&apos;s first contact come through the Booking Line, or a Spyke outbound call, in the 30 days before the job was booked?</strong> If yes, it is billable, whoever closed the appointment.
               </p>
+
+              <div className="overflow-x-auto rounded-xl border border-slate-800 mt-2">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#0e1626] border-b border-slate-800 text-slate-300 font-bold">
+                      <th className="py-2 px-3 w-1/2">Scenario</th>
+                      <th className="py-2 px-3 w-28">Billable?</th>
+                      <th className="py-2 px-3">Why</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60 text-[11px]">
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3 font-medium text-white">AI answers an inbound call and books the job</td>
+                      <td className="py-2 px-3 text-emerald-400 font-bold">Yes</td>
+                      <td className="py-2 px-3 text-slate-400">Came through the Booking Line</td>
+                    </tr>
+                    <tr className="bg-[#0b101c]">
+                      <td className="py-2 px-3 font-medium text-white">Customer calls old number, forwarded to Spyke, AI books</td>
+                      <td className="py-2 px-3 text-emerald-400 font-bold">Yes</td>
+                      <td className="py-2 px-3 text-slate-400">Forwarded calls are part of the Booking Line</td>
+                    </tr>
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3 font-medium text-white">AI qualifies caller, transfers to staff, staff books on call</td>
+                      <td className="py-2 px-3 text-emerald-400 font-bold">Yes</td>
+                      <td className="py-2 px-3 text-slate-400">AI handled first contact and qualification</td>
+                    </tr>
+                    <tr className="bg-[#0b101c]">
+                      <td className="py-2 px-3 font-medium text-white">AI qualifies, transfers, staff calls back &amp; books in 30 days</td>
+                      <td className="py-2 px-3 text-emerald-400 font-bold">Yes</td>
+                      <td className="py-2 px-3 text-slate-400">Same customer within 30-day window</td>
+                    </tr>
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3 font-medium text-white">Website form or ad lead called by Spyke, booked in 30 days</td>
+                      <td className="py-2 px-3 text-emerald-400 font-bold">Yes</td>
+                      <td className="py-2 px-3 text-slate-400">Spyke outbound call was first contact</td>
+                    </tr>
+                    <tr className="bg-[#0b101c]">
+                      <td className="py-2 px-3 font-medium text-white">Missed call, AI calls or texts back, customer books</td>
+                      <td className="py-2 px-3 text-emerald-400 font-bold">Yes</td>
+                      <td className="py-2 px-3 text-slate-400">Came through the Booking Line</td>
+                    </tr>
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3 font-medium text-white">Old estimate or past customer reactivated by Spyke campaign</td>
+                      <td className="py-2 px-3 text-emerald-400 font-bold">Yes</td>
+                      <td className="py-2 px-3 text-slate-400">Spyke outbound call led to booking</td>
+                    </tr>
+                    <tr className="bg-[#0b101c]">
+                      <td className="py-2 px-3 font-medium text-white">Customer cancels the appointment at any time</td>
+                      <td className="py-2 px-3 text-amber-400 font-bold">$10 flat</td>
+                      <td className="py-2 px-3 text-slate-400">AI handled call &amp; booking. One flat fee, no timing checks</td>
+                    </tr>
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3 font-medium text-white">Customer doesn&apos;t show up and didn&apos;t cancel</td>
+                      <td className="py-2 px-3 text-emerald-400 font-bold">Yes</td>
+                      <td className="py-2 px-3 text-slate-400">Booking delivered &amp; automated reminders sent</td>
+                    </tr>
+                    <tr className="bg-[#0b101c]">
+                      <td className="py-2 px-3 font-medium text-white">Walk-in, or customer calling technician&apos;s personal phone</td>
+                      <td className="py-2 px-3 text-slate-500 font-bold">No</td>
+                      <td className="py-2 px-3 text-slate-400">Never touched the Booking Line</td>
+                    </tr>
+                    <tr className="bg-[#090D15]">
+                      <td className="py-2 px-3 font-medium text-white">Customer outside agreed service area or job type not handled</td>
+                      <td className="py-2 px-3 text-slate-500 font-bold">No</td>
+                      <td className="py-2 px-3 text-slate-400">Not a qualified Booked Job</td>
+                    </tr>
+                    <tr className="bg-[#0b101c]">
+                      <td className="py-2 px-3 font-medium text-white">Spam, wrong number, vendor, solicitation, job applicant</td>
+                      <td className="py-2 px-3 text-slate-500 font-bold">No</td>
+                      <td className="py-2 px-3 text-slate-400">Excluded as spam</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Clause 7 */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
-                <span className="text-red-500 font-black">7.</span>
-                <span>Compliance Is Yours</span>
+                <span className="text-emerald-400 font-black">7.</span>
+                <span>The Guarantee</span>
               </h4>
-              <p className="text-slate-400">
-                You are the sender and operator of your own outreach. You are responsible for your compliance with the laws and platform rules that apply to your messages and your market, including (as applicable) CAN-SPAM, TCPA, A2P/carrier rules, GDPR/UK-GDPR, PECR, and each platform&apos;s terms of service. We provide tools, training and prescribed settings designed for sensible use; we are not your lawyer and do not warrant your outreach&apos;s legal compliance in your jurisdiction. Our side of it: we will never knowingly configure the System, or instruct you, to run outreach that violates applicable laws, carrier requirements, or platform policies. The prescribed settings are designed to operate within them.
+              <p className="text-slate-300">
+                <strong className="text-white">10 Booked Jobs in the first 30 days after Go-Live</strong>, or booking fees for that period are free. The setup fee is not part of the guarantee.
+              </p>
+              <div className="p-3.5 bg-emerald-950/30 rounded-xl border border-emerald-500/30 text-xs text-emerald-200/90 space-y-1">
+                <p><strong>Example:</strong> Spyke books 7 jobs in the first 30 days. The Client would have owed $700. The Client pays $0 for those bookings and keeps the jobs.</p>
+                <p><strong>Period:</strong> The 30 days starting on Go-Live Day, as confirmed by email. Applies once, to the first 30 days only. Standard per-booking fees resume from day 31.</p>
+              </div>
+              <p className="text-xs text-slate-400">
+                <strong className="text-white">Guarantee qualification criteria:</strong> The business receives at least 150 inbound calls and form leads during the 30 days (verified by logs); call forwarding remains active; calendar access remains connected with open slots; client attends booked appointments; and service area matches signing details.
               </p>
             </div>
 
             {/* Clause 8 */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
                 <span className="text-red-500 font-black">8.</span>
-                <span>Intellectual Property</span>
+                <span>Refunds and Credits</span>
               </h4>
               <p className="text-slate-400">
-                The System, trainings, scripts, templates, software, prompts, frameworks, and materials, is and remains our intellectual property (or that of our licensors). You receive a non-exclusive, non-transferable license to use it for your own business while you have access. Assets we create for you during implementation (your funnel copy, your creatives, your configured systems) are yours to keep and use for your business, and if your access ever ends, those assets remain yours and we will provide a reasonable export of your CRM data on request.
+                The setup fee is not refundable as it covers dedicated engineering and carrier setup. Billing errors and valid disputes are resolved as <strong className="text-white">statement credits</strong> on the next weekly billing cycle. Unused credits upon account termination are refunded via cash within 14 days.
               </p>
             </div>
 
             {/* Clause 9 */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
                 <span className="text-red-500 font-black">9.</span>
-                <span>Confidentiality</span>
+                <span>How the Client Is Charged</span>
               </h4>
               <p className="text-slate-400">
-                Each party will keep the other&apos;s non-public information confidential and use it only for purposes of this Agreement. This survives termination. We may state that you are a client; we will only publish your specific results with your consent.
+                The Client&apos;s card or US bank account is charged automatically every week, after a transparent <strong className="text-white">48-hour review window</strong>.
               </p>
+              <ul className="list-disc list-inside space-y-1 text-slate-300 text-xs pl-2">
+                <li><strong className="text-white">Every Monday:</strong> Spyke emails the Statement for the prior Monday-Sunday cycle with links to each call recording.</li>
+                <li><strong className="text-white">Monday to Wednesday:</strong> 48-hour review window for Client to review recordings and flag any disputes.</li>
+                <li><strong className="text-white">Wednesday:</strong> The total, minus any lines under active dispute, is charged automatically.</li>
+              </ul>
             </div>
 
             {/* Clause 10 */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
                 <span className="text-red-500 font-black">10.</span>
-                <span>No Other Earnings Promises</span>
+                <span>Disputes</span>
               </h4>
               <p className="text-slate-400">
-                Business results vary with markets, effort and execution. Other than the express Refund Guarantee in §5, which is real, and honored exactly as written, we make no other guarantee of income, revenue, or results, and any figures shown in our marketing are examples, not promises.
+                The Client disputes a line by replying to the Statement email within 48 hours, stating the line and valid reason (e.g., spam, out-of-area, duplicate, customer cancelled). Disputed lines are held and <strong className="text-white">not charged</strong> while Spyke reviews call recordings and makes a determination within 2 business days.
               </p>
             </div>
 
             {/* Clause 11 */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
                 <span className="text-red-500 font-black">11.</span>
-                <span>Limitation of Liability</span>
+                <span>Phone Numbers, Forwarding &amp; Listings</span>
               </h4>
               <p className="text-slate-400">
-                To the maximum extent permitted by law: neither party is liable for indirect, incidental, special or consequential damages; and our total aggregate liability under this Agreement is capped at the Fee you actually paid. Nothing in this Agreement limits liability that cannot lawfully be limited (including fraud).
+                Spyke provisions a dedicated local Booking Line in the Client&apos;s area code with custom caller ID displaying the Client&apos;s business name. <strong className="text-white">The Client&apos;s existing phone number always stays owned by the Client</strong> and is simply forwarded to the Booking Line. If Spyke&apos;s system is ever unreachable, calls immediately fall through directly to the Client&apos;s phone. Emergency calls (gas odor, no heat in freeze) route directly to the on-call technician.
               </p>
             </div>
 
             {/* Clause 12 */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
                 <span className="text-red-500 font-black">12.</span>
-                <span>Term &amp; Termination</span>
+                <span>Term, Cancellation &amp; Exit</span>
               </h4>
               <p className="text-slate-400">
-                This Agreement starts on the Effective Date (the date you sign below). Your access does not expire, it continues for as long as the Spyke AI System operates, with no renewal fees. We may terminate for your material breach (including non-payment or sharing access) that remains uncured 14 days after written notice. You are protected the same way: if we materially fail to deliver the services (for example, you request a call or support and hear nothing back within 3 business days), tell us in writing. If we have not fixed it within 14 days of that notice, you may terminate this Agreement and receive a full refund of the Fee you have actually paid. Otherwise, you may stop using the System at any time; fees already paid are only refundable under §5 or this clause.
+                The minimum term is <strong className="text-white">6 months from Go-Live Day</strong>, after which the agreement continues on a flexible month-to-month basis with 30 days&apos; written notice. After 6 months, the dedicated Booking Line transfers to the Client for free ($1,000 buyout if terminating prior). Customer records and call recordings are fully exported to the Client within 7 days.
               </p>
             </div>
 
             {/* Clause 13 */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
                 <span className="text-red-500 font-black">13.</span>
-                <span>Governing Law &amp; Disputes</span>
+                <span>Compliance</span>
               </h4>
               <p className="text-slate-400">
-                This Agreement is governed by the laws of the <strong className="text-white">State of Texas, USA</strong>, without regard to conflict-of-law rules. The parties will first attempt in good faith to resolve any dispute through the support channels and direct discussion within 30 days before starting formal proceedings. Venue for formal proceedings is <strong className="text-white">Dallas County, Texas</strong>, except that either party may seek injunctive relief for IP or confidentiality breaches in any competent court.
+                Calls are announced as recorded at the start of every interaction, satisfying all-party consent laws. The AI discloses it is an automated assistant when queried. Spyke never performs cold calls; outreach is strictly to inbound callers, form submissions, and opted-in estimate leads. Carrier 10DLC registration is completed on the Client&apos;s behalf.
               </p>
             </div>
 
             {/* Clause 14 */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
                 <span className="text-red-500 font-black">14.</span>
-                <span>Electronic Signature &amp; Records</span>
+                <span>Data and Ownership</span>
               </h4>
               <p className="text-slate-400">
-                Both parties agree to do business electronically. Your typed name below, submitted with the consent box checked, is your electronic signature and is legally binding under the U.S. E-SIGN Act and UETA, and the UK&apos;s Electronic Communications Act 2000 / eIDAS as applicable. Our counter-signature is applied in advance and delivered with this document. The executed record, including both signatures, your details, the date-time stamp and the signing IP address, is stored by us and emailed to you; that record is the authoritative copy.
+                <strong className="text-white">The Client owns all customer data</strong>, names, numbers, job details, and call recordings. Spyke owns the AI voice agent technology, prompts, workflows, and integrations. Recordings are securely retained for 12 months.
               </p>
             </div>
 
             {/* Clause 15 */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
                 <span className="text-red-500 font-black">15.</span>
-                <span>Notices</span>
+                <span>Service Levels, Liability &amp; General Terms</span>
               </h4>
               <p className="text-slate-400">
-                Notices to us: <strong className="text-white">contact@spykeai.com</strong>, or post to either address in the Parties section. Notices to you: the email address you provide below. Email notice is effective on sending, absent a bounce.
-              </p>
-            </div>
-
-            {/* Clause 16 */}
-            <div className="space-y-2">
-              <h4 className="text-sm sm:text-base font-bold text-white flex items-baseline gap-2">
-                <span className="text-red-500 font-black">16.</span>
-                <span>General</span>
-              </h4>
-              <p className="text-slate-400">
-                This document plus your invoice/payment agreement is the entire agreement and supersedes prior discussions. If any clause is unenforceable, the rest stands. Amendments must be in writing (email suffices) and agreed by both parties. You may not assign this Agreement without our written consent; we may assign to an affiliate. Nothing here creates a partnership, employment or agency relationship.
+                The Booking Line operates 24/7/365 with automated human fallback. Support tickets receive responses within 48 hours. Total liability under this Agreement is capped at the setup fee paid ($2,000). This agreement is governed by the laws of the <strong className="text-white">State of Texas, USA</strong> (venue in Dallas County). Typed names submitted with electronic consent constitute valid, legally binding signatures under the U.S. E-SIGN Act and UETA.
               </p>
             </div>
           </div>
         </section>
 
-        {/* SECTION 3: EXECUTION */}
+        {/* SECTION 4: CLIENT ONBOARDING PREREQUISITES CHECKLIST */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="text-red-500 font-extrabold text-[11px] uppercase tracking-[0.2em]">
+              ONBOARDING PREREQUISITES
+            </span>
+            <div className="flex-1 h-[1px] bg-red-900/30" />
+          </div>
+
+          <div className="bg-[#0B0F19] rounded-2xl border border-slate-800 p-6 sm:p-7 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                <BadgeCheck size={18} className="text-emerald-400" />
+                <span>Client Onboarding Prerequisites (Fast 5–7 Day Launch)</span>
+              </h3>
+              <span className="text-[10px] font-mono text-slate-400">12 Fast Prep Items</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+              <div className="p-3 bg-[#090D15] rounded-xl border border-slate-800 space-y-1">
+                <span className="font-bold text-white block">1. Business Details</span>
+                <p className="text-slate-400 text-[11px]">EIN, registered address, primary contact info for 10DLC registration.</p>
+              </div>
+              <div className="p-3 bg-[#090D15] rounded-xl border border-slate-800 space-y-1">
+                <span className="font-bold text-white block">2. Service Area</span>
+                <p className="text-slate-400 text-[11px]">Specific ZIP codes and municipal service radius for AI qualification.</p>
+              </div>
+              <div className="p-3 bg-[#090D15] rounded-xl border border-slate-800 space-y-1">
+                <span className="font-bold text-white block">3. Services &amp; Job Types</span>
+                <p className="text-slate-400 text-[11px]">Repairs, maintenance, replacements, and non-serviced equipment rules.</p>
+              </div>
+              <div className="p-3 bg-[#090D15] rounded-xl border border-slate-800 space-y-1">
+                <span className="font-bold text-white block">4. Hours &amp; Scheduling</span>
+                <p className="text-slate-400 text-[11px]">Standard booking slots, arrival windows, and dispatch capacity.</p>
+              </div>
+              <div className="p-3 bg-[#090D15] rounded-xl border border-slate-800 space-y-1">
+                <span className="font-bold text-white block">5. Emergency Transfers</span>
+                <p className="text-slate-400 text-[11px]">On-call technician mobile line for immediate human transfer.</p>
+              </div>
+              <div className="p-3 bg-[#090D15] rounded-xl border border-slate-800 space-y-1">
+                <span className="font-bold text-white block">6. Diagnostic Pricing</span>
+                <p className="text-slate-400 text-[11px]">Standard trip/diagnostic fee quoted to callers before scheduling.</p>
+              </div>
+              <div className="p-3 bg-[#090D15] rounded-xl border border-slate-800 space-y-1">
+                <span className="font-bold text-white block">7. FSM/Calendar Access</span>
+                <p className="text-slate-400 text-[11px]">Connection to ServiceTitan, Jobber, Housecall Pro, or Google Calendar.</p>
+              </div>
+              <div className="p-3 bg-[#090D15] rounded-xl border border-slate-800 space-y-1">
+                <span className="font-bold text-white block">8. Voice Tone &amp; Style</span>
+                <p className="text-slate-400 text-[11px]">Professional, conversational tone configured with English/Spanish options.</p>
+              </div>
+              <div className="p-3 bg-[#090D15] rounded-xl border border-slate-800 space-y-1">
+                <span className="font-bold text-white block">9. Billing &amp; Payment Card</span>
+                <p className="text-slate-400 text-[11px]">Card or US bank account on file for automated weekly settlement.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 5: EXECUTION */}
         <section className="space-y-4">
           <div className="flex items-center gap-3">
             <span className="text-red-500 font-extrabold text-[11px] uppercase tracking-[0.2em]">
@@ -658,7 +1229,7 @@ export default function ContractPage() {
 
           <form onSubmit={handleExecute} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* 3A: PROVIDER PRE-EXECUTED SIGNATURE */}
+              {/* 5A: PROVIDER PRE-EXECUTED SIGNATURE */}
               <div className="bg-[#0B0F19] rounded-2xl border border-slate-800 p-6 sm:p-7 space-y-4 shadow-xl flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between">
@@ -700,7 +1271,7 @@ export default function ContractPage() {
                 </p>
               </div>
 
-              {/* 3B: CLIENT SIGNATURE INPUT */}
+              {/* 5B: CLIENT SIGNATURE INPUT */}
               <div className="bg-[#0B0F19] rounded-2xl border border-slate-800 p-6 sm:p-7 space-y-4 shadow-xl flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between">
@@ -785,7 +1356,7 @@ export default function ContractPage() {
                   className="mt-1 w-4 h-4 rounded bg-[#070A12] border-slate-700 text-red-600 focus:ring-red-500 focus:ring-offset-0 cursor-pointer accent-red-600"
                 />
                 <label htmlFor="consentCheckbox" className="text-xs text-slate-400 leading-relaxed cursor-pointer select-none">
-                  <strong className="text-white">I have read this entire Agreement and I agree to all of its terms.</strong> I agree that typing my name above and clicking &quot;Sign &amp; Execute&quot; constitutes my legal electronic signature, and I consent to receive the executed copy and related records electronically at the email address I provided.
+                  <strong className="text-white">I have read this entire HVAC Booking Engine Agreement and agree to all terms, pricing ($2,000 setup, $100/repair, $200/replacement estimate), and guarantee conditions.</strong> I agree that typing my name above and clicking &quot;Sign &amp; Execute&quot; constitutes my legal electronic signature under the U.S. E-SIGN Act and UETA, and I consent to receive the executed contract PDF and related records electronically at the email address provided.
                 </label>
               </div>
             )}
@@ -812,7 +1383,7 @@ export default function ContractPage() {
                     )}
                   </div>
                   <span className="text-[11px] font-normal text-white/80">
-                    Your executed copy is emailed to you instantly
+                    Official contract PDF is emailed to you instantly
                   </span>
                 </button>
               </div>
