@@ -3,6 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Metadata } from "next";
 import { BLOG_POSTS, getBlogPost } from "@/data/blogPosts";
+import { getBlogPostBySlug, getBlogPosts } from "@/lib/blogStorage";
+
+export const dynamic = "force-dynamic";
 import MobileStickyCTA from "@/components/MobileStickyCTA";
 import { 
   ArrowLeft, 
@@ -34,7 +37,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = getBlogPost(slug);
+  const post = (await getBlogPostBySlug(slug)) || getBlogPost(slug);
 
   if (!post) {
     return {
@@ -77,13 +80,14 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
-  const post = getBlogPost(slug);
+  const post = (await getBlogPostBySlug(slug)) || getBlogPost(slug);
 
   if (!post) {
     notFound();
   }
 
-  const relatedPosts = BLOG_POSTS.filter((p) => p.slug !== post.slug).slice(0, 2);
+  const allPosts = await getBlogPosts();
+  const relatedPosts = (allPosts.length > 0 ? allPosts : BLOG_POSTS).filter((p) => p.slug !== post.slug).slice(0, 2);
 
   return (
     <div className="min-h-screen bg-[#FDFDFD] text-slate-900 pb-28 md:pb-20">

@@ -15,7 +15,8 @@ import {
   Building2,
   Globe2,
   KeyRound,
-  User
+  User,
+  BookOpen
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -59,6 +60,7 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
     pathname?.startsWith("/admin/calls") ? "calls" :
     pathname?.startsWith("/admin/emails") ? "emails" :
     pathname?.startsWith("/admin/transcripts") ? "transcripts" :
+    pathname?.startsWith("/admin/blog") ? "blog" :
     pathname?.startsWith("/clientportal") ? "clientportal" :
     pathname?.startsWith("/admin/internal") ? "internal_portal" :
     pathname?.startsWith("/admin/external") ? "clientportal" :
@@ -97,6 +99,14 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
       subtitle: "Vapi AI website logs",
       href: "/admin/transcripts",
       icon: Mic,
+    },
+    {
+      id: "blog",
+      label: "Blog Manager",
+      subtitle: "Website articles & CMS",
+      href: "/admin/blog",
+      icon: BookOpen,
+      badge: "CMS",
     },
   ];
 
@@ -472,6 +482,15 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
             >
               <Mic size={18} />
               <span className="text-[10px] mt-0.5">Transcripts</span>
+            </Link>
+            <Link
+              href="/admin/blog"
+              className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
+                currentTab === "blog" ? "text-emerald-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
+              }`}
+            >
+              <BookOpen size={18} />
+              <span className="text-[10px] mt-0.5">Blog</span>
             </Link>
             {showUserMgmt && (
               <Link

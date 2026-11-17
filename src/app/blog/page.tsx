@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { BLOG_POSTS, getAllCategories, BlogPost } from "@/data/blogPosts";
+import { BLOG_POSTS, BlogPost } from "@/data/blogPosts";
 import MobileStickyCTA from "@/components/MobileStickyCTA";
 import { 
   ArrowRight, 
@@ -19,13 +19,30 @@ import {
 } from "lucide-react";
 
 export default function BlogIndexPage() {
+  const [posts, setPosts] = useState<BlogPost[]>(BLOG_POSTS);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const categories = useMemo(() => getAllCategories(), []);
+  useEffect(() => {
+    fetch("/api/blogs")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.success && Array.isArray(data.posts) && data.posts.length > 0) {
+          setPosts(data.posts);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch dynamic blogs:", err);
+      });
+  }, []);
+
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(posts.map((p) => p.category)));
+    return ["All", ...cats];
+  }, [posts]);
 
   const filteredPosts = useMemo(() => {
-    return BLOG_POSTS.filter((post) => {
+    return posts.filter((post) => {
       const matchesCategory = selectedCategory === "All" || post.category === selectedCategory;
       const matchesSearch =
         post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -33,15 +50,15 @@ export default function BlogIndexPage() {
         post.category.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [selectedCategory, searchQuery]);
+  }, [posts, selectedCategory, searchQuery]);
 
   const featuredPost = useMemo(() => {
-    return BLOG_POSTS.find((p) => p.isFeatured) || BLOG_POSTS[0];
-  }, []);
+    return posts.find((p) => p.isFeatured) || posts[0] || BLOG_POSTS[0];
+  }, [posts]);
 
   const gridPosts = useMemo(() => {
     if (selectedCategory === "All" && !searchQuery) {
-      return filteredPosts.filter((p) => p.slug !== featuredPost.slug);
+      return filteredPosts.filter((p) => p.slug !== featuredPost?.slug);
     }
     return filteredPosts;
   }, [filteredPosts, selectedCategory, searchQuery, featuredPost]);

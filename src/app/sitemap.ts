@@ -1,11 +1,22 @@
 import { MetadataRoute } from "next";
 import { BLOG_POSTS } from "@/data/blogPosts";
+import { getBlogPosts } from "@/lib/blogStorage";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://spykeai.com";
   const now = new Date();
 
-  const blogUrls: MetadataRoute.Sitemap = BLOG_POSTS.map((post) => ({
+  let posts = BLOG_POSTS;
+  try {
+    const livePosts = await getBlogPosts();
+    if (livePosts && livePosts.length > 0) {
+      posts = livePosts;
+    }
+  } catch (e) {
+    console.error("Sitemap dynamic posts fallback to static", e);
+  }
+
+  const blogUrls: MetadataRoute.Sitemap = posts.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
     lastModified: now,
     changeFrequency: "weekly",
