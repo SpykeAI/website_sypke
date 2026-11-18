@@ -2,7 +2,7 @@ export interface BlogPost {
   slug: string;
   title: string;
   excerpt: string;
-  category: "Cost & Economics" | "Dispatch & Operations" | "CRM & Infrastructure" | "Implementation";
+  category: string;
   readTime: string;
   publishDate: string;
   author: {

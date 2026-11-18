@@ -44,7 +44,7 @@ const DEFAULT_AUTHOR = {
   avatar: "/images/authors/srikanishka.png",
 };
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   "Cost & Economics",
   "Dispatch & Operations",
   "CRM & Infrastructure",
@@ -57,6 +57,36 @@ export default function AdminBlogManagerUpdatedPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  // Dynamic Categories State
+  const [customCategories, setCustomCategories] = useState<string[]>(DEFAULT_CATEGORIES);
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState<boolean>(false);
+  const [newCategoryInput, setNewCategoryInput] = useState<string>("");
+  const [isAddingCategoryInEditor, setIsAddingCategoryInEditor] = useState<boolean>(false);
+  const [editorNewCategory, setEditorNewCategory] = useState<string>("");
+
+  const allCategories = useMemo(() => {
+    const fromPosts = posts.map((p) => p.category).filter(Boolean);
+    return Array.from(new Set([...customCategories, ...fromPosts]));
+  }, [customCategories, posts]);
+
+  const handleAddCategory = (catName: string) => {
+    const clean = catName.trim();
+    if (!clean) return;
+    if (!customCategories.includes(clean)) {
+      setCustomCategories((prev) => [...prev, clean]);
+    }
+    showToast("success", `Category "${clean}" added!`);
+  };
+
+  const handleCreateCategorySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCategoryInput.trim()) return;
+    handleAddCategory(newCategoryInput);
+    setSelectedCategory(newCategoryInput.trim());
+    setNewCategoryInput("");
+    setShowAddCategoryModal(false);
+  };
 
   // FULL MODE SCREEN State
   const [isEditorOpen, setIsEditorOpen] = useState<boolean>(false);
@@ -516,8 +546,8 @@ export default function AdminBlogManagerUpdatedPage() {
 
             <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Categories</span>
-              <p className="text-2xl font-extrabold text-slate-900 mt-1">{CATEGORIES.length}</p>
-              <span className="text-[11px] text-slate-500 font-medium mt-0.5 inline-block">HVAC Specialized</span>
+              <p className="text-2xl font-extrabold text-slate-900 mt-1">{allCategories.length}</p>
+              <span className="text-[11px] text-slate-500 font-medium mt-0.5 inline-block">Active Categories</span>
             </div>
 
             <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
@@ -552,7 +582,7 @@ export default function AdminBlogManagerUpdatedPage() {
               )}
             </div>
 
-            {/* Category Filter Pills */}
+            {/* Category Filter Pills & Add Category */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
               <button
                 onClick={() => setSelectedCategory("All")}
@@ -564,7 +594,7 @@ export default function AdminBlogManagerUpdatedPage() {
               >
                 All ({posts.length})
               </button>
-              {CATEGORIES.map((cat) => {
+              {allCategories.map((cat) => {
                 const count = posts.filter((p) => p.category === cat).length;
                 return (
                   <button
@@ -580,6 +610,17 @@ export default function AdminBlogManagerUpdatedPage() {
                   </button>
                 );
               })}
+
+              {/* + Add Category Button */}
+              <button
+                type="button"
+                onClick={() => setShowAddCategoryModal(true)}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 transition flex items-center gap-1 shrink-0 shadow-2xs cursor-pointer"
+                title="Add a new category"
+              >
+                <Plus size={13} />
+                <span>Add Category</span>
+              </button>
             </div>
           </div>
 
@@ -1121,20 +1162,93 @@ export default function AdminBlogManagerUpdatedPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-500 mb-1">
-                    Category
-                  </label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3 py-1.5 text-xs font-medium rounded-xl border border-slate-200 bg-white"
-                  >
-                    {CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-bold text-slate-500">
+                      Category
+                    </label>
+                    {!isAddingCategoryInEditor && (
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingCategoryInEditor(true)}
+                        className="text-[10px] font-bold text-purple-600 hover:text-purple-800 flex items-center gap-0.5 cursor-pointer"
+                      >
+                        <Plus size={11} />
+                        <span>Add Category</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {!isAddingCategoryInEditor ? (
+                    <select
+                      value={category}
+                      onChange={(e) => {
+                        if (e.target.value === "__create_new__") {
+                          setIsAddingCategoryInEditor(true);
+                        } else {
+                          setCategory(e.target.value);
+                        }
+                      }}
+                      className="w-full px-3 py-1.5 text-xs font-medium rounded-xl border border-slate-200 bg-white"
+                    >
+                      {allCategories.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                      <option value="__create_new__">+ Add New Category...</option>
+                    </select>
+                  ) : (
+                    <div className="p-2.5 rounded-xl bg-purple-50/70 border border-purple-200 space-y-2">
+                      <label className="block text-[10px] font-bold text-purple-900">
+                        New Category Name:
+                      </label>
+                      <input
+                        type="text"
+                        autoFocus
+                        value={editorNewCategory}
+                        onChange={(e) => setEditorNewCategory(e.target.value)}
+                        placeholder="e.g. Commercial HVAC"
+                        className="w-full px-2.5 py-1 text-xs rounded-lg border border-purple-300 bg-white focus:outline-none focus:ring-1 focus:ring-purple-500"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            if (editorNewCategory.trim()) {
+                              handleAddCategory(editorNewCategory.trim());
+                              setCategory(editorNewCategory.trim());
+                              setEditorNewCategory("");
+                              setIsAddingCategoryInEditor(false);
+                            }
+                          }
+                        }}
+                      />
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsAddingCategoryInEditor(false);
+                            setEditorNewCategory("");
+                          }}
+                          className="px-2 py-0.5 text-[10px] font-semibold text-slate-500 hover:text-slate-700 cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (editorNewCategory.trim()) {
+                              handleAddCategory(editorNewCategory.trim());
+                              setCategory(editorNewCategory.trim());
+                              setEditorNewCategory("");
+                              setIsAddingCategoryInEditor(false);
+                            }
+                          }}
+                          className="px-2.5 py-1 text-[10px] font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-md transition cursor-pointer"
+                        >
+                          Add & Select
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -1231,6 +1345,52 @@ export default function AdminBlogManagerUpdatedPage() {
                 {deleting ? "Deleting..." : "Yes, Delete"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADD CATEGORY MODAL (Dashboard) */}
+      {showAddCategoryModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 text-center space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mx-auto border border-purple-100">
+              <Plus size={24} />
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900">Add New Category</h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Enter a category name for your blog articles and filter tabs.
+              </p>
+            </div>
+            <form onSubmit={handleCreateCategorySubmit} className="space-y-3 pt-1">
+              <input
+                type="text"
+                autoFocus
+                required
+                value={newCategoryInput}
+                onChange={(e) => setNewCategoryInput(e.target.value)}
+                placeholder="e.g. AI Customer Care, Case Studies"
+                className="w-full px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+              />
+              <div className="flex items-center justify-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddCategoryModal(false);
+                    setNewCategoryInput("");
+                  }}
+                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl transition shadow-md shadow-purple-600/30 cursor-pointer"
+                >
+                  Create Category
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
