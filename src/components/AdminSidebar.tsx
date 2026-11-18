@@ -16,7 +16,8 @@ import {
   Globe2,
   KeyRound,
   User,
-  BookOpen
+  BookOpen,
+  FileEdit
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -60,6 +61,7 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
     pathname?.startsWith("/admin/calls") ? "calls" :
     pathname?.startsWith("/admin/emails") ? "emails" :
     pathname?.startsWith("/admin/transcripts") ? "transcripts" :
+    pathname?.startsWith("/admin/blog-updated") ? "blog_updated" :
     pathname?.startsWith("/admin/blog") ? "blog" :
     pathname?.startsWith("/clientportal") ? "clientportal" :
     pathname?.startsWith("/admin/internal") ? "internal_portal" :
@@ -107,6 +109,14 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
       href: "/admin/blog",
       icon: BookOpen,
       badge: "CMS",
+    },
+    {
+      id: "blog_updated",
+      label: "Blog Manager Updated",
+      subtitle: "Full-screen studio editor",
+      href: "/admin/blog-updated",
+      icon: FileEdit,
+      badge: "FULL-SCREEN",
     },
   ];
 
@@ -491,6 +501,15 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
             >
               <BookOpen size={18} />
               <span className="text-[10px] mt-0.5">Blog</span>
+            </Link>
+            <Link
+              href="/admin/blog-updated"
+              className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
+                currentTab === "blog_updated" ? "text-emerald-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
+              }`}
+            >
+              <FileEdit size={18} />
+              <span className="text-[10px] mt-0.5">Updated</span>
             </Link>
             {showUserMgmt && (
               <Link
