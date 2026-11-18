@@ -182,99 +182,127 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               </ul>
             </div>
 
-            {/* Article Intro */}
-            <div className="prose prose-slate max-w-none text-base sm:text-lg leading-relaxed text-slate-700 font-normal mb-8 whitespace-pre-line">
-              {post.content.introduction}
-            </div>
-
-            {/* Subsections */}
-            <div className="space-y-12">
-              {post.content.sections.map((section) => (
-                <section key={section.id} id={section.id} className="scroll-mt-28">
-                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight leading-snug mb-4">
-                    {section.title}
-                  </h2>
-
-                  <div className="space-y-4 text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
-                    {section.body.map((p, idx) => (
-                      <p key={idx}>{p}</p>
-                    ))}
+            {/* Main Content Body: HTML CMS or Structured Sections */}
+            {post.content.rawHtml && post.content.rawHtml.trim() ? (
+              <div
+                className="prose prose-slate max-w-none text-base sm:text-lg leading-relaxed text-slate-800 font-normal
+                  prose-headings:font-black prose-headings:text-slate-900 prose-headings:tracking-tight
+                  prose-h2:text-2xl sm:prose-h2:text-3xl prose-h2:mt-10 prose-h2:mb-4
+                  prose-h3:text-xl sm:prose-h3:text-2xl prose-h3:mt-8 prose-h3:mb-3
+                  prose-p:mb-5 prose-p:leading-relaxed text-slate-700
+                  prose-a:text-emerald-600 prose-a:underline hover:prose-a:text-emerald-700 font-medium
+                  prose-strong:text-slate-900 prose-strong:font-bold
+                  prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-5
+                  prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-5
+                  prose-li:mb-2
+                  prose-blockquote:border-l-4 prose-blockquote:border-emerald-500 prose-blockquote:bg-emerald-50/50 prose-blockquote:p-4 prose-blockquote:rounded-r-xl prose-blockquote:italic prose-blockquote:text-slate-800
+                  prose-img:rounded-2xl prose-img:border prose-img:border-slate-200 prose-img:shadow-sm prose-img:my-6
+                  prose-table:w-full prose-table:border-collapse prose-table:my-6
+                  prose-th:bg-slate-900 prose-th:text-white prose-th:p-3 prose-th:text-left
+                  prose-td:p-3 prose-td:border-b prose-td:border-slate-200"
+                dangerouslySetInnerHTML={{ __html: post.content.rawHtml }}
+              />
+            ) : (
+              <>
+                {/* Article Intro */}
+                {post.content.introduction && (
+                  <div className="prose prose-slate max-w-none text-base sm:text-lg leading-relaxed text-slate-700 font-normal mb-8 whitespace-pre-line">
+                    {post.content.introduction}
                   </div>
+                )}
 
-                  {/* Callout Box */}
-                  {section.callout && (
-                    <div
-                      className={`my-6 rounded-2xl p-4 sm:p-5 border flex items-start gap-3.5 ${
-                        section.callout.type === "stat"
-                          ? "bg-emerald-50/70 border-emerald-200 text-emerald-950"
-                          : section.callout.type === "warning"
-                          ? "bg-amber-50/80 border-amber-200 text-amber-950"
-                          : "bg-blue-50/70 border-blue-200 text-blue-950"
-                      }`}
-                    >
-                      <div className="mt-0.5 shrink-0">
-                        {section.callout.type === "stat" && <TrendingUp size={20} className="text-emerald-600" />}
-                        {section.callout.type === "warning" && <AlertTriangle size={20} className="text-amber-600" />}
-                        {section.callout.type === "tip" && <Sparkles size={20} className="text-blue-600" />}
-                      </div>
-                      <div>
-                        <div className="text-xs font-black uppercase tracking-wider mb-1">
-                          {section.callout.title}
-                        </div>
-                        <div className="text-xs sm:text-sm font-medium leading-relaxed">
-                          {section.callout.text}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                {/* Subsections */}
+                <div className="space-y-12">
+                  {post.content.sections?.map((section) => (
+                    <section key={section.id} id={section.id} className="scroll-mt-28">
+                      <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight leading-snug mb-4">
+                        {section.title}
+                      </h2>
 
-                  {/* Comparison Table */}
-                  {section.table && (
-                    <div className="my-6 overflow-x-auto rounded-2xl border border-slate-200 shadow-xs">
-                      <table className="w-full text-left text-xs sm:text-sm border-collapse">
-                        <thead>
-                          <tr className="bg-slate-900 text-white">
-                            {section.table.headers.map((h, i) => (
-                              <th key={i} className="p-3 sm:p-3.5 font-bold whitespace-nowrap">
-                                {h}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 bg-white">
-                          {section.table.rows.map((row, rIdx) => (
-                            <tr key={rIdx} className={rIdx % 2 === 0 ? "bg-white" : "bg-slate-50/60"}>
-                              {row.map((cell, cIdx) => (
-                                <td
-                                  key={cIdx}
-                                  className={`p-3 sm:p-3.5 text-slate-700 ${
-                                    cIdx === 0
-                                      ? "font-bold text-slate-900"
-                                      : cIdx === 3
-                                      ? "font-semibold text-emerald-700 bg-emerald-50/40"
-                                      : ""
-                                  }`}
-                                >
-                                  {cell}
-                                </td>
+                      <div className="space-y-4 text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
+                        {section.body.map((p, idx) => (
+                          <p key={idx}>{p}</p>
+                        ))}
+                      </div>
+
+                      {/* Callout Box */}
+                      {section.callout && (
+                        <div
+                          className={`my-6 rounded-2xl p-4 sm:p-5 border flex items-start gap-3.5 ${
+                            section.callout.type === "stat"
+                              ? "bg-emerald-50/70 border-emerald-200 text-emerald-950"
+                              : section.callout.type === "warning"
+                              ? "bg-amber-50/80 border-amber-200 text-amber-950"
+                              : "bg-blue-50/70 border-blue-200 text-blue-950"
+                          }`}
+                        >
+                          <div className="mt-0.5 shrink-0">
+                            {section.callout.type === "stat" && <TrendingUp size={20} className="text-emerald-600" />}
+                            {section.callout.type === "warning" && <AlertTriangle size={20} className="text-amber-600" />}
+                            {section.callout.type === "tip" && <Sparkles size={20} className="text-blue-600" />}
+                          </div>
+                          <div>
+                            <div className="text-xs font-black uppercase tracking-wider mb-1">
+                              {section.callout.title}
+                            </div>
+                            <div className="text-xs sm:text-sm font-medium leading-relaxed">
+                              {section.callout.text}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Comparison Table */}
+                      {section.table && (
+                        <div className="my-6 overflow-x-auto rounded-2xl border border-slate-200 shadow-xs">
+                          <table className="w-full text-left text-xs sm:text-sm border-collapse">
+                            <thead>
+                              <tr className="bg-slate-900 text-white">
+                                {section.table.headers.map((h, i) => (
+                                  <th key={i} className="p-3 sm:p-3.5 font-bold whitespace-nowrap">
+                                    {h}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 bg-white">
+                              {section.table.rows.map((row, rIdx) => (
+                                <tr key={rIdx} className={rIdx % 2 === 0 ? "bg-white" : "bg-slate-50/60"}>
+                                  {row.map((cell, cIdx) => (
+                                    <td
+                                      key={cIdx}
+                                      className={`p-3 sm:p-3.5 text-slate-700 ${
+                                        cIdx === 0
+                                          ? "font-bold text-slate-900"
+                                          : cIdx === 3
+                                          ? "font-semibold text-emerald-700 bg-emerald-50/40"
+                                          : ""
+                                      }`}
+                                    >
+                                      {cell}
+                                    </td>
+                                  ))}
+                                </tr>
                               ))}
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </section>
-              ))}
-            </div>
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </section>
+                  ))}
+                </div>
 
-            {/* Conclusion */}
-            <div className="mt-12 pt-8 border-t border-slate-200">
-              <h3 className="text-xl font-black text-slate-900 mb-3">The Bottom Line</h3>
-              <p className="text-base text-slate-700 leading-relaxed font-normal">
-                {post.content.conclusion}
-              </p>
-            </div>
+                {/* Conclusion */}
+                {post.content.conclusion && (
+                  <div className="mt-12 pt-8 border-t border-slate-200">
+                    <h3 className="text-xl font-black text-slate-900 mb-3">The Bottom Line</h3>
+                    <p className="text-base text-slate-700 leading-relaxed font-normal">
+                      {post.content.conclusion}
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
 
             {/* In-Article CTA Banner */}
             <div className="mt-12 bg-gradient-to-br from-slate-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl">

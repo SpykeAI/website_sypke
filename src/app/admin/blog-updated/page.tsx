@@ -35,7 +35,10 @@ import {
   Globe,
   Sliders,
   CheckSquare,
-  FileEdit
+  FileEdit,
+  ChevronRight,
+  Code2,
+  Copy
 } from "lucide-react";
 
 const DEFAULT_AUTHOR = {
@@ -125,6 +128,118 @@ export default function AdminBlogManagerUpdatedPage() {
   >([]);
   const [conclusion, setConclusion] = useState<string>("");
 
+  // HTML Code CMS States
+  const [contentMode, setContentMode] = useState<"html" | "sections">("html");
+  const [htmlViewMode, setHtmlViewMode] = useState<"code" | "preview" | "split">("code");
+  const [rawHtml, setRawHtml] = useState<string>("");
+  const htmlTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Helper to convert structured sections into clean HTML
+  const convertSectionsToHtmlString = (
+    introText: string,
+    sectionList: {
+      title: string;
+      body: string;
+      calloutType: string;
+      calloutTitle: string;
+      calloutText: string;
+    }[],
+    conclusionText: string
+  ) => {
+    let html = "";
+    if (introText) {
+      const introParas = introText.split("\n\n").map((p) => p.trim()).filter(Boolean);
+      introParas.forEach((p) => {
+        html += `<p>${p}</p>\n\n`;
+      });
+    }
+    sectionList.forEach((s) => {
+      html += `<h2>${s.title}</h2>\n`;
+      const paragraphs = s.body.split("\n\n").map((p) => p.trim()).filter(Boolean);
+      paragraphs.forEach((p) => {
+        html += `<p>${p}</p>\n`;
+      });
+      if (s.calloutType && s.calloutType !== "none" && s.calloutText) {
+        const bgClass =
+          s.calloutType === "stat"
+            ? "bg-emerald-50/70 border-emerald-200 text-emerald-950"
+            : s.calloutType === "warning"
+            ? "bg-amber-50/80 border-amber-200 text-amber-950"
+            : "bg-blue-50/70 border-blue-200 text-blue-950";
+        html += `\n<div class="my-6 rounded-2xl p-4 sm:p-5 border ${bgClass}">\n  <div class="text-xs font-black uppercase tracking-wider mb-1">${s.calloutTitle || "Key Insight"}</div>\n  <div class="text-sm font-medium">${s.calloutText}</div>\n</div>\n`;
+      }
+      html += "\n";
+    });
+    if (conclusionText) {
+      html += `<h2>The Bottom Line</h2>\n`;
+      const concParas = conclusionText.split("\n\n").map((p) => p.trim()).filter(Boolean);
+      concParas.forEach((p) => {
+        html += `<p>${p}</p>\n`;
+      });
+    }
+    return html.trim();
+  };
+
+  // Quick HTML tag insertion helper
+  const handleInsertTag = (tagType: string) => {
+    const textarea = htmlTextareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = textarea.value.substring(start, end);
+    let replacement = "";
+
+    switch (tagType) {
+      case "h2":
+        replacement = `\n<h2>${selectedText || "Section Heading"}</h2>\n`;
+        break;
+      case "h3":
+        replacement = `\n<h3>${selectedText || "Subheading Title"}</h3>\n`;
+        break;
+      case "p":
+        replacement = `\n<p>${selectedText || "Write your paragraph text here..."}</p>\n`;
+        break;
+      case "b":
+        replacement = `<strong>${selectedText || "Bold Text"}</strong>`;
+        break;
+      case "ul":
+        replacement = `\n<ul>\n  <li>${selectedText || "First key point"}</li>\n  <li>Second key point</li>\n  <li>Third key point</li>\n</ul>\n`;
+        break;
+      case "ol":
+        replacement = `\n<ol>\n  <li>${selectedText || "Step 1 details"}</li>\n  <li>Step 2 details</li>\n  <li>Step 3 details</li>\n</ol>\n`;
+        break;
+      case "blockquote":
+        replacement = `\n<blockquote>\n  <strong>Key Insight:</strong> ${selectedText || "Important industry quote or takeaway."}\n</blockquote>\n`;
+        break;
+      case "table":
+        replacement = `\n<div class="overflow-x-auto my-6">\n<table class="w-full text-left text-sm border-collapse">\n  <thead>\n    <tr class="bg-slate-900 text-white">\n      <th class="p-3">Solution Type</th>\n      <th class="p-3">Monthly Cost</th>\n      <th class="p-3">Response Time</th>\n      <th class="p-3">Booking Conversion</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr class="border-b border-slate-200">\n      <td class="p-3 font-bold">Traditional Answering</td>\n      <td class="p-3">$1,200 - $2,500/mo</td>\n      <td class="p-3">3 - 8 rings</td>\n      <td class="p-3">42%</td>\n    </tr>\n    <tr class="border-b border-slate-200 bg-emerald-50/50">\n      <td class="p-3 font-bold text-emerald-700">Spyke AI Voice Agent</td>\n      <td class="p-3 text-emerald-700 font-bold">$299 - $599/mo</td>\n      <td class="p-3 text-emerald-700 font-bold">&lt; 1 second</td>\n      <td class="p-3 text-emerald-700 font-bold">88%</td>\n    </tr>\n  </tbody>\n</table>\n</div>\n`;
+        break;
+      case "callout-stat":
+        replacement = `\n<div class="my-6 rounded-2xl p-4 sm:p-5 border bg-emerald-50/70 border-emerald-200 text-emerald-950 flex items-start gap-3.5">\n  <div>\n    <div class="text-xs font-black uppercase tracking-wider mb-1 text-emerald-800">Key Stat</div>\n    <div class="text-sm font-medium">${selectedText || "83% of emergency calls occur after 6 PM on weekdays."}</div>\n  </div>\n</div>\n`;
+        break;
+      case "callout-warning":
+        replacement = `\n<div class="my-6 rounded-2xl p-4 sm:p-5 border bg-amber-50/80 border-amber-200 text-amber-950 flex items-start gap-3.5">\n  <div>\n    <div class="text-xs font-black uppercase tracking-wider mb-1 text-amber-800">Critical Warning</div>\n    <div class="text-sm font-medium">${selectedText || "Voicemail leads have an 80% drop-off rate after 5 minutes."}</div>\n  </div>\n</div>\n`;
+        break;
+      case "img":
+        replacement = `\n<img src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1200&q=80" alt="${selectedText || "Illustration"}" class="rounded-2xl border border-slate-200 my-6 w-full" />\n`;
+        break;
+      case "a":
+        replacement = `<a href="https://www.spykeai.com/demo" target="_blank" rel="noopener noreferrer" class="text-emerald-600 underline font-semibold">${selectedText || "Book a 15-min Demo"}</a>`;
+        break;
+      default:
+        replacement = selectedText;
+    }
+
+    const newValue = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+    setRawHtml(newValue);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + replacement.length, start + replacement.length);
+    }, 50);
+  };
+
   // Active section scroll state
   const [activeInspectorTab, setActiveInspectorTab] = useState<"media" | "seo" | "author">("media");
 
@@ -195,6 +310,9 @@ export default function AdminBlogManagerUpdatedPage() {
       },
     ]);
     setConclusion("");
+    setRawHtml("");
+    setContentMode("html");
+    setHtmlViewMode("code");
     setIsEditorOpen(true);
   };
 
@@ -215,22 +333,32 @@ export default function AdminBlogManagerUpdatedPage() {
     setAuthorRole(post.author?.role || DEFAULT_AUTHOR.role);
     setAuthorAvatar(post.author?.avatar || DEFAULT_AUTHOR.avatar);
 
-    setIntroduction(post.content?.introduction || "");
-    setConclusion(post.content?.conclusion || "");
+    const postIntro = post.content?.introduction || "";
+    const postConc = post.content?.conclusion || "";
+    setIntroduction(postIntro);
+    setConclusion(postConc);
+
+    let parsedSections: {
+      id: string;
+      title: string;
+      body: string;
+      calloutType: "none" | "tip" | "warning" | "stat";
+      calloutTitle: string;
+      calloutText: string;
+    }[] = [];
 
     if (post.content?.sections && post.content.sections.length > 0) {
-      setSections(
-        post.content.sections.map((sec, idx) => ({
-          id: sec.id || `section-${idx + 1}`,
-          title: sec.title,
-          body: Array.isArray(sec.body) ? sec.body.join("\n\n") : (sec.body as string) || "",
-          calloutType: sec.callout ? sec.callout.type : "none",
-          calloutTitle: sec.callout ? sec.callout.title : "",
-          calloutText: sec.callout ? sec.callout.text : "",
-        }))
-      );
+      parsedSections = post.content.sections.map((sec, idx) => ({
+        id: sec.id || `section-${idx + 1}`,
+        title: sec.title,
+        body: Array.isArray(sec.body) ? sec.body.join("\n\n") : (sec.body as string) || "",
+        calloutType: (sec.callout ? sec.callout.type : "none") as "none" | "tip" | "warning" | "stat",
+        calloutTitle: sec.callout ? sec.callout.title : "",
+        calloutText: sec.callout ? sec.callout.text : "",
+      }));
+      setSections(parsedSections);
     } else {
-      setSections([
+      parsedSections = [
         {
           id: "section-1",
           title: "1. Key Industry Overview",
@@ -239,8 +367,23 @@ export default function AdminBlogManagerUpdatedPage() {
           calloutTitle: "",
           calloutText: "",
         },
-      ]);
+      ];
+      setSections(parsedSections);
     }
+
+    if (post.content?.rawHtml && post.content.rawHtml.trim()) {
+      setRawHtml(post.content.rawHtml);
+      setContentMode("html");
+    } else {
+      const generatedHtml = convertSectionsToHtmlString(
+        postIntro || post.excerpt || "",
+        parsedSections,
+        postConc
+      );
+      setRawHtml(generatedHtml);
+      setContentMode("html");
+    }
+    setHtmlViewMode("code");
 
     setIsEditorOpen(true);
   };
@@ -359,10 +502,22 @@ export default function AdminBlogManagerUpdatedPage() {
         return sectionObj;
       });
 
-      const tableOfContents = formattedSections.map((sec) => ({
+      const sectionsTOC = formattedSections.map((sec) => ({
         id: sec.id,
         title: sec.title,
       }));
+
+      let finalTOC = sectionsTOC;
+      if (contentMode === "html" && rawHtml) {
+        const h2Matches = Array.from(rawHtml.matchAll(/<h2[^>]*>(.*?)<\/h2>/gi));
+        if (h2Matches.length > 0) {
+          finalTOC = h2Matches.map((m, i) => {
+            const cleanTitle = m[1].replace(/<[^>]+>/g, "").trim();
+            const id = `heading-${i + 1}-${cleanTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+            return { id, title: cleanTitle };
+          });
+        }
+      }
 
       const postPayload: BlogPost = {
         title: title.trim(),
@@ -379,10 +534,11 @@ export default function AdminBlogManagerUpdatedPage() {
           avatar: authorAvatar.trim() || DEFAULT_AUTHOR.avatar,
         },
         content: {
-          tableOfContents,
+          tableOfContents: finalTOC,
           introduction: introduction.trim(),
           sections: formattedSections,
           conclusion: conclusion.trim(),
+          rawHtml: contentMode === "html" ? rawHtml.trim() : (rawHtml.trim() || undefined),
         },
       };
 
@@ -830,230 +986,554 @@ export default function AdminBlogManagerUpdatedPage() {
             {/* 1. Main Document Canvas (Spacious Left Column) */}
             <div className="flex-1 overflow-y-auto px-4 sm:px-8 lg:px-12 py-8 space-y-8">
               <div className="max-w-4xl mx-auto space-y-8 pb-20">
-                {/* Hero Title & Headline */}
-                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/90 shadow-sm space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-purple-700 flex items-center gap-1.5">
-                      <FileText size={13} />
-                      Article Title & Headline
-                    </span>
-                    <span className="text-[11px] text-slate-400 font-mono">
+                {/* ========================================================================= */}
+                {/* 🌟 1. EXACT PIXEL-IDENTICAL HERO HEADER (Matching www.spykeai.com/blog/[slug]) 🌟 */}
+                {/* ========================================================================= */}
+                <section className="bg-slate-950 text-white rounded-3xl p-6 sm:p-10 border border-slate-800 shadow-2xl relative overflow-hidden">
+                  {/* Subtle Emerald Glow in background */}
+                  <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+
+                  {/* Breadcrumb Bar matching live site screenshot */}
+                  <nav className="flex items-center gap-2 text-xs text-slate-400 mb-6 flex-wrap">
+                    <span className="text-slate-400 hover:text-emerald-400 transition cursor-default">Home</span>
+                    <ChevronRight size={12} className="text-slate-600" />
+                    <span className="text-slate-400 hover:text-emerald-400 transition cursor-default">Blog</span>
+                    <ChevronRight size={12} className="text-slate-600" />
+                    <span className="text-slate-300 font-semibold">{category}</span>
+                  </nav>
+
+                  {/* Category Pill Badge (Interactive & Clickable) */}
+                  <div className="mb-4 flex items-center gap-2.5 flex-wrap">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-black uppercase tracking-wider">
+                      <span>{category}</span>
+                      <select
+                        value={category}
+                        onChange={(e) => {
+                          if (e.target.value === "__create_new__") {
+                            setIsAddingCategoryInEditor(true);
+                          } else {
+                            setCategory(e.target.value);
+                          }
+                        }}
+                        className="bg-transparent text-emerald-300 text-xs font-bold outline-none cursor-pointer border-none p-0 focus:ring-0 ml-1"
+                        title="Click to change category"
+                      >
+                        {allCategories.map((c) => (
+                          <option key={c} value={c} className="bg-slate-900 text-white">
+                            {c}
+                          </option>
+                        ))}
+                        <option value="__create_new__" className="bg-slate-900 text-purple-300">+ Add Category...</option>
+                      </select>
+                    </div>
+
+                    <span className="text-[11px] text-slate-500 font-mono">
                       {slug ? `/blog/${slug}` : "slug will auto-generate"}
                     </span>
                   </div>
 
-                  <input
-                    type="text"
+                  {/* Headline Title (Directly editable in-place matching exact live font & scale) */}
+                  <textarea
+                    rows={2}
                     value={title}
                     onChange={(e) => handleTitleChange(e.target.value)}
                     placeholder="e.g. How Much Does an AI Receptionist Cost for HVAC Contractors in 2026?"
-                    className="w-full text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 placeholder:text-slate-300 border-none outline-none focus:ring-0 p-0 bg-transparent leading-tight"
+                    className="w-full text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight bg-transparent border border-transparent hover:border-slate-800 focus:border-emerald-500/50 focus:bg-slate-900/40 rounded-2xl p-2 resize-none outline-none transition placeholder:text-slate-700"
                   />
 
-                  {/* Excerpt / Summary */}
-                  <div className="pt-4 border-t border-slate-100">
-                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                      Article Excerpt / Teaser Hook *
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={excerpt}
-                      onChange={(e) => setExcerpt(e.target.value)}
-                      placeholder="A comprehensive breakdown comparing traditional answering services ($1,800/mo) vs in-house dispatchers vs AI voice agents..."
-                      className="w-full p-3 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00DF81] bg-slate-50/60 leading-relaxed"
-                    />
-                  </div>
-                </div>
-
-                {/* Introduction Section */}
-                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/90 shadow-sm space-y-3">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                    <Sparkles size={13} className="text-emerald-500" />
-                    Opening Introduction
-                  </span>
-                  <p className="text-xs text-slate-400">
-                    Set the context for homeowners and HVAC business owners. What immediate problem does this article solve?
-                  </p>
+                  {/* Excerpt / Teaser Subtitle (Directly editable in-place matching exact live font & scale) */}
                   <textarea
-                    rows={4}
-                    value={introduction}
-                    onChange={(e) => setIntroduction(e.target.value)}
-                    placeholder="Write your compelling opening paragraph here..."
-                    className="w-full p-3.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00DF81] bg-slate-50/60 leading-relaxed font-sans"
+                    rows={2}
+                    value={excerpt}
+                    onChange={(e) => setExcerpt(e.target.value)}
+                    placeholder="A comprehensive breakdown comparing traditional answering services ($1,800/mo) vs in-house dispatchers vs AI voice agents..."
+                    className="mt-4 w-full text-sm sm:text-base md:text-lg text-slate-300 leading-relaxed font-normal bg-transparent border border-transparent hover:border-slate-800 focus:border-emerald-500/50 focus:bg-slate-900/40 rounded-2xl p-2 resize-none outline-none transition placeholder:text-slate-600"
                   />
-                </div>
 
-                {/* Dynamic Content Sections Builder */}
-                <div className="space-y-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                        <span>Content Sections</span>
-                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-                          {sections.length}
-                        </span>
-                      </h3>
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        Each section automatically builds a Table of Contents entry on the public guide
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleAddSection}
-                      className="px-4 py-2 text-xs font-bold text-slate-900 bg-[#00DF81] hover:bg-[#00c271] rounded-xl transition flex items-center gap-1.5 shadow-sm cursor-pointer"
-                    >
-                      <Plus size={14} />
-                      <span>Add Section</span>
-                    </button>
-                  </div>
-
-                  {sections.map((sec, idx) => (
-                    <div
-                      key={sec.id || idx}
-                      className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-4 relative group"
-                    >
-                      {/* Section Card Top Header */}
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <div className="flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-lg bg-slate-900 text-white font-extrabold text-xs flex items-center justify-center">
-                            {idx + 1}
-                          </span>
-                          <span className="text-xs font-bold text-slate-800">
-                            Section {idx + 1}
-                          </span>
-                        </div>
-
-                        {/* Order & Delete Actions */}
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => handleMoveSection(idx, "up")}
-                            disabled={idx === 0}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30"
-                            title="Move section up"
-                          >
-                            <ChevronUp size={16} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleMoveSection(idx, "down")}
-                            disabled={idx === sections.length - 1}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30"
-                            title="Move section down"
-                          >
-                            <ChevronDown size={16} />
-                          </button>
-                          {sections.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveSection(idx)}
-                              className="p-1.5 rounded-lg text-rose-400 hover:text-rose-600 hover:bg-rose-50 ml-1"
-                              title="Delete section"
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Section Title */}
+                  {/* Author Metadata Row (Pixel-identical to screenshot) */}
+                  <div className="mt-6 pt-6 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={authorAvatar || DEFAULT_AUTHOR.avatar}
+                        alt={authorName}
+                        className="w-11 h-11 rounded-full object-cover border border-emerald-500/30 ring-2 ring-emerald-500/20"
+                      />
                       <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                          Section Heading *
-                        </label>
                         <input
                           type="text"
-                          value={sec.title}
-                          onChange={(e) => handleSectionChange(idx, "title", e.target.value)}
-                          placeholder="e.g. Comparing Traditional Answering Services vs In-House vs AI"
-                          className="w-full px-3.5 py-2 text-sm font-bold text-slate-900 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00DF81] bg-slate-50/50"
+                          value={authorName}
+                          onChange={(e) => setAuthorName(e.target.value)}
+                          className="text-sm font-bold text-white bg-transparent border-b border-transparent hover:border-slate-700 focus:border-emerald-500 focus:outline-none block w-48"
+                          placeholder="Author Name"
+                        />
+                        <input
+                          type="text"
+                          value={authorRole}
+                          onChange={(e) => setAuthorRole(e.target.value)}
+                          className="text-xs text-slate-400 bg-transparent border-b border-transparent hover:border-slate-700 focus:border-emerald-500 focus:outline-none block w-64 mt-0.5"
+                          placeholder="Author Title / Role"
                         />
                       </div>
+                    </div>
 
-                      {/* Section Body */}
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                          Body Content (Double line break creates a new paragraph)
-                        </label>
-                        <textarea
-                          rows={6}
-                          value={sec.body}
-                          onChange={(e) => handleSectionChange(idx, "body", e.target.value)}
-                          placeholder="Write the in-depth technical analysis, data points, or step-by-step guidance..."
-                          className="w-full p-3.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00DF81] bg-slate-50/50 leading-relaxed font-sans"
+                    <div className="flex items-center gap-4 text-xs text-slate-400 font-medium">
+                      <span className="flex items-center gap-1.5">
+                        <Calendar size={14} className="text-slate-500" />
+                        <input
+                          type="text"
+                          value={publishDate}
+                          onChange={(e) => setPublishDate(e.target.value)}
+                          className="bg-transparent border-b border-transparent hover:border-slate-700 focus:border-emerald-500 focus:outline-none w-28 text-slate-300"
                         />
-                      </div>
+                      </span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1.5">
+                        <Clock size={14} className="text-slate-500" />
+                        <input
+                          type="text"
+                          value={readTime}
+                          onChange={(e) => setReadTime(e.target.value)}
+                          className="bg-transparent border-b border-transparent hover:border-slate-700 focus:border-emerald-500 focus:outline-none w-20 text-slate-300"
+                        />
+                      </span>
+                    </div>
+                  </div>
+                </section>
 
-                      {/* Callout Box Integration */}
-                      <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 space-y-3">
+                {/* ========================================================================= */}
+                {/* 🌟 2. CONTENT CMS & HTML CODE EDITOR (PUT HTML CODE OPTION) 🌟 */}
+                {/* ========================================================================= */}
+                <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-4 sm:p-6 space-y-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                    {/* Primary Mode Switcher */}
+                    <div className="flex items-center gap-2 p-1 bg-slate-100 rounded-2xl">
+                      <button
+                        type="button"
+                        onClick={() => setContentMode("html")}
+                        className={`px-4 py-2 rounded-xl text-xs font-extrabold transition flex items-center gap-2 cursor-pointer ${
+                          contentMode === "html"
+                            ? "bg-slate-900 text-white shadow-xs"
+                            : "text-slate-600 hover:text-slate-900"
+                        }`}
+                      >
+                        <Code2 size={14} className={contentMode === "html" ? "text-[#00DF81]" : ""} />
+                        <span>HTML Code CMS (Direct HTML Input)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setContentMode("sections")}
+                        className={`px-4 py-2 rounded-xl text-xs font-extrabold transition flex items-center gap-2 cursor-pointer ${
+                          contentMode === "sections"
+                            ? "bg-slate-900 text-white shadow-xs"
+                            : "text-slate-600 hover:text-slate-900"
+                        }`}
+                      >
+                        <Layers size={14} className={contentMode === "sections" ? "text-purple-400" : ""} />
+                        <span>Visual Sections Builder</span>
+                      </button>
+                    </div>
+
+                    {/* Helper utility buttons */}
+                    <div className="flex items-center gap-2">
+                      {contentMode === "html" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const converted = convertSectionsToHtmlString(introduction, sections, conclusion);
+                            if (converted) {
+                              setRawHtml(converted);
+                              showToast("success", "Loaded existing content sections into HTML code editor!");
+                            } else {
+                              showToast("error", "No existing sections found to convert.");
+                            }
+                          }}
+                          className="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer border border-purple-200"
+                          title="Convert current sections & intro into HTML code"
+                        >
+                          <Sparkles size={13} />
+                          <span>Sync Sections to HTML</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* --- MODE 1: HTML CODE CMS EDITOR --- */}
+                  {contentMode === "html" && (
+                    <div className="space-y-4">
+                      {/* Quick HTML Tag Insertion Toolbar */}
+                      <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                            <Layers size={13} className="text-purple-600" />
-                            Callout Highlight Box
-                          </label>
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                            <Sparkles size={13} className="text-[#00DF81]" />
+                            Quick Insert HTML Elements
+                          </span>
 
-                          <select
-                            value={sec.calloutType}
-                            onChange={(e) => handleSectionChange(idx, "calloutType", e.target.value)}
-                            className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 bg-white"
-                          >
-                            <option value="none">None (No Callout)</option>
-                            <option value="tip">Pro Tip (Green)</option>
-                            <option value="stat">Key Statistic (Emerald)</option>
-                            <option value="warning">Industry Warning (Amber)</option>
-                          </select>
+                          {/* Sub-view switcher: Code, Preview, Split */}
+                          <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl text-xs">
+                            <button
+                              type="button"
+                              onClick={() => setHtmlViewMode("code")}
+                              className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
+                                htmlViewMode === "code" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"
+                              }`}
+                            >
+                              Code
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setHtmlViewMode("preview")}
+                              className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
+                                htmlViewMode === "preview" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"
+                              }`}
+                            >
+                              Live Preview
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setHtmlViewMode("split")}
+                              className={`hidden md:flex px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
+                                htmlViewMode === "split" ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"
+                              }`}
+                            >
+                              Side-by-Side
+                            </button>
+                          </div>
                         </div>
 
-                        {sec.calloutType !== "none" && (
-                          <div className="space-y-2 pt-1">
-                            <input
-                              type="text"
-                              value={sec.calloutTitle}
-                              onChange={(e) => handleSectionChange(idx, "calloutTitle", e.target.value)}
-                              placeholder="Callout Headline (e.g. Industry Benchmark)"
-                              className="w-full px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white"
-                            />
+                        <div className="flex flex-wrap items-center gap-1.5 p-2 bg-slate-50 rounded-2xl border border-slate-200/80">
+                          <button
+                            type="button"
+                            onClick={() => handleInsertTag("h2")}
+                            className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition cursor-pointer"
+                          >
+                            + &lt;h2&gt; Heading
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleInsertTag("h3")}
+                            className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition cursor-pointer"
+                          >
+                            + &lt;h3&gt; Subheading
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleInsertTag("p")}
+                            className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition cursor-pointer"
+                          >
+                            + &lt;p&gt; Paragraph
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleInsertTag("b")}
+                            className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition cursor-pointer"
+                          >
+                            + &lt;strong&gt; Bold
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleInsertTag("ul")}
+                            className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition cursor-pointer"
+                          >
+                            + &lt;ul&gt; Bullet List
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleInsertTag("ol")}
+                            className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition cursor-pointer"
+                          >
+                            + &lt;ol&gt; Number List
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleInsertTag("blockquote")}
+                            className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition cursor-pointer"
+                          >
+                            + &lt;blockquote&gt;
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleInsertTag("table")}
+                            className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition cursor-pointer"
+                          >
+                            + &lt;table&gt; Comparison
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleInsertTag("callout-stat")}
+                            className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold rounded-lg border border-emerald-200 transition cursor-pointer"
+                          >
+                            + 💡 Stat Callout
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleInsertTag("callout-warning")}
+                            className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold rounded-lg border border-amber-200 transition cursor-pointer"
+                          >
+                            + ⚠️ Warning Callout
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleInsertTag("img")}
+                            className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition cursor-pointer"
+                          >
+                            + &lt;img&gt; Image
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleInsertTag("a")}
+                            className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition cursor-pointer"
+                          >
+                            + &lt;a&gt; Link
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Code / Preview Area */}
+                      <div className={`grid gap-4 ${htmlViewMode === "split" ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
+                        {/* Code Editor */}
+                        {(htmlViewMode === "code" || htmlViewMode === "split") && (
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-xs text-slate-500 font-mono">
+                              <span>HTML Code Input (Paste or write standard HTML)</span>
+                              <span>{rawHtml.length} characters</span>
+                            </div>
                             <textarea
-                              rows={2}
-                              value={sec.calloutText}
-                              onChange={(e) => handleSectionChange(idx, "calloutText", e.target.value)}
-                              placeholder="Callout body text explaining the specific metric or warning..."
-                              className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-white"
+                              ref={htmlTextareaRef}
+                              value={rawHtml}
+                              onChange={(e) => setRawHtml(e.target.value)}
+                              placeholder="Paste your HTML code here or click the buttons above to insert headings, paragraphs, bullet points, callout boxes, or comparison tables..."
+                              className="w-full min-h-[520px] p-4 bg-slate-950 text-emerald-400 font-mono text-xs sm:text-sm rounded-2xl border border-slate-800 focus:outline-none focus:ring-2 focus:ring-[#00DF81] leading-relaxed shadow-inner"
                             />
+                          </div>
+                        )}
+
+                        {/* Live Preview */}
+                        {(htmlViewMode === "preview" || htmlViewMode === "split") && (
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-xs text-slate-500 font-bold">
+                              <span>Live Public Preview (WYSIWYG)</span>
+                              <span className="text-emerald-600 font-normal">Real-time Tailwind prose</span>
+                            </div>
+                            <div className="min-h-[520px] p-6 bg-white rounded-2xl border border-slate-200 overflow-y-auto max-h-[750px] shadow-sm">
+                              {rawHtml.trim() ? (
+                                <div
+                                  className="prose prose-slate max-w-none text-sm sm:text-base leading-relaxed text-slate-800 font-normal
+                                    prose-headings:font-black prose-headings:text-slate-900 prose-headings:tracking-tight
+                                    prose-h2:text-xl sm:prose-h2:text-2xl prose-h2:mt-6 prose-h2:mb-3
+                                    prose-h3:text-lg sm:prose-h3:text-xl prose-h3:mt-5 prose-h3:mb-2
+                                    prose-p:mb-4 prose-p:leading-relaxed text-slate-700
+                                    prose-a:text-emerald-600 prose-a:underline hover:prose-a:text-emerald-700
+                                    prose-strong:text-slate-900 prose-strong:font-bold
+                                    prose-ul:list-disc prose-ul:pl-5 prose-ul:mb-4
+                                    prose-ol:list-decimal prose-ol:pl-5 prose-ol:mb-4
+                                    prose-li:mb-1
+                                    prose-blockquote:border-l-4 prose-blockquote:border-emerald-500 prose-blockquote:bg-emerald-50/50 prose-blockquote:p-3.5 prose-blockquote:rounded-r-xl prose-blockquote:italic prose-blockquote:text-slate-800
+                                    prose-img:rounded-2xl prose-img:border prose-img:border-slate-200 prose-img:my-4
+                                    prose-table:w-full prose-table:border-collapse prose-table:my-4
+                                    prose-th:bg-slate-900 prose-th:text-white prose-th:p-2.5 prose-th:text-left
+                                    prose-td:p-2.5 prose-td:border-b prose-td:border-slate-200"
+                                  dangerouslySetInnerHTML={{ __html: rawHtml }}
+                                />
+                              ) : (
+                                <div className="h-64 flex flex-col items-center justify-center text-slate-400 text-xs">
+                                  <Code2 size={32} className="text-slate-300 mb-2" />
+                                  <span>No HTML content entered yet. Paste or write HTML in the code editor.</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
                     </div>
-                  ))}
+                  )}
 
-                  {/* Add Another Section Button */}
-                  <button
-                    type="button"
-                    onClick={handleAddSection}
-                    className="w-full py-4 rounded-2xl border-2 border-dashed border-slate-300 hover:border-slate-400 text-slate-600 hover:text-slate-900 text-xs font-bold transition flex items-center justify-center gap-2 bg-white/60 hover:bg-white cursor-pointer"
-                  >
-                    <Plus size={16} />
-                    <span>Insert New Content Section</span>
-                  </button>
-                </div>
+                  {/* --- MODE 2: VISUAL SECTIONS BUILDER --- */}
+                  {contentMode === "sections" && (
+                    <div className="space-y-6">
+                      {/* Introduction Section */}
+                      <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200 space-y-2">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                          <Sparkles size={13} className="text-emerald-500" />
+                          Opening Introduction
+                        </span>
+                        <textarea
+                          rows={3}
+                          value={introduction}
+                          onChange={(e) => setIntroduction(e.target.value)}
+                          placeholder="Write your compelling opening paragraph here..."
+                          className="w-full p-3 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00DF81] bg-white leading-relaxed font-sans"
+                        />
+                      </div>
 
-                {/* Conclusion Section */}
-                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/90 shadow-sm space-y-3">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                    <CheckSquare size={13} className="text-emerald-500" />
-                    Final Summary & Conclusion
-                  </span>
-                  <p className="text-xs text-slate-400">
-                    Summarize key takeaways and invite reader to book a technical voice audit.
-                  </p>
-                  <textarea
-                    rows={3}
-                    value={conclusion}
-                    onChange={(e) => setConclusion(e.target.value)}
-                    placeholder="Concluding thoughts..."
-                    className="w-full p-3.5 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00DF81] bg-slate-50/60 leading-relaxed font-sans"
-                  />
+                      {/* Dynamic Content Sections Builder */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                              <span>Structured Content Sections</span>
+                              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                                {sections.length}
+                              </span>
+                            </h3>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleAddSection}
+                            className="px-3.5 py-1.5 text-xs font-bold text-slate-900 bg-[#00DF81] hover:bg-[#00c271] rounded-xl transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                          >
+                            <Plus size={14} />
+                            <span>Add Section</span>
+                          </button>
+                        </div>
+
+                        {sections.map((sec, idx) => (
+                          <div
+                            key={sec.id || idx}
+                            className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/90 space-y-3 relative group"
+                          >
+                            {/* Section Card Top Header */}
+                            <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                              <div className="flex items-center gap-2">
+                                <span className="w-5 h-5 rounded-md bg-slate-900 text-white font-extrabold text-[11px] flex items-center justify-center">
+                                  {idx + 1}
+                                </span>
+                                <span className="text-xs font-bold text-slate-800">
+                                  Section {idx + 1}
+                                </span>
+                              </div>
+
+                              {/* Order & Delete Actions */}
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleMoveSection(idx, "up")}
+                                  disabled={idx === 0}
+                                  className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200 disabled:opacity-30 cursor-pointer"
+                                  title="Move section up"
+                                >
+                                  <ChevronUp size={15} />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleMoveSection(idx, "down")}
+                                  disabled={idx === sections.length - 1}
+                                  className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-200 disabled:opacity-30 cursor-pointer"
+                                  title="Move section down"
+                                >
+                                  <ChevronDown size={15} />
+                                </button>
+                                {sections.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveSection(idx)}
+                                    className="p-1 rounded-md text-rose-400 hover:text-rose-600 hover:bg-rose-50 ml-1 cursor-pointer"
+                                    title="Delete section"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Section Title */}
+                            <div>
+                              <label className="block text-xs font-bold text-slate-700 mb-1">
+                                Section Heading *
+                              </label>
+                              <input
+                                type="text"
+                                value={sec.title}
+                                onChange={(e) => handleSectionChange(idx, "title", e.target.value)}
+                                placeholder="e.g. Comparing Traditional Answering Services vs In-House vs AI"
+                                className="w-full px-3 py-1.5 text-xs sm:text-sm font-bold text-slate-900 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00DF81] bg-white"
+                              />
+                            </div>
+
+                            {/* Section Body */}
+                            <div>
+                              <label className="block text-xs font-bold text-slate-700 mb-1">
+                                Body Content (Double line break creates a new paragraph)
+                              </label>
+                              <textarea
+                                rows={5}
+                                value={sec.body}
+                                onChange={(e) => handleSectionChange(idx, "body", e.target.value)}
+                                placeholder="Write the in-depth technical analysis, data points, or step-by-step guidance..."
+                                className="w-full p-3 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00DF81] bg-white leading-relaxed font-sans"
+                              />
+                            </div>
+
+                            {/* Callout Box Integration */}
+                            <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-2.5">
+                              <div className="flex items-center justify-between">
+                                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                                  <Layers size={13} className="text-purple-600" />
+                                  Callout Highlight Box
+                                </label>
+
+                                <select
+                                  value={sec.calloutType}
+                                  onChange={(e) => handleSectionChange(idx, "calloutType", e.target.value)}
+                                  className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-200 bg-white"
+                                >
+                                  <option value="none">None (No Callout)</option>
+                                  <option value="tip">Pro Tip (Green)</option>
+                                  <option value="stat">Key Statistic (Emerald)</option>
+                                  <option value="warning">Industry Warning (Amber)</option>
+                                </select>
+                              </div>
+
+                              {sec.calloutType !== "none" && (
+                                <div className="space-y-2 pt-1">
+                                  <input
+                                    type="text"
+                                    value={sec.calloutTitle}
+                                    onChange={(e) => handleSectionChange(idx, "calloutTitle", e.target.value)}
+                                    placeholder="Callout Headline (e.g. Industry Benchmark)"
+                                    className="w-full px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-slate-50"
+                                  />
+                                  <textarea
+                                    rows={2}
+                                    value={sec.calloutText}
+                                    onChange={(e) => handleSectionChange(idx, "calloutText", e.target.value)}
+                                    placeholder="Callout body text explaining the specific metric or warning..."
+                                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Add Another Section Button */}
+                        <button
+                          type="button"
+                          onClick={handleAddSection}
+                          className="w-full py-3 rounded-2xl border-2 border-dashed border-slate-300 hover:border-slate-400 text-slate-600 hover:text-slate-900 text-xs font-bold transition flex items-center justify-center gap-2 bg-white/60 hover:bg-white cursor-pointer"
+                        >
+                          <Plus size={15} />
+                          <span>Insert New Content Section</span>
+                        </button>
+                      </div>
+
+                      {/* Conclusion Section */}
+                      <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200 space-y-2">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                          <CheckSquare size={13} className="text-emerald-500" />
+                          Final Summary & Conclusion
+                        </span>
+                        <textarea
+                          rows={3}
+                          value={conclusion}
+                          onChange={(e) => setConclusion(e.target.value)}
+                          placeholder="Concluding thoughts..."
+                          className="w-full p-3 text-xs sm:text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00DF81] bg-white leading-relaxed font-sans"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

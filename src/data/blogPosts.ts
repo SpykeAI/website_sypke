@@ -30,6 +30,7 @@ export interface BlogPost {
       };
     }[];
     conclusion: string;
+    rawHtml?: string;
   };
 }
 
