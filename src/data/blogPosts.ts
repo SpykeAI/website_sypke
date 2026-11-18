@@ -12,6 +12,9 @@ export interface BlogPost {
   };
   featuredImage: string;
   isFeatured?: boolean;
+  focusKeyword?: string;
+  seoTitle?: string;
+  seoDescription?: string;
   content: {
     tableOfContents: { id: string; title: string }[];
     introduction: string;

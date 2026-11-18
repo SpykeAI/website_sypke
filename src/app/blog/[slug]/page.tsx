@@ -46,15 +46,19 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     };
   }
 
+  const metaTitle = post.seoTitle || post.title;
+  const metaDesc = post.seoDescription || post.excerpt;
+
   return {
-    title: `${post.title} | Spyke AI Blog`,
-    description: post.excerpt,
+    title: `${metaTitle} | Spyke AI Blog`,
+    description: metaDesc,
     alternates: {
       canonical: `https://spykeai.com/blog/${post.slug}`,
     },
+    keywords: post.focusKeyword ? [post.focusKeyword, post.category, "HVAC AI", "Spyke AI"] : undefined,
     openGraph: {
-      title: post.title,
-      description: post.excerpt,
+      title: metaTitle,
+      description: metaDesc,
       url: `https://spykeai.com/blog/${post.slug}`,
       siteName: "Spyke AI Technologies",
       type: "article",
@@ -71,8 +75,8 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     },
     twitter: {
       card: "summary_large_image",
-      title: post.title,
-      description: post.excerpt,
+      title: metaTitle,
+      description: metaDesc,
       images: [post.featuredImage],
     },
   };
@@ -89,8 +93,79 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const allPosts = await getBlogPosts();
   const relatedPosts = (allPosts.length > 0 ? allPosts : BLOG_POSTS).filter((p) => p.slug !== post.slug).slice(0, 2);
 
+  // Google Rich Snippet Structured Data (JSON-LD)
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.seoTitle || post.title,
+    description: post.seoDescription || post.excerpt,
+    image: [post.featuredImage],
+    datePublished: post.publishDate,
+    dateModified: post.publishDate,
+    author: {
+      "@type": "Person",
+      name: post.author.name,
+      jobTitle: post.author.role,
+      image: post.author.avatar,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Spyke AI",
+      url: "https://spykeai.com",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://spykeai.com/icon.png",
+      },
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://spykeai.com/blog/${post.slug}`,
+    },
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://spykeai.com",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Blog",
+        item: "https://spykeai.com/blog",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: post.category,
+        item: `https://spykeai.com/blog`,
+      },
+      {
+        "@type": "ListItem",
+        position: 4,
+        name: post.title,
+        item: `https://spykeai.com/blog/${post.slug}`,
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-[#FDFDFD] text-slate-900 pb-28 md:pb-20">
+      {/* Google Rich Snippet JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+
       {/* 1. Breadcrumbs & Top Header */}
       <section className="bg-slate-950 text-white pt-10 pb-16 px-4 sm:px-6 lg:px-8 border-b border-slate-800 relative">
         <div className="max-w-4xl mx-auto">

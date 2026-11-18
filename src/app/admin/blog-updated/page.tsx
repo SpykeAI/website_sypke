@@ -38,8 +38,11 @@ import {
   FileEdit,
   ChevronRight,
   Code2,
-  Copy
+  Copy,
+  Target
 } from "lucide-react";
+import RankMathSeoPanel from "@/components/admin/RankMathSeoPanel";
+import { analyzeSeo } from "@/lib/seoAnalyzer";
 
 const DEFAULT_AUTHOR = {
   name: "Srikanishka Vadakattu",
@@ -240,6 +243,40 @@ export default function AdminBlogManagerUpdatedPage() {
     }, 50);
   };
 
+  // Rank Math SEO States
+  const [focusKeyword, setFocusKeyword] = useState<string>("");
+  const [seoTitle, setSeoTitle] = useState<string>("");
+  const [seoDescription, setSeoDescription] = useState<string>("");
+  const [sidebarTab, setSidebarTab] = useState<"seo" | "settings">("seo");
+
+  // Real-Time In-House Rank Math SEO Analyzer
+  const seoAnalysis = useMemo(() => {
+    return analyzeSeo({
+      title,
+      slug,
+      excerpt,
+      seoTitle,
+      seoDescription,
+      focusKeyword,
+      rawHtml: contentMode === "html" ? rawHtml : undefined,
+      sections,
+      introduction,
+      conclusion,
+    });
+  }, [
+    title,
+    slug,
+    excerpt,
+    seoTitle,
+    seoDescription,
+    focusKeyword,
+    rawHtml,
+    contentMode,
+    sections,
+    introduction,
+    conclusion,
+  ]);
+
   // Active section scroll state
   const [activeInspectorTab, setActiveInspectorTab] = useState<"media" | "seo" | "author">("media");
 
@@ -313,6 +350,10 @@ export default function AdminBlogManagerUpdatedPage() {
     setRawHtml("");
     setContentMode("html");
     setHtmlViewMode("code");
+    setFocusKeyword("");
+    setSeoTitle("");
+    setSeoDescription("");
+    setSidebarTab("seo");
     setIsEditorOpen(true);
   };
 
@@ -332,6 +373,12 @@ export default function AdminBlogManagerUpdatedPage() {
     setAuthorName(post.author?.name || DEFAULT_AUTHOR.name);
     setAuthorRole(post.author?.role || DEFAULT_AUTHOR.role);
     setAuthorAvatar(post.author?.avatar || DEFAULT_AUTHOR.avatar);
+
+    // Rank Math SEO Fields
+    setFocusKeyword(post.focusKeyword || "");
+    setSeoTitle(post.seoTitle || "");
+    setSeoDescription(post.seoDescription || "");
+    setSidebarTab("seo");
 
     const postIntro = post.content?.introduction || "";
     const postConc = post.content?.conclusion || "";
@@ -528,6 +575,9 @@ export default function AdminBlogManagerUpdatedPage() {
         publishDate: publishDate.trim() || new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
         isFeatured,
         featuredImage: featuredImage.trim(),
+        focusKeyword: focusKeyword.trim() || undefined,
+        seoTitle: seoTitle.trim() || undefined,
+        seoDescription: seoDescription.trim() || undefined,
         author: {
           name: authorName.trim(),
           role: authorRole.trim(),
@@ -939,6 +989,23 @@ export default function AdminBlogManagerUpdatedPage() {
 
             {/* Right: Actions */}
             <div className="flex items-center gap-2.5">
+              {/* Live Rank Math Score Pill */}
+              <button
+                type="button"
+                onClick={() => setSidebarTab("seo")}
+                className={`px-3 py-1.5 rounded-xl border text-xs font-black transition flex items-center gap-1.5 cursor-pointer shadow-2xs ${
+                  seoAnalysis.score >= 80
+                    ? "bg-emerald-50 border-emerald-300 text-emerald-800"
+                    : seoAnalysis.score >= 50
+                    ? "bg-amber-50 border-amber-300 text-amber-800"
+                    : "bg-rose-50 border-rose-300 text-rose-800"
+                }`}
+                title="Click to open Rank Math SEO inspector"
+              >
+                <Target size={13} className={seoAnalysis.score >= 80 ? "text-emerald-600" : "text-amber-600"} />
+                <span>Rank Math: {seoAnalysis.score}/100</span>
+              </button>
+
               {isEditingExisting && slug && (
                 <Link
                   href={`/blog/${slug}`}
@@ -1540,12 +1607,60 @@ export default function AdminBlogManagerUpdatedPage() {
 
             {/* 2. Studio Inspector Sidebar (Right Column) */}
             <aside className="w-80 lg:w-96 bg-white border-l border-slate-200 overflow-y-auto p-5 shrink-0 space-y-6">
-              {/* Header / Meta Overview */}
-              <div>
-                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 mb-3">
-                  <Sliders size={13} />
-                  Article Settings
-                </h4>
+              {/* Sidebar Tab Switcher: Rank Math SEO vs Media & Settings */}
+              <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl">
+                <button
+                  type="button"
+                  onClick={() => setSidebarTab("seo")}
+                  className={`flex-1 py-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    sidebarTab === "seo"
+                      ? "bg-slate-900 text-white shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Target size={13} className={sidebarTab === "seo" ? "text-[#00DF81]" : ""} />
+                  <span>Rank Math ({seoAnalysis.score})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSidebarTab("settings")}
+                  className={`flex-1 py-2 rounded-xl text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    sidebarTab === "settings"
+                      ? "bg-slate-900 text-white shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Sliders size={13} className={sidebarTab === "settings" ? "text-purple-400" : ""} />
+                  <span>Media & Meta</span>
+                </button>
+              </div>
+
+              {/* TAB 1: RANK MATH SEO PANEL */}
+              {sidebarTab === "seo" && (
+                <RankMathSeoPanel
+                  analysis={seoAnalysis}
+                  focusKeyword={focusKeyword}
+                  onFocusKeywordChange={setFocusKeyword}
+                  seoTitle={seoTitle}
+                  onSeoTitleChange={setSeoTitle}
+                  seoDescription={seoDescription}
+                  onSeoDescriptionChange={setSeoDescription}
+                  defaultTitle={title}
+                  defaultDescription={excerpt}
+                  slug={slug}
+                />
+              )}
+
+              {/* TAB 2: SETTINGS, FEATURED IMAGE & METADATA */}
+              {sidebarTab === "settings" && (
+                <div className="space-y-6">
+                  {/* Header / Meta Overview */}
+                  <div>
+                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 mb-3">
+                      <Sliders size={13} />
+                      Article Settings
+                    </h4>
 
                 {/* Hero Feature Checkbox */}
                 <label className="flex items-center gap-2.5 p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 cursor-pointer select-none">
@@ -1792,7 +1907,9 @@ export default function AdminBlogManagerUpdatedPage() {
                   ))}
                 </div>
               </div>
-            </aside>
+            </div>
+          )}
+        </aside>
           </div>
         </div>
       )}
