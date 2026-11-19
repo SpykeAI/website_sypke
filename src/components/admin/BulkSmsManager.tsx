@@ -12,19 +12,17 @@ import {
   AlertCircle,
   BarChart3,
   Search,
-  Filter,
   Trash2,
   RefreshCw,
   Eye,
   Check,
   ChevronDown,
+  ChevronUp,
   Sparkles,
   Play,
   Pause,
   X,
   Phone,
-  Coins,
-  ShieldAlert,
   ArrowRight
 } from "lucide-react";
 import { PhoneLine, getAvailableLines } from "@/lib/phoneLines";
@@ -60,23 +58,21 @@ const INITIAL_BATCHES: SmsBatch[] = [
   {
     id: "batch-1",
     batchName: "Batch-Tampa-1",
-    fileName: "Tampa_HVAC_Contractors_Nov.xlsx",
+    fileName: "Tampa_HVAC_Leads_Nov.xlsx",
     delaySeconds: 1,
     delayDisplay: "1s delay",
     status: "completed",
-    createdAt: "Today, 10:15 AM",
+    createdAt: "Today, 10:45 AM",
     senderNumber: "+13464770028",
     messageTemplate: "Hi {name}, our certified technicians are in Tampa this week for HVAC safety checks. Reply YES to book your slot!",
     totalRecipients: 45,
     sentCount: 45,
-    deliveredCount: 43,
-    failedCount: 2,
+    deliveredCount: 44,
+    failedCount: 1,
     recipients: [
-      { phone: "+18135550192", name: "Marcus Vance", company: "Tampa Air Solutions", status: "delivered", sentAt: "10:15 AM" },
-      { phone: "+18135550144", name: "Sarah Jenkins", company: "Bay Area Cooling", status: "delivered", sentAt: "10:15 AM" },
-      { phone: "+17275550188", name: "Carlos Mendez", company: "Clearwater Refrigeration", status: "delivered", sentAt: "10:15 AM" },
-      { phone: "+18135550101", name: "Elena Rostova", company: "Rostova Mechanical", status: "delivered", sentAt: "10:16 AM" },
-      { phone: "+18135550199", name: "David Miller", company: "Miller HVAC", status: "failed", error: "Carrier Rejected (Landline)", sentAt: "10:16 AM" },
+      { phone: "+18135550192", name: "Marcus Vance", company: "Tampa HVAC Solutions", status: "delivered", sentAt: "10:45 AM" },
+      { phone: "+18135550144", name: "Sarah Jenkins", company: "Bay Area Cooling", status: "delivered", sentAt: "10:46 AM" },
+      { phone: "+17275550188", name: "Carlos Mendez", company: "Clearwater Refrigeration", status: "delivered", sentAt: "10:47 AM" }
     ]
   },
   {
@@ -109,22 +105,6 @@ const INITIAL_BATCHES: SmsBatch[] = [
     sentCount: 25,
     deliveredCount: 24,
     failedCount: 1,
-    recipients: []
-  },
-  {
-    id: "batch-4",
-    batchName: "Batch-Orlando-AC-Followup",
-    fileName: "Orlando_New_Quotes.xlsx",
-    delaySeconds: 2,
-    delayDisplay: "2s delay",
-    status: "draft",
-    createdAt: "Nov 15, 04:45 PM",
-    senderNumber: "+13464770028",
-    messageTemplate: "Hi {name}, following up on your quote for {company}. Are you available for a 5-min call tomorrow?",
-    totalRecipients: 60,
-    sentCount: 0,
-    deliveredCount: 0,
-    failedCount: 0,
     recipients: []
   }
 ];
@@ -163,25 +143,30 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
       setMessageTemplate(initialTemplate);
     }
   }, [initialTemplate]);
+
   const [selectedSender, setSelectedSender] = useState<string>("+13464770028");
 
   // Delay settings: customizable from 1 second to 1 minute or more
-  const [delayAmount, setDelayAmount] = useState<number>(1);
+  const [delayAmount, setDelayAmount] = useState<number>(3);
   const [delayUnit, setDelayUnit] = useState<"seconds" | "minutes">("seconds");
 
   // Available Sender Lines
   const [availableLines] = useState<PhoneLine[]>(() => getAvailableLines("+13464770028"));
 
-  // Modals & Active Views
-  const [viewRecipientsModalOpen, setViewRecipientsModalOpen] = useState(false);
+  // Modals & Queue View Toggle
+  const [showQueueDetails, setShowQueueDetails] = useState(false);
   const [analyticsBatch, setAnalyticsBatch] = useState<SmsBatch | null>(null);
-  const [recipientSearchQuery, setRecipientSearchQuery] = useState("");
 
   // Live Sending Execution State
   const [isSending, setIsSending] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [sendingProgress, setSendingProgress] = useState({ current: 0, total: 0, currentPhone: "" });
+  const [sendingProgress, setSendingProgress] = useState({ current: 0, total: 0, currentPhone: "", currentName: "" });
   const [toastMessage, setToastMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
+
+  // Queue Search & Filtering
+  const [queueSearchQuery, setQueueSearchQuery] = useState("");
+  const [queueStatusFilter, setQueueStatusFilter] = useState<string>("all");
+  const [queueDisplayLimit, setQueueDisplayLimit] = useState<number>(30);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cancelSendingRef = useRef(false);
@@ -223,11 +208,6 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
     delayUnit === "minutes"
       ? `${delayAmount}m delay`
       : `${delayAmount}s delay`;
-
-  // Live Queue Preview State
-  const [queueSearchQuery, setQueueSearchQuery] = useState("");
-  const [queueStatusFilter, setQueueStatusFilter] = useState<string>("all");
-  const [queueDisplayLimit, setQueueDisplayLimit] = useState<number>(30);
 
   // File Upload & Intelligent Multi-Row Parser (CSV, XLSX, XLS)
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -273,7 +253,6 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
         let messageColIdx = -1;
 
         // 1. Scan the first 10 rows for column headers
-        // (Handles reports where Row 1 is a title/banner and Row 2 has the actual headers)
         for (let r = 0; r < Math.min(sheetData.length, 10); r++) {
           const row = sheetData[r];
           if (!Array.isArray(row)) continue;
@@ -287,7 +266,7 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
             if (cell === null || cell === undefined) return;
             const text = String(cell).toLowerCase().trim();
 
-            // Phone Column Check (phone, telephone, tel, mobile, cell, ph)
+            // Phone Column Check
             if (
               pIdx === -1 &&
               (text.includes("phone") ||
@@ -344,7 +323,6 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
             }
           });
 
-          // If a row has a phone indicator, that row is our header row!
           if (pIdx !== -1) {
             headerRowIdx = r;
             phoneColIdx = pIdx;
@@ -355,7 +333,7 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
           }
         }
 
-        // 2. Fallback: if no phone header found by text, scan column values for phone numbers
+        // 2. Fallback: scan column values for phone numbers
         if (phoneColIdx === -1) {
           const sampleRows = sheetData.slice(0, 20);
           const maxCols = Math.max(...sampleRows.map((r) => (Array.isArray(r) ? r.length : 0)));
@@ -385,7 +363,6 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
           return;
         }
 
-        // If company was found (e.g. BusinessName) and name wasn't, mirror it
         if (companyColIdx !== -1 && nameColIdx === -1) {
           nameColIdx = companyColIdx;
         } else if (nameColIdx !== -1 && companyColIdx === -1) {
@@ -402,7 +379,7 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
 
           const rawPhone = String(row[phoneColIdx] || "").trim();
           const digits = rawPhone.replace(/\D/g, "");
-          if (digits.length < 10) continue; // Skip empty rows or header echoes
+          if (digits.length < 10) continue;
 
           const normalized = normalizePhone(rawPhone);
           if (seenPhones.has(normalized)) continue;
@@ -487,7 +464,7 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
     setIsPaused(false);
     cancelSendingRef.current = false;
     pauseSendingRef.current = false;
-    setSendingProgress({ current: 0, total: activeRecipients.length, currentPhone: "" });
+    setSendingProgress({ current: 0, total: activeRecipients.length, currentPhone: "", currentName: "" });
 
     // Create or update batch entry in history
     const batchId = targetBatch ? targetBatch.id : "batch-" + Date.now();
@@ -531,7 +508,12 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
       const recipient = activeRecipients[i];
       recipient.status = "sending";
       setRecipients([...activeRecipients]);
-      setSendingProgress({ current: i + 1, total: activeRecipients.length, currentPhone: recipient.phone });
+      setSendingProgress({
+        current: i + 1,
+        total: activeRecipients.length,
+        currentPhone: recipient.phone,
+        currentName: recipient.name || ""
+      });
 
       // Build personalized message
       let personalizedText = recipient.customMessage || activeTemplate;
@@ -602,11 +584,13 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
     if (analyticsBatch?.id === id) setAnalyticsBatch(null);
   };
 
-  // Character & Segment count for template
+  // Template character and segment calculations
   const charCount = messageTemplate.length;
   const isUnicode = /[^\u0000-\u007F]/.test(messageTemplate);
   const segmentLimit = isUnicode ? 70 : 160;
   const segmentCount = charCount === 0 ? 0 : Math.ceil(charCount / segmentLimit);
+  const costPerSegment = 0.0085;
+  const estimatedCost = (Math.max(1, segmentCount) * costPerSegment * (recipients.length || 1)).toFixed(2);
 
   // Filter batches for history table
   const filteredBatches = batches.filter((b) => {
@@ -618,17 +602,7 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
     return matchesSearch && matchesStatus;
   });
 
-  // Filter recipients in preview modal
-  const filteredPreviewRecipients = recipients.filter((r) => {
-    const q = recipientSearchQuery.toLowerCase();
-    return (
-      r.phone.toLowerCase().includes(q) ||
-      (r.name || "").toLowerCase().includes(q) ||
-      (r.company || "").toLowerCase().includes(q)
-    );
-  });
-
-  // Live Queue Calculations (Total count, Next to be sent, Status breakdown)
+  // Live Queue Calculations
   const totalQueueCount = recipients.length;
   const pendingRecipients = recipients.filter((r) => r.status === "pending");
   const sendingRecipient = recipients.find((r) => r.status === "sending");
@@ -659,13 +633,13 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
   });
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 pb-16">
+    <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-6 pb-16">
       {/* Toast Notification */}
       {toastMessage && (
         <div
           className={`fixed bottom-5 right-5 z-50 px-4 py-3 rounded-2xl shadow-xl border text-xs font-bold flex items-center gap-2 animate-in slide-in-from-bottom-3 duration-200 ${
             toastMessage.type === "success"
-              ? "bg-emerald-900 text-emerald-100 border-emerald-700"
+              ? "bg-slate-900 text-white border-slate-700"
               : toastMessage.type === "error"
               ? "bg-rose-900 text-rose-100 border-rose-700"
               : "bg-slate-900 text-slate-100 border-slate-700"
@@ -680,50 +654,7 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
         </div>
       )}
 
-      {/* Top Header & Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-            Total Batches
-          </span>
-          <span className="text-2xl font-black text-slate-900">{batches.length}</span>
-        </div>
-
-        <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-            Messages Sent
-          </span>
-          <span className="text-2xl font-black text-slate-900">
-            {batches.reduce((acc, b) => acc + (b.sentCount || 0), 0)}
-          </span>
-        </div>
-
-        <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-            Delivered Rate
-          </span>
-          <span className="text-2xl font-black text-emerald-600">
-            {batches.length > 0
-              ? (
-                  (batches.reduce((acc, b) => acc + (b.deliveredCount || 0), 0) /
-                    Math.max(1, batches.reduce((acc, b) => acc + (b.sentCount || 0), 0))) *
-                  100
-                ).toFixed(1) + "%"
-              : "0%"}
-          </span>
-        </div>
-
-        <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-2xs">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-            Active / Drafts
-          </span>
-          <span className="text-2xl font-black text-blue-600">
-            {batches.filter((b) => b.status === "draft" || b.status === "in_progress").length}
-          </span>
-        </div>
-      </div>
-
-      {/* Live Campaign Sending Progress Banner */}
+      {/* Live Campaign Sending Banner */}
       {isSending && (
         <div className="bg-slate-900 text-white rounded-3xl p-5 border border-slate-800 shadow-xl space-y-3 animate-in fade-in">
           <div className="flex items-center justify-between">
@@ -765,29 +696,30 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
             </div>
           </div>
 
-          <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
+          <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
             <div
-              className="bg-[#00DF81] h-full transition-all duration-300"
+              className="bg-[#00DF81] h-2 rounded-full transition-all duration-300"
               style={{
-                width: `${Math.round((sendingProgress.current / Math.max(1, sendingProgress.total)) * 100)}%`,
+                width: `${sendingProgress.total > 0 ? (sendingProgress.current / sendingProgress.total) * 100 : 0}%`,
               }}
-            />
+            ></div>
           </div>
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* 🚀 1. BULK UPLOAD STUDIO CARD (Attach CSV/Excel, Batch Name, Delays, Send) */}
+      {/* 🚀 1. BULK UPLOAD STUDIO CARD (Clean, Simple, Intuitive) */}
       {/* ========================================================================= */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-xs p-5 sm:p-7 space-y-6">
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
-            <h3 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              <UploadCloud size={18} className="text-emerald-600" />
+            <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <UploadCloud size={18} className="text-[#00DF81]" />
               <span>Bulk SMS Campaign Studio</span>
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Upload recipient spreadsheet, name your batch, configure delays, and launch automated campaigns.
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Upload your spreadsheet, set your message & delay, and launch your campaign.
             </p>
           </div>
 
@@ -795,19 +727,19 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
             <button
               type="button"
               onClick={onOpenFormatGuide}
-              className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+              className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 border border-slate-200 cursor-pointer self-start sm:self-auto"
             >
-              <FileSpreadsheet size={13} className="text-purple-600" />
-              <span>View Upload Format Guide</span>
+              <FileSpreadsheet size={13} className="text-emerald-600" />
+              <span>View Format Guide</span>
             </button>
           )}
         </div>
 
-        {/* Studio Form Grid */}
+        {/* 2-Column Clean Studio Form */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Column: File Attachment & Settings (5 cols) */}
+          {/* Left Column (5 cols): File Upload, Batch Name, Delay Pacing */}
           <div className="lg:col-span-5 space-y-4">
-            {/* File Attachment Drag & Drop Area */}
+            {/* 1. File Upload Dropzone */}
             <div>
               <label className="block text-xs font-bold text-slate-800 mb-1.5">
                 1. Attach CSV or Excel File *
@@ -823,55 +755,50 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
 
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-3xl p-6 text-center bg-slate-50/60 hover:bg-emerald-50/30 transition-all cursor-pointer group space-y-2"
+                className="border-2 border-dashed border-slate-200 hover:border-emerald-500 rounded-2xl p-5 text-center bg-slate-50/50 hover:bg-emerald-50/20 transition-all cursor-pointer group space-y-2"
               >
-                <div className="w-12 h-12 rounded-2xl bg-white shadow-xs border border-slate-200 flex items-center justify-center mx-auto text-emerald-600 group-hover:scale-105 transition-transform">
-                  <FileSpreadsheet size={24} />
+                <div className="w-10 h-10 rounded-xl bg-white shadow-2xs border border-slate-200 flex items-center justify-center mx-auto text-emerald-600 group-hover:scale-105 transition-transform">
+                  <FileSpreadsheet size={20} />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-slate-800 block">
+                  <span className="text-xs font-bold text-slate-800 block truncate px-2">
                     {selectedFileName || "Click to browse or drop CSV / Excel"}
                   </span>
                   <span className="text-[11px] text-slate-400">
-                    Supports .xlsx, .xls, and .csv
+                    Auto-detects Telephone, Name & Business columns
                   </span>
                 </div>
 
                 {recipients.length > 0 && (
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold mt-1">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold mt-1">
                     <CheckCircle2 size={13} />
-                    <span>{recipients.length} valid contacts parsed</span>
+                    <span>{recipients.length} contacts loaded</span>
                   </div>
                 )}
               </div>
 
               {recipients.length > 0 && (
-                <div className="flex items-center justify-between pt-1 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setViewRecipientsModalOpen(true)}
-                    className="text-xs font-bold text-purple-600 hover:text-purple-800 underline cursor-pointer flex items-center gap-1"
-                  >
-                    <Eye size={12} />
-                    <span>Preview {recipients.length} Recipients</span>
-                  </button>
+                <div className="flex items-center justify-between pt-1.5 px-1 text-xs">
+                  <span className="text-slate-500 font-medium text-[11px]">
+                    File: <strong className="text-slate-800">{selectedFileName}</strong>
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
                       setSelectedFileName(null);
                       setRecipients([]);
                     }}
-                    className="text-[11px] font-semibold text-rose-500 hover:text-rose-700 cursor-pointer"
+                    className="text-[11px] font-bold text-rose-500 hover:text-rose-700 cursor-pointer"
                   >
-                    Clear file
+                    Remove
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Batch Name Setting */}
+            {/* 2. Batch Name */}
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
+              <label className="block text-xs font-bold text-slate-800 mb-1 flex items-center justify-between">
                 <span>2. Batch Name *</span>
                 <span className="text-[11px] font-normal text-slate-400">e.g. Batch-Tampa-1</span>
               </label>
@@ -880,30 +807,30 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
                 value={batchName}
                 onChange={(e) => setBatchName(e.target.value)}
                 placeholder="e.g. Batch-Tampa-1"
-                className="w-full px-3.5 py-2.5 text-xs sm:text-sm font-semibold rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00DF81] bg-slate-50/50"
+                className="w-full px-3.5 py-2 text-xs font-semibold rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00DF81] bg-slate-50/50"
               />
             </div>
 
-            {/* Configurable Delays (1 second, 1 minute, customizable) */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+            {/* 3. Delay Pacing */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                  <Clock size={14} className="text-emerald-600" />
+                  <Clock size={13} className="text-emerald-600" />
                   <span>3. Delay Between Each Message</span>
                 </label>
-                <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                <span className="text-xs font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md">
                   {delayDisplay}
                 </span>
               </div>
 
-              {/* Quick Presets */}
+              {/* Clean Pill Presets */}
               <div className="grid grid-cols-4 gap-1.5">
                 {[
-                  { label: "1s", sec: 1, unit: "seconds" },
-                  { label: "3s", sec: 3, unit: "seconds" },
-                  { label: "5s", sec: 5, unit: "seconds" },
-                  { label: "10s", sec: 10, unit: "seconds" },
-                  { label: "30s", sec: 30, unit: "seconds" },
+                  { label: "1 sec", sec: 1, unit: "seconds" },
+                  { label: "3 sec", sec: 3, unit: "seconds" },
+                  { label: "5 sec", sec: 5, unit: "seconds" },
+                  { label: "10 sec", sec: 10, unit: "seconds" },
+                  { label: "30 sec", sec: 30, unit: "seconds" },
                   { label: "1 min", sec: 1, unit: "minutes" },
                   { label: "2 min", sec: 2, unit: "minutes" },
                   { label: "5 min", sec: 5, unit: "minutes" },
@@ -915,7 +842,7 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
                       setDelayAmount(preset.sec);
                       setDelayUnit(preset.unit as any);
                     }}
-                    className={`py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border ${
+                    className={`py-1 rounded-lg text-xs font-bold transition cursor-pointer border ${
                       delayAmount === preset.sec && delayUnit === preset.unit
                         ? "bg-slate-900 text-white border-slate-900 shadow-2xs"
                         : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
@@ -925,55 +852,31 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
                   </button>
                 ))}
               </div>
-
-              {/* Custom Delay Inputs */}
-              <div className="flex items-center gap-2 pt-1">
-                <span className="text-[11px] font-semibold text-slate-500 whitespace-nowrap">
-                  Custom:
-                </span>
-                <input
-                  type="number"
-                  min="1"
-                  max="3600"
-                  value={delayAmount}
-                  onChange={(e) => setDelayAmount(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-20 px-2.5 py-1 text-xs font-bold rounded-xl border border-slate-200 bg-white"
-                />
-                <select
-                  value={delayUnit}
-                  onChange={(e) => setDelayUnit(e.target.value as any)}
-                  className="px-2.5 py-1 text-xs font-bold rounded-xl border border-slate-200 bg-white"
-                >
-                  <option value="seconds">Seconds</option>
-                  <option value="minutes">Minutes</option>
-                </select>
-              </div>
-
-              <p className="text-[11px] text-slate-400 leading-normal">
-                Staggering each send prevents carrier spam flagging and ensures high delivery rates.
-              </p>
             </div>
 
-            {/* Sender Number Line */}
+            {/* Sender Line */}
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">
+              <label className="block text-[11px] font-bold text-slate-600 mb-1">
                 Sender Number Line
               </label>
-              <select
-                value={selectedSender}
-                onChange={(e) => setSelectedSender(e.target.value)}
-                className="w-full px-3 py-2 text-xs font-semibold rounded-2xl border border-slate-200 bg-white"
-              >
-                {availableLines.map((line) => (
-                  <option key={line.number} value={line.number}>
-                    {line.flag} {line.formatted} ({line.label})
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={selectedSender}
+                  onChange={(e) => setSelectedSender(e.target.value)}
+                  className="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-slate-200 bg-white appearance-none pr-8 cursor-pointer"
+                >
+                  {availableLines.map((line) => (
+                    <option key={line.number} value={line.number}>
+                      {line.flag} {line.formatted} ({line.label})
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
           </div>
 
-          {/* Right Column: Message Composer & Dynamic Tags (7 cols) */}
+          {/* Right Column (7 cols): Message Composer & Actions */}
           <div className="lg:col-span-7 flex flex-col justify-between space-y-4">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -990,22 +893,15 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
                 </div>
               </div>
 
-              {/* Dynamic Insert Tags */}
-              <div className="flex flex-wrap items-center gap-1.5 p-2 bg-slate-50 rounded-2xl border border-slate-200">
-                <span className="text-[11px] font-bold text-slate-400 mr-1">Insert Tag:</span>
+              {/* Tag Chips */}
+              <div className="flex flex-wrap items-center gap-1.5 p-2 bg-slate-50 rounded-xl border border-slate-200">
+                <span className="text-[11px] font-bold text-slate-400 mr-1">Insert:</span>
                 <button
                   type="button"
                   onClick={() => setMessageTemplate((prev) => prev + " {name}")}
                   className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition cursor-pointer"
                 >
                   + &#123;name&#125;
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMessageTemplate((prev) => prev + " {phone}")}
-                  className="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold rounded-lg border border-slate-200 transition cursor-pointer"
-                >
-                  + &#123;phone&#125;
                 </button>
                 <button
                   type="button"
@@ -1023,52 +919,48 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
                 </button>
               </div>
 
-              {/* Message Textarea */}
+              {/* Textarea */}
               <textarea
-                rows={7}
+                rows={6}
                 value={messageTemplate}
                 onChange={(e) => setMessageTemplate(e.target.value)}
                 placeholder="Write your SMS message template here... Use {name} and {company} to personalize each text automatically."
-                className="w-full p-4 text-xs sm:text-sm font-sans rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00DF81] bg-white leading-relaxed"
+                className="w-full p-3.5 text-xs sm:text-sm font-sans rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#00DF81] bg-white leading-relaxed resize-y"
               />
 
-              {/* Cost & Deliverability Estimate */}
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 flex items-center justify-between text-xs text-slate-600">
-                <span className="flex items-center gap-1.5">
-                  <Coins size={14} className="text-amber-500" />
-                  <span>Cost estimate: ~$0.0085 per US message (~₹0.71 INR)</span>
-                </span>
-                <span className="font-bold text-slate-900">
-                  Total batch est: ~${((recipients.length || 1) * segmentCount * 0.0085).toFixed(2)}
+              <div className="flex items-center justify-between text-xs text-slate-500">
+                <span>Cost: ~$0.0085 per US segment</span>
+                <span className="font-bold text-slate-800">
+                  Total est: ~${estimatedCost}
                 </span>
               </div>
             </div>
 
-            {/* Action Buttons: Save as Draft vs Send Bulk Campaign */}
-            <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-2">
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
               <button
                 type="button"
                 onClick={handleSaveDraftBatch}
-                className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
               >
-                <Save size={15} />
-                <span>Save as Draft Batch</span>
+                <Save size={14} />
+                <span>Save as Draft</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleSendBulkCampaign()}
                 disabled={isSending}
-                className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-[#00DF81] hover:bg-[#00c271] text-slate-950 text-xs font-black transition flex items-center justify-center gap-2 shadow-lg shadow-[#00DF81]/25 cursor-pointer disabled:opacity-50"
+                className="px-6 py-2.5 rounded-xl bg-[#00DF81] hover:bg-[#00c271] text-slate-950 text-xs font-extrabold transition flex items-center gap-2 shadow-md shadow-[#00DF81]/20 cursor-pointer disabled:opacity-50"
               >
                 {isSending ? (
                   <>
-                    <RefreshCw size={15} className="animate-spin" />
-                    <span>Sending Campaign ({sendingProgress.current}/{sendingProgress.total})...</span>
+                    <RefreshCw size={14} className="animate-spin" />
+                    <span>Sending ({sendingProgress.current}/{sendingProgress.total})...</span>
                   </>
                 ) : (
                   <>
-                    <Send size={15} />
+                    <Send size={14} />
                     <span>Send Bulk SMS Campaign ({recipients.length || 0})</span>
                   </>
                 )}
@@ -1076,259 +968,178 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
             </div>
           </div>
         </div>
-      </div>
 
-      {/* ========================================================================= */}
-      {/* ⚡ LIVE QUEUE & REAL-TIME STATUS PREVIEW */}
-      {/* ========================================================================= */}
-      {recipients.length > 0 && (
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden p-6 sm:p-8 space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>Live Queue & Real-Time Delivery Preview</span>
-                </h3>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800">
-                  {recipients.length} Contacts
-                </span>
-              </div>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Real-time queue tracking showing total recipients, the immediate next message scheduled for dispatch, and live delivery status.
-              </p>
-            </div>
-
-            {/* Quick Filter & Search */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 text-slate-400" size={13} />
-                <input
-                  type="text"
-                  placeholder="Search in queue..."
-                  value={queueSearchQuery}
-                  onChange={(e) => setQueueSearchQuery(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#00DF81]"
-                />
-              </div>
-
-              <select
-                value={queueStatusFilter}
-                onChange={(e) => setQueueStatusFilter(e.target.value)}
-                className="px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 bg-white"
-              >
-                <option value="all">All Status ({recipients.length})</option>
-                <option value="pending">Pending ({queuePendingCount})</option>
-                <option value="delivered">Delivered ({queueDeliveredCount})</option>
-                <option value="failed">Failed ({queueFailedCount})</option>
-              </select>
-            </div>
-          </div>
-
-          {/* 3 Prominent Live Status Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Card 1: Total Queue Volume */}
-            <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 flex items-center justify-between">
-              <div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                  Total in Queue
-                </span>
-                <span className="text-2xl font-black text-slate-900">
-                  {recipients.length}
-                </span>
-                <span className="text-xs text-slate-500 block mt-0.5 truncate max-w-[200px]" title={selectedFileName || ""}>
-                  From: {selectedFileName || "Uploaded File"}
-                </span>
-              </div>
-              <div className="w-11 h-11 rounded-2xl bg-white shadow-2xs border border-slate-200 flex items-center justify-center text-slate-700">
-                <FileSpreadsheet size={20} />
-              </div>
-            </div>
-
-            {/* Card 2: ⚡ NEXT TO BE SENT (Highlighted with green pulsing ring) */}
-            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/60 p-4 rounded-2xl border-2 border-emerald-300 shadow-sm relative overflow-hidden">
-              <div className="flex items-start justify-between">
-                <div className="min-w-0 flex-1">
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider mb-1.5 animate-pulse">
+        {/* ========================================================================= */}
+        {/* ⚡ CLEAN LIVE STATUS & NEXT TO BE SENT BAR (Appears when file is attached) */}
+        {/* ========================================================================= */}
+        {recipients.length > 0 && (
+          <div className="mt-4 pt-5 border-t border-slate-100 space-y-4">
+            <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider animate-pulse">
                     <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
                     <span>Next to be Sent</span>
-                  </div>
-                  {nextRecipient ? (
-                    <div>
-                      <h4 className="text-sm font-black text-slate-900 truncate" title={nextRecipient.name || "Recipient"}>
-                        #{nextRecipientIndex + 1} {nextRecipient.name || nextRecipient.company || "Recipient"}
-                      </h4>
-                      <p className="text-xs font-mono font-bold text-emerald-800 mt-0.5">
-                        {nextRecipient.phone}
-                      </p>
-                      <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
-                        <Clock size={11} className="text-emerald-700" />
-                        <span>Scheduled with {delayDisplay} delay</span>
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-emerald-900 font-bold mt-2">
-                      All messages in this queue have been dispatched!
-                    </p>
+                  </span>
+                  {nextRecipient && (
+                    <span className="text-xs font-bold text-slate-900">
+                      #{nextRecipientIndex + 1} {nextRecipient.name || nextRecipient.company || "Lead"}{" "}
+                      <span className="font-mono text-emerald-700 font-semibold">({nextRecipient.phone})</span>
+                    </span>
                   )}
                 </div>
-                <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-xs shrink-0 ml-2">
-                  <Send size={18} />
-                </div>
+                <p className="text-[11px] text-slate-500">
+                  Queue Status: <strong>{recipients.length} Total</strong> · <span className="text-slate-600">{queuePendingCount} Pending</span> · <span className="text-emerald-700 font-bold">{queueDeliveredCount} Delivered</span> · <span className="text-rose-600">{queueFailedCount} Failed</span>
+                </p>
               </div>
-            </div>
 
-            {/* Card 3: Real-Time Dispatch Status */}
-            <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 space-y-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-                Queue Status Breakdown
-              </span>
-              <div className="grid grid-cols-3 gap-2 text-center pt-1">
-                <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-2xs">
-                  <span className="text-base font-black text-slate-700 block">{queuePendingCount}</span>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Pending</span>
-                </div>
-                <div className="bg-white p-2 rounded-xl border border-emerald-200 shadow-2xs">
-                  <span className="text-base font-black text-emerald-600 block">{queueDeliveredCount}</span>
-                  <span className="text-[10px] font-bold text-emerald-700 uppercase">Delivered</span>
-                </div>
-                <div className="bg-white p-2 rounded-xl border border-rose-200 shadow-2xs">
-                  <span className="text-base font-black text-rose-600 block">{queueFailedCount}</span>
-                  <span className="text-[10px] font-bold text-rose-700 uppercase">Failed</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Interactive Live Queue Table */}
-          <div className="overflow-x-auto rounded-2xl border border-slate-200">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-900 text-white font-bold">
-                  <th className="p-3 whitespace-nowrap w-12 text-center">#</th>
-                  <th className="p-3 whitespace-nowrap w-48">Recipient / Business</th>
-                  <th className="p-3 whitespace-nowrap w-36">Phone Number</th>
-                  <th className="p-3 whitespace-nowrap">Personalized Message Preview</th>
-                  <th className="p-3 whitespace-nowrap w-40">Status</th>
-                  <th className="p-3 whitespace-nowrap w-24 text-center">Delivered</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 bg-white">
-                {filteredQueue.slice(0, queueDisplayLimit).map((r, idx) => {
-                  const isCurrentNext = r === nextRecipient && !isSending;
-                  const isCurrentlySending = r.status === "sending";
-
-                  let previewText = r.customMessage || messageTemplate;
-                  previewText = previewText
-                    .replace(/\{name\}/gi, r.name || "there")
-                    .replace(/\{company\}/gi, r.company || "your business")
-                    .replace(/\{phone\}/gi, r.phone);
-
-                  return (
-                    <tr
-                      key={idx}
-                      className={
-                        isCurrentlySending
-                          ? "bg-blue-50/70 border-l-4 border-l-blue-600"
-                          : isCurrentNext
-                          ? "bg-emerald-50/60 border-l-4 border-l-emerald-500 font-medium"
-                          : idx % 2 === 0
-                          ? "bg-white"
-                          : "bg-slate-50/50"
-                      }
-                    >
-                      <td className="p-3 text-center font-mono text-slate-400 font-semibold">
-                        {idx + 1}
-                      </td>
-
-                      <td className="p-3 whitespace-nowrap">
-                        <div className="font-bold text-slate-900 truncate max-w-[180px]">
-                          {r.name || r.company || "Unnamed Lead"}
-                        </div>
-                        {r.company && r.name && r.company !== r.name && (
-                          <div className="text-[10px] text-slate-400 truncate max-w-[180px]">
-                            {r.company}
-                          </div>
-                        )}
-                      </td>
-
-                      <td className="p-3 font-mono font-bold text-slate-800 whitespace-nowrap">
-                        {r.phone}
-                      </td>
-
-                      <td className="p-3 text-slate-600 max-w-md truncate" title={previewText}>
-                        {previewText}
-                      </td>
-
-                      <td className="p-3 whitespace-nowrap">
-                        {isCurrentlySending ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black bg-blue-100 text-blue-800 border border-blue-200 animate-pulse">
-                            <RefreshCw size={11} className="animate-spin text-blue-600" />
-                            <span>Sending...</span>
-                          </span>
-                        ) : isCurrentNext ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-xs animate-pulse">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-                            <span>⚡ Next to be Sent</span>
-                          </span>
-                        ) : r.status === "delivered" ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            <CheckCircle2 size={12} className="text-emerald-600" />
-                            <span>Delivered</span>
-                          </span>
-                        ) : r.status === "failed" ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-50 text-rose-700 border border-rose-200" title={r.error}>
-                            <AlertCircle size={12} className="text-rose-600" />
-                            <span>Failed</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-                            <Clock size={11} className="text-slate-400" />
-                            <span>Pending</span>
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="p-3 text-center whitespace-nowrap text-[11px] text-slate-500 font-mono">
-                        {r.sentAt || "—"}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Show More / Pagination Footer */}
-          {filteredQueue.length > queueDisplayLimit && (
-            <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
-              <span>
-                Showing first <strong>{queueDisplayLimit}</strong> of <strong>{filteredQueue.length}</strong> contacts in queue
-              </span>
               <button
                 type="button"
-                onClick={() => setQueueDisplayLimit((prev) => prev + 50)}
-                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl transition cursor-pointer"
+                onClick={() => setShowQueueDetails((prev) => !prev)}
+                className="px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold transition flex items-center gap-1.5 border border-slate-200 cursor-pointer shadow-2xs self-start md:self-auto"
               >
-                Load Next 50 Contacts
+                <span>{showQueueDetails ? "Hide Queue Details" : `View Queue List (${recipients.length})`}</span>
+                {showQueueDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </button>
             </div>
-          )}
-        </div>
-      )}
+
+            {/* Expandable Live Queue Table */}
+            {showQueueDetails && (
+              <div className="space-y-3 pt-1 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="relative flex-1 max-w-xs">
+                    <Search className="absolute left-3 top-2.5 text-slate-400" size={13} />
+                    <input
+                      type="text"
+                      placeholder="Search queue..."
+                      value={queueSearchQuery}
+                      onChange={(e) => setQueueSearchQuery(e.target.value)}
+                      className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#00DF81]"
+                    />
+                  </div>
+
+                  <select
+                    value={queueStatusFilter}
+                    onChange={(e) => setQueueStatusFilter(e.target.value)}
+                    className="px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 bg-white"
+                  >
+                    <option value="all">All ({recipients.length})</option>
+                    <option value="pending">Pending ({queuePendingCount})</option>
+                    <option value="delivered">Delivered ({queueDeliveredCount})</option>
+                    <option value="failed">Failed ({queueFailedCount})</option>
+                  </select>
+                </div>
+
+                <div className="overflow-x-auto rounded-2xl border border-slate-200 max-h-72 overflow-y-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="sticky top-0 z-10">
+                      <tr className="bg-slate-900 text-white font-bold">
+                        <th className="p-2.5 whitespace-nowrap w-12 text-center">#</th>
+                        <th className="p-2.5 whitespace-nowrap">Recipient / Business</th>
+                        <th className="p-2.5 whitespace-nowrap">Phone Number</th>
+                        <th className="p-2.5 whitespace-nowrap">Message Preview</th>
+                        <th className="p-2.5 whitespace-nowrap">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 bg-white">
+                      {filteredQueue.slice(0, queueDisplayLimit).map((r, idx) => {
+                        const isCurrentNext = r === nextRecipient && !isSending;
+                        const isCurrentlySending = r.status === "sending";
+
+                        let previewText = r.customMessage || messageTemplate;
+                        previewText = previewText
+                          .replace(/\{name\}/gi, r.name || "there")
+                          .replace(/\{company\}/gi, r.company || "your business")
+                          .replace(/\{phone\}/gi, r.phone);
+
+                        return (
+                          <tr
+                            key={idx}
+                            className={
+                              isCurrentlySending
+                                ? "bg-blue-50/70"
+                                : isCurrentNext
+                                ? "bg-emerald-50/60 font-semibold"
+                                : idx % 2 === 0
+                                ? "bg-white"
+                                : "bg-slate-50/50"
+                            }
+                          >
+                            <td className="p-2.5 text-center font-mono text-slate-400">
+                              {idx + 1}
+                            </td>
+                            <td className="p-2.5 whitespace-nowrap font-bold text-slate-900 truncate max-w-[160px]">
+                              {r.name || r.company || "Lead"}
+                            </td>
+                            <td className="p-2.5 font-mono text-slate-800 whitespace-nowrap">
+                              {r.phone}
+                            </td>
+                            <td className="p-2.5 text-slate-600 truncate max-w-xs" title={previewText}>
+                              {previewText}
+                            </td>
+                            <td className="p-2.5 whitespace-nowrap">
+                              {isCurrentlySending ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-800">
+                                  <RefreshCw size={10} className="animate-spin text-blue-600" />
+                                  <span>Sending...</span>
+                                </span>
+                              ) : isCurrentNext ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-900 border border-emerald-300">
+                                  <span>⚡ Next Up</span>
+                                </span>
+                              ) : r.status === "delivered" ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-700">
+                                  <CheckCircle2 size={10} />
+                                  <span>Delivered</span>
+                                </span>
+                              ) : r.status === "failed" ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-50 text-rose-700" title={r.error}>
+                                  <AlertCircle size={10} />
+                                  <span>Failed</span>
+                                </span>
+                              ) : (
+                                <span className="text-[10px] text-slate-400 font-semibold">
+                                  Pending
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {filteredQueue.length > queueDisplayLimit && (
+                  <div className="flex items-center justify-between text-xs text-slate-400 pt-1">
+                    <span>Showing first {queueDisplayLimit} of {filteredQueue.length}</span>
+                    <button
+                      type="button"
+                      onClick={() => setQueueDisplayLimit((prev) => prev + 50)}
+                      className="text-xs font-bold text-emerald-700 hover:underline cursor-pointer"
+                    >
+                      Load More
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* ========================================================================= */}
       {/* 📊 2. HISTORY UPLOAD TABLE (Batch Name, Delays, Status, Sent, Delivered, Analytics) */}
       {/* ========================================================================= */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden p-6 sm:p-8 space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden p-5 sm:p-7 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
           <div>
-            <h3 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-              <BarChart3 size={18} className="text-purple-600" />
-              <span>Bulk Upload History & Deliverability Table</span>
+            <h3 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <BarChart3 size={17} className="text-emerald-600" />
+              <span>Bulk Upload History</span>
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Review all uploaded CSV/Excel batches, pacing delays, delivery metrics, and analytics.
+            <p className="text-xs text-slate-400 mt-0.5">
+              Review all uploaded batches, pacing delays, delivery counts, and analytics.
             </p>
           </div>
 
@@ -1338,7 +1149,7 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
               <Search className="absolute left-3 top-2.5 text-slate-400" size={13} />
               <input
                 type="text"
-                placeholder="Search batches..."
+                placeholder="Search history..."
                 value={historySearch}
                 onChange={(e) => setHistorySearch(e.target.value)}
                 className="pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#00DF81]"
@@ -1364,380 +1175,147 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-slate-900 text-white font-bold">
-                <th className="p-3.5 whitespace-nowrap">Batch Name</th>
-                <th className="p-3.5 whitespace-nowrap">File & Recipients</th>
-                <th className="p-3.5 whitespace-nowrap">Delays</th>
-                <th className="p-3.5 whitespace-nowrap">Status</th>
-                <th className="p-3.5 whitespace-nowrap">Sent</th>
-                <th className="p-3.5 whitespace-nowrap">Delivered</th>
-                <th className="p-3.5 whitespace-nowrap text-center">Analytics</th>
-                <th className="p-3.5 whitespace-nowrap text-right">Actions</th>
+                <th className="p-3 whitespace-nowrap">Batch Name</th>
+                <th className="p-3 whitespace-nowrap">File & Recipients</th>
+                <th className="p-3 whitespace-nowrap">Delays</th>
+                <th className="p-3 whitespace-nowrap">Status</th>
+                <th className="p-3 whitespace-nowrap">Sent</th>
+                <th className="p-3 whitespace-nowrap">Delivered</th>
+                <th className="p-3 whitespace-nowrap">Analytics</th>
+                <th className="p-3 whitespace-nowrap text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
               {filteredBatches.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-10 text-center text-slate-400 text-xs">
-                    No batches match the search criteria.
+                  <td colSpan={8} className="p-8 text-center text-slate-400 text-xs font-medium">
+                    No upload batches found matching search.
                   </td>
                 </tr>
               ) : (
-                filteredBatches.map((batch) => {
-                  const deliveryPct =
-                    batch.sentCount > 0
-                      ? Math.round((batch.deliveredCount / batch.sentCount) * 100)
-                      : 0;
-
-                  return (
-                    <tr key={batch.id} className="hover:bg-slate-50/70 transition-colors">
-                      {/* 1. Batch Name */}
-                      <td className="p-3.5 font-bold text-slate-900 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
-                          <span className="font-extrabold">{batch.batchName}</span>
-                        </div>
-                        <span className="text-[10px] text-slate-400 block ml-4">
-                          {batch.createdAt}
-                        </span>
-                      </td>
-
-                      {/* 2. File & Recipients */}
-                      <td className="p-3.5 text-slate-600 whitespace-nowrap">
-                        <span className="font-medium text-slate-800 block truncate max-w-[180px]">
-                          {batch.fileName}
-                        </span>
-                        <span className="text-[11px] text-slate-400">
-                          {batch.totalRecipients} contacts
-                        </span>
-                      </td>
-
-                      {/* 3. Delays */}
-                      <td className="p-3.5 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
-                          <Clock size={12} className="text-emerald-600" />
-                          <span>{batch.delayDisplay}</span>
-                        </span>
-                      </td>
-
-                      {/* 4. Status */}
-                      <td className="p-3.5 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                            batch.status === "completed"
-                              ? "bg-emerald-100 text-emerald-800"
-                              : batch.status === "in_progress"
-                              ? "bg-blue-100 text-blue-800 animate-pulse"
-                              : batch.status === "draft"
-                              ? "bg-slate-100 text-slate-700"
-                              : "bg-rose-100 text-rose-800"
-                          }`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              batch.status === "completed"
-                                ? "bg-emerald-600"
-                                : batch.status === "in_progress"
-                                ? "bg-blue-600"
-                                : batch.status === "draft"
-                                ? "bg-slate-500"
-                                : "bg-rose-600"
-                            }`}
-                          />
-                          <span>{batch.status.replace("_", " ")}</span>
-                        </span>
-                      </td>
-
-                      {/* 5. Sent */}
-                      <td className="p-3.5 font-mono font-bold text-slate-800 whitespace-nowrap">
-                        {batch.sentCount} / {batch.totalRecipients}
-                      </td>
-
-                      {/* 6. Delivered */}
-                      <td className="p-3.5 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900">
-                            {batch.deliveredCount}
-                          </span>
-                          <span
-                            className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
-                              deliveryPct >= 90
-                                ? "bg-emerald-50 text-emerald-700"
-                                : deliveryPct >= 70
-                                ? "bg-amber-50 text-amber-700"
-                                : "bg-slate-100 text-slate-500"
-                            }`}
-                          >
-                            {deliveryPct}%
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* 7. Analytics */}
-                      <td className="p-3.5 whitespace-nowrap text-center">
-                        <button
-                          type="button"
-                          onClick={() => setAnalyticsBatch(batch)}
-                          className="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold transition inline-flex items-center gap-1.5 cursor-pointer border border-purple-200"
-                        >
-                          <BarChart3 size={13} />
-                          <span>View Analytics</span>
-                        </button>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="p-3.5 whitespace-nowrap text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {batch.status === "draft" && (
-                            <button
-                              type="button"
-                              onClick={() => handleSendBulkCampaign(batch)}
-                              disabled={isSending}
-                              className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
-                              title="Send this batch now"
-                            >
-                              <Send size={11} />
-                              <span>Send</span>
-                            </button>
-                          )}
-
+                filteredBatches.map((b) => (
+                  <tr key={b.id} className="hover:bg-slate-50/70 transition">
+                    <td className="p-3 font-bold text-slate-900 whitespace-nowrap">
+                      {b.batchName}
+                      <span className="block text-[10px] text-slate-400 font-normal">{b.createdAt}</span>
+                    </td>
+                    <td className="p-3 text-slate-600 whitespace-nowrap">
+                      <span className="font-semibold text-slate-800 block">{b.fileName}</span>
+                      <span className="text-[10px] text-slate-400">{b.totalRecipients} recipients</span>
+                    </td>
+                    <td className="p-3 whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                        <Clock size={11} className="text-slate-500" />
+                        <span>{b.delayDisplay}</span>
+                      </span>
+                    </td>
+                    <td className="p-3 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                          b.status === "completed"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : b.status === "in_progress"
+                            ? "bg-blue-50 text-blue-700 border border-blue-200"
+                            : b.status === "draft"
+                            ? "bg-amber-50 text-amber-700 border border-amber-200"
+                            : "bg-rose-50 text-rose-700 border border-rose-200"
+                        }`}
+                      >
+                        {b.status === "completed" && <CheckCircle2 size={11} />}
+                        {b.status === "in_progress" && <RefreshCw size={11} className="animate-spin" />}
+                        <span>{b.status.replace("_", " ")}</span>
+                      </span>
+                    </td>
+                    <td className="p-3 font-semibold text-slate-800 whitespace-nowrap">
+                      {b.sentCount}
+                    </td>
+                    <td className="p-3 font-bold text-emerald-600 whitespace-nowrap">
+                      {b.deliveredCount}
+                    </td>
+                    <td className="p-3 whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => setAnalyticsBatch(b)}
+                        className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold rounded-lg border border-emerald-200 transition cursor-pointer flex items-center gap-1"
+                      >
+                        <BarChart3 size={12} />
+                        <span>View Analytics</span>
+                      </button>
+                    </td>
+                    <td className="p-3 whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {b.status === "draft" && (
                           <button
                             type="button"
-                            onClick={() => handleDeleteBatch(batch.id)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
-                            title="Delete Batch from History"
+                            onClick={() => handleSendBulkCampaign(b)}
+                            className="px-2.5 py-1 bg-[#00DF81] hover:bg-[#00c271] text-slate-950 text-xs font-bold rounded-lg transition cursor-pointer shadow-xs"
                           >
-                            <Trash2 size={14} />
+                            Send
                           </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteBatch(b.id)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                          title="Delete Batch"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* 📊 3. ANALYTICS MODAL (Detailed Breakdown, Recipient Delivery Logs) */}
-      {/* ========================================================================= */}
+      {/* Analytics Modal */}
       {analyticsBatch && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150">
-            {/* Modal Header */}
-            <div className="p-5 sm:p-6 border-b border-slate-200 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl border border-slate-200 space-y-5 animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base sm:text-lg font-black text-slate-900">
-                    {analyticsBatch.batchName} Analytics
-                  </h3>
-                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-                    {analyticsBatch.delayDisplay}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  File: {analyticsBatch.fileName} · Launched: {analyticsBatch.createdAt}
-                </p>
+                <h3 className="text-base font-black text-slate-900">{analyticsBatch.batchName}</h3>
+                <p className="text-xs text-slate-400 mt-0.5">{analyticsBatch.fileName} · {analyticsBatch.delayDisplay}</p>
               </div>
-
               <button
                 type="button"
                 onClick={() => setAnalyticsBatch(null)}
-                className="p-2 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-slate-800 rounded-xl transition cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-5 sm:p-6 overflow-y-auto space-y-6">
-              {/* Analytics Metric Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Total Recipients
-                  </span>
-                  <span className="text-xl font-black text-slate-900">
-                    {analyticsBatch.totalRecipients}
-                  </span>
-                </div>
-
-                <div className="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">
-                    Delivered
-                  </span>
-                  <span className="text-xl font-black text-emerald-700">
-                    {analyticsBatch.deliveredCount} (
-                    {analyticsBatch.sentCount > 0
-                      ? Math.round((analyticsBatch.deliveredCount / analyticsBatch.sentCount) * 100)
-                      : 0}
-                    %)
-                  </span>
-                </div>
-
-                <div className="bg-rose-50/70 p-4 rounded-2xl border border-rose-200">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-rose-800 block">
-                    Failed / Bounced
-                  </span>
-                  <span className="text-xl font-black text-rose-700">
-                    {analyticsBatch.failedCount}
-                  </span>
-                </div>
-
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    Campaign Cost
-                  </span>
-                  <span className="text-xl font-black text-slate-900">
-                    ~${(analyticsBatch.sentCount * 0.0085).toFixed(2)}
-                  </span>
-                </div>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                <span className="text-xs text-slate-400 font-bold uppercase block mb-1">Total</span>
+                <span className="text-lg font-black text-slate-900">{analyticsBatch.totalRecipients}</span>
               </div>
-
-              {/* Message Template Used */}
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
-                <span className="text-xs font-bold text-slate-700 block">
-                  Message Template Sent:
-                </span>
-                <p className="text-xs text-slate-600 font-mono leading-relaxed bg-white p-3 rounded-xl border border-slate-200">
-                  {analyticsBatch.messageTemplate}
-                </p>
+              <div className="bg-emerald-50 p-3 rounded-2xl border border-emerald-200">
+                <span className="text-xs text-emerald-700 font-bold uppercase block mb-1">Delivered</span>
+                <span className="text-lg font-black text-emerald-700">{analyticsBatch.deliveredCount}</span>
               </div>
-
-              {/* Recipient Breakdown Table */}
-              <div className="space-y-3">
-                <span className="text-xs font-extrabold text-slate-900 block">
-                  Recipient Delivery Breakdown
-                </span>
-
-                <div className="overflow-x-auto rounded-2xl border border-slate-200">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="bg-slate-900 text-white font-bold">
-                        <th className="p-3">Phone</th>
-                        <th className="p-3">Name</th>
-                        <th className="p-3">Company</th>
-                        <th className="p-3">Delivery Status</th>
-                        <th className="p-3">Timestamp / Note</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 bg-white">
-                      {analyticsBatch.recipients.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="p-6 text-center text-slate-400">
-                            No individual recipient logs recorded for this batch.
-                          </td>
-                        </tr>
-                      ) : (
-                        analyticsBatch.recipients.map((r, idx) => (
-                          <tr key={idx} className="hover:bg-slate-50/70">
-                            <td className="p-3 font-mono font-bold text-slate-900">{r.phone}</td>
-                            <td className="p-3 text-slate-800 font-medium">{r.name || "—"}</td>
-                            <td className="p-3 text-slate-600">{r.company || "—"}</td>
-                            <td className="p-3">
-                              <span
-                                className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                                  r.status === "delivered"
-                                    ? "bg-emerald-100 text-emerald-800"
-                                    : r.status === "failed"
-                                    ? "bg-rose-100 text-rose-800"
-                                    : "bg-slate-100 text-slate-700"
-                                }`}
-                              >
-                                {r.status}
-                              </span>
-                            </td>
-                            <td className="p-3 text-slate-500 text-[11px]">
-                              {r.error ? (
-                                <span className="text-rose-600 font-medium">{r.error}</span>
-                              ) : (
-                                r.sentAt || "Delivered successfully"
-                              )}
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+              <div className="bg-rose-50 p-3 rounded-2xl border border-rose-200">
+                <span className="text-xs text-rose-700 font-bold uppercase block mb-1">Failed</span>
+                <span className="text-lg font-black text-rose-700">{analyticsBatch.failedCount}</span>
               </div>
             </div>
 
-            {/* Modal Footer */}
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end">
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Message Template</span>
+              <p className="text-xs text-slate-700 leading-relaxed font-sans">{analyticsBatch.messageTemplate}</p>
+            </div>
+
+            <div className="flex justify-end pt-1">
               <button
                 type="button"
                 onClick={() => setAnalyticsBatch(null)}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+                className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition cursor-pointer"
               >
-                Close Analytics
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Recipient Preview Modal */}
-      {viewRecipientsModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150">
-            <div className="p-5 border-b border-slate-200 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
-                  Parsed Recipients ({recipients.length})
-                </h3>
-                <p className="text-xs text-slate-400">File: {selectedFileName}</p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setViewRecipientsModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="p-4 border-b border-slate-100 bg-slate-50">
-              <input
-                type="text"
-                placeholder="Search recipients by phone, name, or company..."
-                value={recipientSearchQuery}
-                onChange={(e) => setRecipientSearchQuery(e.target.value)}
-                className="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#00DF81]"
-              />
-            </div>
-
-            <div className="p-4 overflow-y-auto max-h-96">
-              <div className="space-y-2">
-                {filteredPreviewRecipients.map((r, i) => (
-                  <div
-                    key={i}
-                    className="p-3 rounded-xl border border-slate-200 flex items-center justify-between text-xs bg-slate-50/50"
-                  >
-                    <div>
-                      <span className="font-mono font-bold text-slate-900 block">{r.phone}</span>
-                      <span className="text-[11px] text-slate-500">
-                        {r.name || "No Name"} {r.company ? `· ${r.company}` : ""}
-                      </span>
-                    </div>
-
-                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                      Valid
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end">
-              <button
-                type="button"
-                onClick={() => setViewRecipientsModalOpen(false)}
-                className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold transition cursor-pointer"
-              >
-                Done
+                Close
               </button>
             </div>
           </div>

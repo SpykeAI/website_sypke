@@ -629,7 +629,7 @@ function SmsInboxContent() {
       {/* MAIN CONTAINER */}
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-slate-50/50">
         {/* TOP SECTIONS NAVBAR: 1. Individual | 2. Upload Format | 3. Bulk */}
-        <header className="bg-white border-b border-slate-200 shrink-0 px-4 sm:px-6 py-2.5 z-20 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+        <header className="bg-white border-b border-slate-200/90 shrink-0 px-4 sm:px-6 py-2.5 z-20 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
           <div className="flex items-center gap-3">
             <Link
               href="/admin"
@@ -640,29 +640,29 @@ function SmsInboxContent() {
             </Link>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <h1 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
                   <span>SMS Portal</span>
                   <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
                 </h1>
-                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  Telnyx Live
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  Live
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 hidden sm:block">
-                Individual two-way chat, upload format specifications & bulk campaign manager
+                Individual two-way chat, upload format & bulk messaging
               </p>
             </div>
           </div>
 
           {/* 3 SECTIONS TABS: 1. Individual | 2. Upload Format | 3. Bulk */}
-          <div className="flex items-center p-1 bg-slate-100 rounded-2xl border border-slate-200 shadow-2xs">
+          <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200/80">
             <button
               type="button"
               onClick={() => setActiveSection("individual")}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                 activeSection === "individual"
-                  ? "bg-white text-emerald-700 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  ? "bg-white text-emerald-800 shadow-2xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <MessageSquare size={14} className={activeSection === "individual" ? "text-emerald-600" : "text-slate-400"} />
@@ -679,10 +679,10 @@ function SmsInboxContent() {
             <button
               type="button"
               onClick={() => setActiveSection("format")}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                 activeSection === "format"
-                  ? "bg-white text-emerald-700 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  ? "bg-white text-emerald-800 shadow-2xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <FileSpreadsheet size={14} className={activeSection === "format" ? "text-emerald-600" : "text-slate-400"} />
@@ -692,19 +692,14 @@ function SmsInboxContent() {
             <button
               type="button"
               onClick={() => setActiveSection("bulk")}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                 activeSection === "bulk"
-                  ? "bg-white text-emerald-700 shadow-xs"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  ? "bg-white text-emerald-800 shadow-2xs"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               <UploadCloud size={14} className={activeSection === "bulk" ? "text-emerald-600" : "text-slate-400"} />
               <span>Bulk</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                activeSection === "bulk" ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-600"
-              }`}>
-                Campaigns
-              </span>
             </button>
           </div>
         </header>
