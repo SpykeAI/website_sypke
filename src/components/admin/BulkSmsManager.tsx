@@ -34,7 +34,7 @@ export interface SmsBatchRecipient {
   name?: string;
   company?: string;
   customMessage?: string;
-  status: "pending" | "sent" | "delivered" | "failed";
+  status: "pending" | "sending" | "sent" | "delivered" | "failed";
   error?: string;
   sentAt?: string;
 }
@@ -224,63 +224,202 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
       ? `${delayAmount}m delay`
       : `${delayAmount}s delay`;
 
-  // File Upload & Parser (CSV, XLSX, XLS)
+  // Live Queue Preview State
+  const [queueSearchQuery, setQueueSearchQuery] = useState("");
+  const [queueStatusFilter, setQueueStatusFilter] = useState<string>("all");
+  const [queueDisplayLimit, setQueueDisplayLimit] = useState<number>(30);
+
+  // File Upload & Intelligent Multi-Row Parser (CSV, XLSX, XLS)
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setSelectedFileName(file.name);
 
-    // Auto-suggest batch name if not set or default
-    const cleanBaseName = file.name.replace(/\.[^/.]+$/, "").replace(/[\s_]+/g, "-");
+    // Auto-suggest clean batch name
+    const cleanBaseName = file.name
+      .replace(/\.[^/.]+$/, "")
+      .replace(/[\(\)\[\]]+/g, "")
+      .replace(/[\s_]+/g, "-")
+      .slice(0, 45);
     setBatchName(`Batch-${cleanBaseName}`);
 
     const reader = new FileReader();
     reader.onload = (evt) => {
       try {
-        const bstr = evt.target?.result;
-        const wb = XLSX.read(bstr, { type: "binary" });
-        const wsname = wb.SheetNames[0];
-        const ws = wb.Sheets[wsname];
-        const rawJson: any[] = XLSX.utils.sheet_to_json(ws);
+        const buffer = evt.target?.result as ArrayBuffer;
+        const wb = XLSX.read(buffer, { type: "array" });
 
-        if (!rawJson || rawJson.length === 0) {
+        // Search sheets for one with actual data rows
+        let sheetData: any[][] = [];
+        for (const sname of wb.SheetNames) {
+          const sheet = wb.Sheets[sname];
+          const data = XLSX.utils.sheet_to_json(sheet, { header: 1, blankrows: false, defval: "" }) as any[][];
+          if (data && data.length > 0) {
+            sheetData = data;
+            break;
+          }
+        }
+
+        if (!sheetData || sheetData.length === 0) {
           showToast("error", "The uploaded file has no data rows.");
           return;
         }
 
-        const parsed: SmsBatchRecipient[] = [];
+        let headerRowIdx = -1;
+        let phoneColIdx = -1;
+        let nameColIdx = -1;
+        let companyColIdx = -1;
+        let messageColIdx = -1;
 
-        rawJson.forEach((row) => {
-          let phoneVal = "";
-          let nameVal = "";
-          let companyVal = "";
-          let customMsg = "";
+        // 1. Scan the first 10 rows for column headers
+        // (Handles reports where Row 1 is a title/banner and Row 2 has the actual headers)
+        for (let r = 0; r < Math.min(sheetData.length, 10); r++) {
+          const row = sheetData[r];
+          if (!Array.isArray(row)) continue;
 
-          Object.keys(row).forEach((k) => {
-            const lower = k.toLowerCase().trim();
-            if (lower.includes("phone") || lower.includes("mobile") || lower.includes("cell") || lower.includes("contact")) {
-              phoneVal = String(row[k] || "");
-            } else if (lower.includes("name") || lower.includes("first") || lower.includes("customer")) {
-              nameVal = String(row[k] || "");
-            } else if (lower.includes("company") || lower.includes("business") || lower.includes("org")) {
-              companyVal = String(row[k] || "");
-            } else if (lower.includes("message") || lower.includes("notes") || lower.includes("custom")) {
-              customMsg = String(row[k] || "");
+          let pIdx = -1;
+          let nIdx = -1;
+          let cIdx = -1;
+          let mIdx = -1;
+
+          row.forEach((cell, idx) => {
+            if (cell === null || cell === undefined) return;
+            const text = String(cell).toLowerCase().trim();
+
+            // Phone Column Check (phone, telephone, tel, mobile, cell, ph)
+            if (
+              pIdx === -1 &&
+              (text.includes("phone") ||
+                text.includes("tele") ||
+                text.includes("mobile") ||
+                text.includes("cell") ||
+                text.includes("contact num") ||
+                text === "tel" ||
+                text === "ph")
+            ) {
+              pIdx = idx;
+            }
+
+            // Company / Business Name Check
+            if (
+              cIdx === -1 &&
+              (text === "businessname" ||
+                text === "company" ||
+                text === "company name" ||
+                text === "business name" ||
+                text === "business" ||
+                text === "org" ||
+                text === "firm")
+            ) {
+              cIdx = idx;
+            }
+
+            // Person Name Check
+            if (
+              nIdx === -1 &&
+              (text === "name" ||
+                text === "contact name" ||
+                text === "first name" ||
+                text === "full name" ||
+                text === "customer" ||
+                text === "client" ||
+                text === "owner" ||
+                text === "person")
+            ) {
+              nIdx = idx;
+            }
+
+            // Custom Message Column
+            if (
+              mIdx === -1 &&
+              (text.includes("message") ||
+                text.includes("notes") ||
+                text.includes("custom") ||
+                text.includes("body") ||
+                text.includes("sms") ||
+                text.includes("text"))
+            ) {
+              mIdx = idx;
             }
           });
 
-          if (phoneVal) {
-            const normalized = normalizePhone(phoneVal);
-            parsed.push({
-              phone: normalized,
-              name: nameVal.trim() || undefined,
-              company: companyVal.trim() || undefined,
-              customMessage: customMsg.trim() || undefined,
-              status: "pending",
-            });
+          // If a row has a phone indicator, that row is our header row!
+          if (pIdx !== -1) {
+            headerRowIdx = r;
+            phoneColIdx = pIdx;
+            if (nIdx !== -1) nameColIdx = nIdx;
+            if (cIdx !== -1) companyColIdx = cIdx;
+            if (mIdx !== -1) messageColIdx = mIdx;
+            break;
           }
-        });
+        }
+
+        // 2. Fallback: if no phone header found by text, scan column values for phone numbers
+        if (phoneColIdx === -1) {
+          const sampleRows = sheetData.slice(0, 20);
+          const maxCols = Math.max(...sampleRows.map((r) => (Array.isArray(r) ? r.length : 0)));
+          for (let c = 0; c < maxCols; c++) {
+            let phoneMatchCount = 0;
+            sampleRows.forEach((r) => {
+              if (!Array.isArray(r)) return;
+              const val = String(r[c] || "").trim();
+              const digits = val.replace(/\D/g, "");
+              if (digits.length >= 10 && digits.length <= 15) {
+                phoneMatchCount++;
+              }
+            });
+            if (phoneMatchCount >= Math.max(1, sampleRows.length * 0.3)) {
+              phoneColIdx = c;
+              headerRowIdx = 0;
+              break;
+            }
+          }
+        }
+
+        if (phoneColIdx === -1) {
+          showToast(
+            "error",
+            "No phone number column could be detected. Please ensure your file has a Telephone or Phone column."
+          );
+          return;
+        }
+
+        // If company was found (e.g. BusinessName) and name wasn't, mirror it
+        if (companyColIdx !== -1 && nameColIdx === -1) {
+          nameColIdx = companyColIdx;
+        } else if (nameColIdx !== -1 && companyColIdx === -1) {
+          companyColIdx = nameColIdx;
+        }
+
+        const parsed: SmsBatchRecipient[] = [];
+        const startRow = headerRowIdx >= 0 ? headerRowIdx + 1 : 0;
+        const seenPhones = new Set<string>();
+
+        for (let r = startRow; r < sheetData.length; r++) {
+          const row = sheetData[r];
+          if (!row || !Array.isArray(row)) continue;
+
+          const rawPhone = String(row[phoneColIdx] || "").trim();
+          const digits = rawPhone.replace(/\D/g, "");
+          if (digits.length < 10) continue; // Skip empty rows or header echoes
+
+          const normalized = normalizePhone(rawPhone);
+          if (seenPhones.has(normalized)) continue;
+          seenPhones.add(normalized);
+
+          const rawName = nameColIdx !== -1 ? String(row[nameColIdx] || "").trim() : "";
+          const rawCompany = companyColIdx !== -1 ? String(row[companyColIdx] || "").trim() : "";
+          const rawMsg = messageColIdx !== -1 ? String(row[messageColIdx] || "").trim() : "";
+
+          parsed.push({
+            phone: normalized,
+            name: rawName || rawCompany || undefined,
+            company: rawCompany || rawName || undefined,
+            customMessage: rawMsg || undefined,
+            status: "pending",
+          });
+        }
 
         if (parsed.length === 0) {
           showToast("error", "No valid phone numbers found in file. Please check format guidelines.");
@@ -288,12 +427,12 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
         }
 
         setRecipients(parsed);
-        showToast("success", `Loaded ${parsed.length} recipients from ${file.name}!`);
+        showToast("success", `Successfully loaded ${parsed.length} recipients from ${file.name}!`);
       } catch (err: any) {
         showToast("error", "Failed to parse file: " + (err?.message || "Invalid file"));
       }
     };
-    reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
   };
 
   // Save Batch as Draft
@@ -390,6 +529,8 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
       }
 
       const recipient = activeRecipients[i];
+      recipient.status = "sending";
+      setRecipients([...activeRecipients]);
       setSendingProgress({ current: i + 1, total: activeRecipients.length, currentPhone: recipient.phone });
 
       // Build personalized message
@@ -427,6 +568,9 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
         recipient.status = "failed";
         recipient.error = err?.message || "Network error";
       }
+
+      // Update studio queue live
+      setRecipients([...activeRecipients]);
 
       // Update in-progress batch state
       currentBatch.sentCount = sent;
@@ -482,6 +626,36 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
       (r.name || "").toLowerCase().includes(q) ||
       (r.company || "").toLowerCase().includes(q)
     );
+  });
+
+  // Live Queue Calculations (Total count, Next to be sent, Status breakdown)
+  const totalQueueCount = recipients.length;
+  const pendingRecipients = recipients.filter((r) => r.status === "pending");
+  const sendingRecipient = recipients.find((r) => r.status === "sending");
+  const nextRecipient = sendingRecipient || pendingRecipients[0] || null;
+  const nextRecipientIndex = recipients.findIndex((r) => r.status === "pending" || r.status === "sending");
+
+  const queueSentCount = recipients.filter((r) => r.status === "sent" || r.status === "delivered").length;
+  const queueDeliveredCount = recipients.filter((r) => r.status === "delivered").length;
+  const queueFailedCount = recipients.filter((r) => r.status === "failed").length;
+  const queuePendingCount = recipients.filter((r) => r.status === "pending").length;
+
+  // Filtered queue for table
+  const filteredQueue = recipients.filter((r) => {
+    const q = queueSearchQuery.toLowerCase();
+    const matchSearch =
+      r.phone.toLowerCase().includes(q) ||
+      (r.name && r.name.toLowerCase().includes(q)) ||
+      (r.company && r.company.toLowerCase().includes(q)) ||
+      (r.customMessage && r.customMessage.toLowerCase().includes(q));
+
+    const matchStatus =
+      queueStatusFilter === "all" ||
+      (queueStatusFilter === "pending" && r.status === "pending") ||
+      (queueStatusFilter === "delivered" && r.status === "delivered") ||
+      (queueStatusFilter === "failed" && r.status === "failed");
+
+    return matchSearch && matchStatus;
   });
 
   return (
@@ -903,6 +1077,245 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
           </div>
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* ⚡ LIVE QUEUE & REAL-TIME STATUS PREVIEW */}
+      {/* ========================================================================= */}
+      {recipients.length > 0 && (
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden p-6 sm:p-8 space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Live Queue & Real-Time Delivery Preview</span>
+                </h3>
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800">
+                  {recipients.length} Contacts
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Real-time queue tracking showing total recipients, the immediate next message scheduled for dispatch, and live delivery status.
+              </p>
+            </div>
+
+            {/* Quick Filter & Search */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 text-slate-400" size={13} />
+                <input
+                  type="text"
+                  placeholder="Search in queue..."
+                  value={queueSearchQuery}
+                  onChange={(e) => setQueueSearchQuery(e.target.value)}
+                  className="pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#00DF81]"
+                />
+              </div>
+
+              <select
+                value={queueStatusFilter}
+                onChange={(e) => setQueueStatusFilter(e.target.value)}
+                className="px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 bg-white"
+              >
+                <option value="all">All Status ({recipients.length})</option>
+                <option value="pending">Pending ({queuePendingCount})</option>
+                <option value="delivered">Delivered ({queueDeliveredCount})</option>
+                <option value="failed">Failed ({queueFailedCount})</option>
+              </select>
+            </div>
+          </div>
+
+          {/* 3 Prominent Live Status Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Card 1: Total Queue Volume */}
+            <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                  Total in Queue
+                </span>
+                <span className="text-2xl font-black text-slate-900">
+                  {recipients.length}
+                </span>
+                <span className="text-xs text-slate-500 block mt-0.5 truncate max-w-[200px]" title={selectedFileName || ""}>
+                  From: {selectedFileName || "Uploaded File"}
+                </span>
+              </div>
+              <div className="w-11 h-11 rounded-2xl bg-white shadow-2xs border border-slate-200 flex items-center justify-center text-slate-700">
+                <FileSpreadsheet size={20} />
+              </div>
+            </div>
+
+            {/* Card 2: ⚡ NEXT TO BE SENT (Highlighted with green pulsing ring) */}
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/60 p-4 rounded-2xl border-2 border-emerald-300 shadow-sm relative overflow-hidden">
+              <div className="flex items-start justify-between">
+                <div className="min-w-0 flex-1">
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider mb-1.5 animate-pulse">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                    <span>Next to be Sent</span>
+                  </div>
+                  {nextRecipient ? (
+                    <div>
+                      <h4 className="text-sm font-black text-slate-900 truncate" title={nextRecipient.name || "Recipient"}>
+                        #{nextRecipientIndex + 1} {nextRecipient.name || nextRecipient.company || "Recipient"}
+                      </h4>
+                      <p className="text-xs font-mono font-bold text-emerald-800 mt-0.5">
+                        {nextRecipient.phone}
+                      </p>
+                      <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
+                        <Clock size={11} className="text-emerald-700" />
+                        <span>Scheduled with {delayDisplay} delay</span>
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-emerald-900 font-bold mt-2">
+                      All messages in this queue have been dispatched!
+                    </p>
+                  )}
+                </div>
+                <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-xs shrink-0 ml-2">
+                  <Send size={18} />
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Real-Time Dispatch Status */}
+            <div className="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 space-y-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                Queue Status Breakdown
+              </span>
+              <div className="grid grid-cols-3 gap-2 text-center pt-1">
+                <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-2xs">
+                  <span className="text-base font-black text-slate-700 block">{queuePendingCount}</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Pending</span>
+                </div>
+                <div className="bg-white p-2 rounded-xl border border-emerald-200 shadow-2xs">
+                  <span className="text-base font-black text-emerald-600 block">{queueDeliveredCount}</span>
+                  <span className="text-[10px] font-bold text-emerald-700 uppercase">Delivered</span>
+                </div>
+                <div className="bg-white p-2 rounded-xl border border-rose-200 shadow-2xs">
+                  <span className="text-base font-black text-rose-600 block">{queueFailedCount}</span>
+                  <span className="text-[10px] font-bold text-rose-700 uppercase">Failed</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Live Queue Table */}
+          <div className="overflow-x-auto rounded-2xl border border-slate-200">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-900 text-white font-bold">
+                  <th className="p-3 whitespace-nowrap w-12 text-center">#</th>
+                  <th className="p-3 whitespace-nowrap w-48">Recipient / Business</th>
+                  <th className="p-3 whitespace-nowrap w-36">Phone Number</th>
+                  <th className="p-3 whitespace-nowrap">Personalized Message Preview</th>
+                  <th className="p-3 whitespace-nowrap w-40">Status</th>
+                  <th className="p-3 whitespace-nowrap w-24 text-center">Delivered</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 bg-white">
+                {filteredQueue.slice(0, queueDisplayLimit).map((r, idx) => {
+                  const isCurrentNext = r === nextRecipient && !isSending;
+                  const isCurrentlySending = r.status === "sending";
+
+                  let previewText = r.customMessage || messageTemplate;
+                  previewText = previewText
+                    .replace(/\{name\}/gi, r.name || "there")
+                    .replace(/\{company\}/gi, r.company || "your business")
+                    .replace(/\{phone\}/gi, r.phone);
+
+                  return (
+                    <tr
+                      key={idx}
+                      className={
+                        isCurrentlySending
+                          ? "bg-blue-50/70 border-l-4 border-l-blue-600"
+                          : isCurrentNext
+                          ? "bg-emerald-50/60 border-l-4 border-l-emerald-500 font-medium"
+                          : idx % 2 === 0
+                          ? "bg-white"
+                          : "bg-slate-50/50"
+                      }
+                    >
+                      <td className="p-3 text-center font-mono text-slate-400 font-semibold">
+                        {idx + 1}
+                      </td>
+
+                      <td className="p-3 whitespace-nowrap">
+                        <div className="font-bold text-slate-900 truncate max-w-[180px]">
+                          {r.name || r.company || "Unnamed Lead"}
+                        </div>
+                        {r.company && r.name && r.company !== r.name && (
+                          <div className="text-[10px] text-slate-400 truncate max-w-[180px]">
+                            {r.company}
+                          </div>
+                        )}
+                      </td>
+
+                      <td className="p-3 font-mono font-bold text-slate-800 whitespace-nowrap">
+                        {r.phone}
+                      </td>
+
+                      <td className="p-3 text-slate-600 max-w-md truncate" title={previewText}>
+                        {previewText}
+                      </td>
+
+                      <td className="p-3 whitespace-nowrap">
+                        {isCurrentlySending ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black bg-blue-100 text-blue-800 border border-blue-200 animate-pulse">
+                            <RefreshCw size={11} className="animate-spin text-blue-600" />
+                            <span>Sending...</span>
+                          </span>
+                        ) : isCurrentNext ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-xs animate-pulse">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                            <span>⚡ Next to be Sent</span>
+                          </span>
+                        ) : r.status === "delivered" ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <CheckCircle2 size={12} className="text-emerald-600" />
+                            <span>Delivered</span>
+                          </span>
+                        ) : r.status === "failed" ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-50 text-rose-700 border border-rose-200" title={r.error}>
+                            <AlertCircle size={12} className="text-rose-600" />
+                            <span>Failed</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                            <Clock size={11} className="text-slate-400" />
+                            <span>Pending</span>
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="p-3 text-center whitespace-nowrap text-[11px] text-slate-500 font-mono">
+                        {r.sentAt || "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Show More / Pagination Footer */}
+          {filteredQueue.length > queueDisplayLimit && (
+            <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
+              <span>
+                Showing first <strong>{queueDisplayLimit}</strong> of <strong>{filteredQueue.length}</strong> contacts in queue
+              </span>
+              <button
+                type="button"
+                onClick={() => setQueueDisplayLimit((prev) => prev + 50)}
+                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl transition cursor-pointer"
+              >
+                Load Next 50 Contacts
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* 📊 2. HISTORY UPLOAD TABLE (Batch Name, Delays, Status, Sent, Delivered, Analytics) */}
