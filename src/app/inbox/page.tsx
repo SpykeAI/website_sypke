@@ -21,9 +21,13 @@ import {
   ArrowLeft,
   ChevronDown,
   ChevronLeft,
-  Trash2
+  Trash2,
+  FileSpreadsheet,
+  UploadCloud
 } from "lucide-react";
 import { getAvailableLines, PhoneLine } from "@/lib/phoneLines";
+import SmsUploadFormat from "@/components/admin/SmsUploadFormat";
+import BulkSmsManager from "@/components/admin/BulkSmsManager";
 
 interface Contact {
   id: string;
@@ -99,6 +103,14 @@ function calculateSmsCost(text: string, recipientPhone?: string | null) {
 function SmsInboxContent() {
   const searchParams = useSearchParams();
   const phoneParam = searchParams.get("phone");
+  const tabParam = searchParams.get("tab");
+
+  // Top Section Switcher: "individual" | "format" | "bulk"
+  const [activeSection, setActiveSection] = useState<"individual" | "format" | "bulk">(() => {
+    if (tabParam === "bulk") return "bulk";
+    if (tabParam === "format") return "format";
+    return "individual";
+  });
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
@@ -609,14 +621,100 @@ function SmsInboxContent() {
   });
 
   return (
-    <div className="flex h-full w-full bg-white text-slate-800 font-sans antialiased overflow-hidden">
+    <div className="flex h-screen w-full bg-white text-slate-800 font-sans antialiased overflow-hidden">
       {/* VERTICAL NAVBAR */}
       <AdminSidebar active="inbox" />
 
-      {/* CONVERSATIONS LIST */}
-      <div className={`${
-        activeConvId ? "hidden md:flex" : "flex"
-      } w-full md:w-80 lg:w-96 border-r border-slate-200 flex-col bg-slate-50 shrink-0 h-full pb-16 md:pb-0`}>
+      {/* MAIN CONTAINER */}
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-slate-50/50">
+        {/* TOP SECTIONS NAVBAR: 1. Individual | 2. Upload Format | 3. Bulk */}
+        <header className="bg-white border-b border-slate-200 shrink-0 px-4 sm:px-6 py-2.5 z-20 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin"
+              className="p-1.5 hover:bg-slate-100 text-slate-500 hover:text-slate-900 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
+              title="Back to Admin Dashboard"
+            >
+              <ChevronLeft size={20} />
+            </Link>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+                  <span>SMS Portal</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                </h1>
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  Telnyx Live
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 hidden sm:block">
+                Individual two-way chat, upload format specifications & bulk campaign manager
+              </p>
+            </div>
+          </div>
+
+          {/* 3 SECTIONS TABS: 1. Individual | 2. Upload Format | 3. Bulk */}
+          <div className="flex items-center p-1 bg-slate-100 rounded-2xl border border-slate-200 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => setActiveSection("individual")}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeSection === "individual"
+                  ? "bg-white text-emerald-700 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+              }`}
+            >
+              <MessageSquare size={14} className={activeSection === "individual" ? "text-emerald-600" : "text-slate-400"} />
+              <span>Individual</span>
+              {conversations.length > 0 && (
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  activeSection === "individual" ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-600"
+                }`}>
+                  {conversations.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveSection("format")}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeSection === "format"
+                  ? "bg-white text-emerald-700 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+              }`}
+            >
+              <FileSpreadsheet size={14} className={activeSection === "format" ? "text-emerald-600" : "text-slate-400"} />
+              <span>Upload Format</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveSection("bulk")}
+              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeSection === "bulk"
+                  ? "bg-white text-emerald-700 shadow-xs"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+              }`}
+            >
+              <UploadCloud size={14} className={activeSection === "bulk" ? "text-emerald-600" : "text-slate-400"} />
+              <span>Bulk</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                activeSection === "bulk" ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-600"
+              }`}>
+                Campaigns
+              </span>
+            </button>
+          </div>
+        </header>
+
+        {/* SECTION 1: INDIVIDUAL */}
+        {activeSection === "individual" && (
+          <div className="flex-1 flex h-full min-w-0 overflow-hidden">
+            {/* CONVERSATIONS LIST */}
+            <div className={`${
+              activeConvId ? "hidden md:flex" : "flex"
+            } w-full md:w-80 lg:w-96 border-r border-slate-200 flex-col bg-slate-50 shrink-0 h-full pb-16 md:pb-0`}>
         {/* Top Header */}
         <div className="p-3.5 px-4 border-b border-slate-200 bg-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -1158,6 +1256,23 @@ function SmsInboxContent() {
             <MessageSquare size={44} className="text-slate-300 mb-2" />
             <p className="font-semibold text-slate-600">Select a conversation or start a new one</p>
             <p className="text-xs text-slate-400 mt-0.5">Two-way manual SMS via Telnyx</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )}
+
+        {/* SECTION 2: UPLOAD FORMAT */}
+        {activeSection === "format" && (
+          <div className="flex-1 h-full overflow-y-auto">
+            <SmsUploadFormat onSwitchToBulk={() => setActiveSection("bulk")} />
+          </div>
+        )}
+
+        {/* SECTION 3: BULK */}
+        {activeSection === "bulk" && (
+          <div className="flex-1 h-full overflow-y-auto">
+            <BulkSmsManager onOpenFormatGuide={() => setActiveSection("format")} />
           </div>
         )}
       </div>
