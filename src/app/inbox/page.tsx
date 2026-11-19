@@ -111,6 +111,7 @@ function SmsInboxContent() {
     if (tabParam === "format") return "format";
     return "individual";
   });
+  const [appliedDraftTemplate, setAppliedDraftTemplate] = useState<string | null>(null);
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
@@ -1265,14 +1266,23 @@ function SmsInboxContent() {
         {/* SECTION 2: UPLOAD FORMAT */}
         {activeSection === "format" && (
           <div className="flex-1 h-full overflow-y-auto">
-            <SmsUploadFormat onSwitchToBulk={() => setActiveSection("bulk")} />
+            <SmsUploadFormat
+              onSwitchToBulk={() => setActiveSection("bulk")}
+              onApplyDraftToBulk={(draftText) => {
+                setAppliedDraftTemplate(draftText);
+                setActiveSection("bulk");
+              }}
+            />
           </div>
         )}
 
         {/* SECTION 3: BULK */}
         {activeSection === "bulk" && (
           <div className="flex-1 h-full overflow-y-auto">
-            <BulkSmsManager onOpenFormatGuide={() => setActiveSection("format")} />
+            <BulkSmsManager
+              initialTemplate={appliedDraftTemplate}
+              onOpenFormatGuide={() => setActiveSection("format")}
+            />
           </div>
         )}
       </div>

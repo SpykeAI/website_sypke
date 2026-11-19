@@ -139,7 +139,12 @@ function normalizePhone(raw: string): string {
   return "+" + digits;
 }
 
-export default function BulkSmsManager({ onOpenFormatGuide }: { onOpenFormatGuide?: () => void }) {
+interface BulkSmsManagerProps {
+  onOpenFormatGuide?: () => void;
+  initialTemplate?: string | null;
+}
+
+export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: BulkSmsManagerProps) {
   // Batch List / History state
   const [batches, setBatches] = useState<SmsBatch[]>(INITIAL_BATCHES);
   const [historySearch, setHistorySearch] = useState("");
@@ -150,8 +155,14 @@ export default function BulkSmsManager({ onOpenFormatGuide }: { onOpenFormatGuid
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const [recipients, setRecipients] = useState<SmsBatchRecipient[]>([]);
   const [messageTemplate, setMessageTemplate] = useState(
-    "Hi {name}, our certified technicians are in Tampa this week for HVAC safety checks. Reply YES to book your slot!"
+    initialTemplate || "Hi {name}, our certified technicians are in Tampa this week for HVAC safety checks. Reply YES to book your slot!"
   );
+
+  useEffect(() => {
+    if (initialTemplate) {
+      setMessageTemplate(initialTemplate);
+    }
+  }, [initialTemplate]);
   const [selectedSender, setSelectedSender] = useState<string>("+13464770028");
 
   // Delay settings: customizable from 1 second to 1 minute or more
