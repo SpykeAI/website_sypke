@@ -106,7 +106,7 @@ export async function POST(req: Request) {
 
     const isSuperadminPassword =
       inputPassword === "SpykeAI#SuperAdmin!2026" ||
-      inputPassword === "spykeai-admin" ||
+      inputPassword === "Spyke@20Novadm" ||
       (process.env.ADMIN_PASSWORD && inputPassword === process.env.ADMIN_PASSWORD.trim());
 
     if (isSuperadminEmail && isSuperadminPassword) {
