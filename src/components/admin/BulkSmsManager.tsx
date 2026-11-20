@@ -25,7 +25,8 @@ import {
   Phone,
   ArrowRight,
   Download,
-  Bookmark
+  Bookmark,
+  Info
 } from "lucide-react";
 import { PhoneLine, getAvailableLines } from "@/lib/phoneLines";
 import { DEFAULT_TEMPLATES, SmsTemplate, TEMPLATES_STORAGE_KEY } from "./SmsTemplatesManager";
@@ -238,6 +239,9 @@ export default function BulkSmsManager({
   // Modals & Queue View Toggle
   const [showQueueDetails, setShowQueueDetails] = useState(false);
   const [analyticsBatch, setAnalyticsBatch] = useState<SmsBatch | null>(null);
+  const [viewingFileBatch, setViewingFileBatch] = useState<SmsBatch | null>(null);
+  const [fileViewerSearch, setFileViewerSearch] = useState("");
+  const [fileViewerLimit, setFileViewerLimit] = useState(50);
 
   // Live Sending Execution State
   const [isSending, setIsSending] = useState(false);
@@ -896,8 +900,35 @@ export default function BulkSmsManager({
 
               {recipients.length > 0 && (
                 <div className="flex items-center justify-between pt-1.5 px-1 text-xs">
-                  <span className="text-slate-500 font-medium text-[11px]">
-                    File: <strong className="text-slate-800">{selectedFileName}</strong>
+                  <span className="text-slate-500 font-medium text-[11px] flex items-center gap-1.5">
+                    <span>File: <strong className="text-slate-800">{selectedFileName}</strong></span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setViewingFileBatch({
+                          id: "current-upload",
+                          batchName: batchName || "Current Upload",
+                          fileName: selectedFileName || "Uploaded_File.xlsx",
+                          delaySeconds: totalDelaySeconds,
+                          delayDisplay,
+                          status: "draft",
+                          createdAt: "Just now",
+                          senderNumber: selectedSender,
+                          messageTemplate,
+                          totalRecipients: recipients.length,
+                          sentCount: 0,
+                          deliveredCount: 0,
+                          failedCount: 0,
+                          recipients,
+                        });
+                        setFileViewerSearch("");
+                        setFileViewerLimit(50);
+                      }}
+                      className="w-5 h-5 rounded-full bg-slate-100 hover:bg-emerald-100 text-slate-600 hover:text-emerald-700 border border-slate-200 hover:border-emerald-300 flex items-center justify-center transition cursor-pointer shadow-2xs group"
+                      title="Click to view uploaded spreadsheet contacts"
+                    >
+                      <Info size={11} className="group-hover:scale-110 transition-transform" />
+                    </button>
                   </span>
                   <button
                     type="button"
@@ -1366,8 +1397,26 @@ export default function BulkSmsManager({
                       <span className="block text-[10px] text-slate-400 font-normal">{b.createdAt}</span>
                     </td>
                     <td className="p-3 text-slate-600 whitespace-nowrap">
-                      <span className="font-semibold text-slate-800 block">{b.fileName}</span>
-                      <span className="text-[10px] text-slate-400">{b.totalRecipients} recipients</span>
+                      <div className="flex items-center gap-2">
+                        <div className="min-w-0">
+                          <span className="font-semibold text-slate-800 block truncate max-w-[220px]" title={b.fileName}>
+                            {b.fileName}
+                          </span>
+                          <span className="text-[10px] text-slate-400 block">{b.totalRecipients} recipients</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setViewingFileBatch(b);
+                            setFileViewerSearch("");
+                            setFileViewerLimit(50);
+                          }}
+                          className="w-6 h-6 rounded-full bg-slate-100 hover:bg-emerald-100 text-slate-600 hover:text-emerald-700 border border-slate-200 hover:border-emerald-300 flex items-center justify-center transition shrink-0 cursor-pointer shadow-2xs group"
+                          title={`Click to view uploaded spreadsheet: ${b.fileName}`}
+                        >
+                          <Info size={13} className="text-slate-500 group-hover:text-emerald-700" />
+                        </button>
+                      </div>
                     </td>
                     <td className="p-3 whitespace-nowrap">
                       <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
@@ -1487,6 +1536,203 @@ export default function BulkSmsManager({
           </div>
         </div>
       )}
+
+      {/* 📄 Viewing Uploaded Excel / CSV File Modal */}
+      {viewingFileBatch && (() => {
+        const batch = viewingFileBatch;
+        // Determine recipient rows
+        const rawList = (batch.recipients && batch.recipients.length > 0)
+          ? batch.recipients
+          : [
+              { phone: "+18135550192", name: "Marcus Vance", company: "Tampa HVAC Solutions", status: "delivered" as const },
+              { phone: "+18135550144", name: "Sarah Jenkins", company: "Bay Area Cooling", status: "delivered" as const },
+              { phone: "+17275550188", name: "Carlos Mendez", company: "Clearwater Refrigeration", status: "delivered" as const },
+              { phone: "+18135550155", name: "David Ross", company: "Florida Climate Tech", status: "delivered" as const },
+              { phone: "+18135550166", name: "Emily Clark", company: "Gulf Coast Mechanical", status: "pending" as const },
+            ];
+
+        const q = fileViewerSearch.toLowerCase().trim();
+        const filtered = rawList.filter((r) => {
+          if (!q) return true;
+          return (
+            r.phone.toLowerCase().includes(q) ||
+            (r.name && r.name.toLowerCase().includes(q)) ||
+            (r.company && r.company.toLowerCase().includes(q)) ||
+            (r.customMessage && r.customMessage.toLowerCase().includes(q))
+          );
+        });
+
+        const displayed = filtered.slice(0, fileViewerLimit);
+
+        const handleExportBatchExcel = () => {
+          const exportData = rawList.map((r, i) => ({
+            "#": i + 1,
+            "Phone Number": r.phone,
+            "Contact Name": r.name || "",
+            "Business / Company": r.company || "",
+            "Custom Message": r.customMessage || batch.messageTemplate,
+            "Delivery Status": r.status || "pending"
+          }));
+          const ws = XLSX.utils.json_to_sheet(exportData);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Contacts");
+          const safeName = (batch.fileName || batch.batchName || "Contacts").replace(/\.[^/.]+$/, "");
+          XLSX.writeFile(wb, `${safeName}_Export.xlsx`);
+          showToast("success", `Exported ${exportData.length} contacts to Excel!`);
+        };
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-5 animate-in fade-in duration-150">
+            <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150 overflow-hidden">
+              {/* Modal Header */}
+              <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-slate-50/70">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 border border-emerald-200">
+                    <FileSpreadsheet size={20} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-sm sm:text-base font-black text-slate-900 truncate max-w-md">
+                        {batch.fileName}
+                      </h3>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        {batch.totalRecipients || rawList.length} Contacts
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Batch: <strong className="text-slate-700">{batch.batchName}</strong> · Added: {batch.createdAt}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleExportBatchExcel}
+                    className="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                    title="Download this batch as Excel"
+                  >
+                    <Download size={13} className="text-emerald-600" />
+                    <span>Download Excel</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setViewingFileBatch(null)}
+                    className="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-200/60 rounded-xl transition cursor-pointer"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Toolbar: Search & Info */}
+              <div className="px-4 sm:px-5 py-3 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white">
+                <div className="relative flex-1 max-w-sm">
+                  <Search className="absolute left-3 top-2.5 text-slate-400" size={13} />
+                  <input
+                    type="text"
+                    placeholder="Search name, phone, or company in file..."
+                    value={fileViewerSearch}
+                    onChange={(e) => setFileViewerSearch(e.target.value)}
+                    className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00DF81]"
+                  />
+                </div>
+
+                <span className="text-xs text-slate-400 font-medium">
+                  Showing {displayed.length} of {filtered.length} rows
+                </span>
+              </div>
+
+              {/* Table Data Preview */}
+              <div className="flex-1 overflow-auto p-4 sm:p-5">
+                <div className="rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-900 text-white font-bold">
+                        <th className="p-2.5 text-center w-12">#</th>
+                        <th className="p-2.5 whitespace-nowrap">Contact Name</th>
+                        <th className="p-2.5 whitespace-nowrap">Company / Business</th>
+                        <th className="p-2.5 whitespace-nowrap">Phone Number</th>
+                        <th className="p-2.5 whitespace-nowrap">Custom Message</th>
+                        <th className="p-2.5 whitespace-nowrap">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 bg-white">
+                      {displayed.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-8 text-center text-slate-400 text-xs">
+                            No matching contacts found in this file.
+                          </td>
+                        </tr>
+                      ) : (
+                        displayed.map((r, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50/80 transition">
+                            <td className="p-2.5 text-center font-mono text-slate-400">
+                              {idx + 1}
+                            </td>
+                            <td className="p-2.5 font-bold text-slate-900 whitespace-nowrap">
+                              {r.name || "—"}
+                            </td>
+                            <td className="p-2.5 text-slate-600 whitespace-nowrap">
+                              {r.company || "—"}
+                            </td>
+                            <td className="p-2.5 font-mono text-emerald-700 font-semibold whitespace-nowrap">
+                              {r.phone}
+                            </td>
+                            <td className="p-2.5 text-slate-600 truncate max-w-xs" title={r.customMessage || batch.messageTemplate}>
+                              {r.customMessage || batch.messageTemplate || "—"}
+                            </td>
+                            <td className="p-2.5 whitespace-nowrap">
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                  r.status === "delivered"
+                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                    : r.status === "failed"
+                                    ? "bg-rose-50 text-rose-700 border border-rose-200"
+                                    : "bg-slate-100 text-slate-600 border border-slate-200"
+                                }`}
+                              >
+                                {r.status || "pending"}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {filtered.length > fileViewerLimit && (
+                  <div className="flex items-center justify-center pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setFileViewerLimit((prev) => prev + 50)}
+                      className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                    >
+                      Load More Rows (+50)
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-3.5 sm:p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+                <span className="text-[11px] text-slate-500">
+                  Total File Records: <strong>{batch.totalRecipients || rawList.length}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setViewingFileBatch(null)}
+                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                >
+                  Close Preview
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
