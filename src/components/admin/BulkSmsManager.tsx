@@ -1583,7 +1583,7 @@ export default function BulkSmsManager({
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-5 animate-in fade-in duration-150">
-            <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150 overflow-hidden">
+            <div className="bg-white rounded-3xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150 overflow-hidden">
               {/* Modal Header */}
               <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-slate-50/70">
                 <div className="flex items-center gap-3 min-w-0">
@@ -1639,23 +1639,26 @@ export default function BulkSmsManager({
                   />
                 </div>
 
-                <span className="text-xs text-slate-400 font-medium">
-                  Showing {displayed.length} of {filtered.length} rows
-                </span>
+                <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                  <span className="hidden sm:inline-block text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-semibold">
+                    ↔ Side scroll to view all columns
+                  </span>
+                  <span>Showing {displayed.length} of {filtered.length} rows</span>
+                </div>
               </div>
 
-              {/* Table Data Preview */}
-              <div className="flex-1 overflow-auto p-4 sm:p-5">
-                <div className="rounded-2xl border border-slate-200 overflow-hidden shadow-2xs">
-                  <table className="w-full text-left text-xs border-collapse">
+              {/* Table Data Preview with Side Scrollbar */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5">
+                <div className="rounded-2xl border border-slate-200 overflow-x-auto shadow-2xs bg-white">
+                  <table className="w-full text-left text-xs border-collapse min-w-[850px]">
                     <thead>
                       <tr className="bg-slate-900 text-white font-bold">
-                        <th className="p-2.5 text-center w-12">#</th>
-                        <th className="p-2.5 whitespace-nowrap">Contact Name</th>
-                        <th className="p-2.5 whitespace-nowrap">Company / Business</th>
-                        <th className="p-2.5 whitespace-nowrap">Phone Number</th>
-                        <th className="p-2.5 whitespace-nowrap">Custom Message</th>
-                        <th className="p-2.5 whitespace-nowrap">Status</th>
+                        <th className="p-2.5 text-center w-12 shrink-0">#</th>
+                        <th className="p-2.5 whitespace-nowrap min-w-[180px]">Contact Name</th>
+                        <th className="p-2.5 whitespace-nowrap min-w-[180px]">Company / Business</th>
+                        <th className="p-2.5 whitespace-nowrap min-w-[140px]">Phone Number</th>
+                        <th className="p-2.5 whitespace-nowrap min-w-[260px]">Custom Message</th>
+                        <th className="p-2.5 whitespace-nowrap min-w-[90px] text-center">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 bg-white">
