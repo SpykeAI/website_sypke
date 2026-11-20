@@ -125,31 +125,59 @@ export async function POST(req: Request) {
   }
 }
 
-// PATCH update conversation stage / status (prospect, cold outreach, lead)
+// PATCH update conversation stage / status or contact displayName
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { conversationId, interest_level } = body;
+    const { conversationId, interest_level, displayName, contactId } = body;
 
-    if (!conversationId) {
-      return NextResponse.json({ ok: false, message: "conversationId is required" }, { status: 400 });
+    if (!conversationId && !contactId) {
+      return NextResponse.json({ ok: false, message: "conversationId or contactId is required" }, { status: 400 });
     }
 
-    const { data, error } = await supabase
-      .from("conversations")
-      .update({ 
-        interest_level: interest_level || null, 
-        updated_at: new Date().toISOString() 
-      })
-      .eq("id", conversationId)
-      .select()
-      .single();
+    // 1. If displayName is provided, update the contact record
+    if (displayName !== undefined) {
+      let targetContactId = contactId;
+      if (!targetContactId && conversationId) {
+        const { data: conv } = await supabase
+          .from("conversations")
+          .select("contact_id")
+          .eq("id", conversationId)
+          .single();
+        targetContactId = conv?.contact_id;
+      }
 
-    if (error) {
-      return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+      if (targetContactId) {
+        const { error: contactErr } = await supabase
+          .from("contacts")
+          .update({ display_name: String(displayName).trim() })
+          .eq("id", targetContactId);
+        if (contactErr) {
+          console.error("Failed to update contact display_name:", contactErr);
+        }
+      }
     }
 
-    return NextResponse.json({ ok: true, conversation: data });
+    // 2. If interest_level is provided, update the conversation record
+    let convData = null;
+    if (conversationId && interest_level !== undefined) {
+      const { data, error } = await supabase
+        .from("conversations")
+        .update({ 
+          interest_level: interest_level || null, 
+          updated_at: new Date().toISOString() 
+        })
+        .eq("id", conversationId)
+        .select()
+        .single();
+
+      if (error) {
+        return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+      }
+      convData = data;
+    }
+
+    return NextResponse.json({ ok: true, conversation: convData, displayName });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
   }

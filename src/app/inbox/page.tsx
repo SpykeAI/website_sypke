@@ -28,6 +28,7 @@ import {
   Calendar,
   Play,
   Globe,
+  Edit2,
   X
 } from "lucide-react";
 import { getAvailableLines, PhoneLine } from "@/lib/phoneLines";
@@ -178,6 +179,16 @@ function SmsInboxContent() {
   });
   const [scheduleModalTimezone, setScheduleModalTimezone] = useState<string>("America/Chicago");
   const [scheduledSuccessToast, setScheduledSuccessToast] = useState<string | null>(null);
+
+  // Edit Contact Name State
+  const [editingContactModal, setEditingContactModal] = useState<{
+    conversationId: string;
+    contactId?: string;
+    currentName: string;
+    phone: string;
+  } | null>(null);
+  const [editContactNameInput, setEditContactNameInput] = useState("");
+  const [savingContactName, setSavingContactName] = useState(false);
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -564,6 +575,64 @@ function SmsInboxContent() {
     }
   };
 
+  // Open modal to edit a contact's display name
+  const handleOpenEditContact = (conv: Conversation) => {
+    const curName = conv.contacts?.display_name || conv.contacts?.phone_e164 || "";
+    setEditingContactModal({
+      conversationId: conv.id,
+      contactId: conv.contacts?.id,
+      currentName: curName,
+      phone: conv.contacts?.phone_e164 || "",
+    });
+    setEditContactNameInput(curName === conv.contacts?.phone_e164 ? "" : curName);
+  };
+
+  // Save the edited contact display name
+  const handleSaveContactName = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingContactModal || !editContactNameInput.trim()) return;
+
+    setSavingContactName(true);
+    const newName = editContactNameInput.trim();
+
+    try {
+      const res = await fetch("/api/sms/conversations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversationId: editingContactModal.conversationId,
+          contactId: editingContactModal.contactId,
+          displayName: newName,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        // Update conversation list locally
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === editingContactModal.conversationId
+              ? {
+                  ...c,
+                  contacts: {
+                    ...c.contacts,
+                    display_name: newName,
+                  },
+                }
+              : c
+          )
+        );
+        setEditingContactModal(null);
+      } else {
+        alert(data.message || "Failed to update contact name.");
+      }
+    } catch (err: any) {
+      alert(err?.message || "Error updating contact name.");
+    } finally {
+      setSavingContactName(false);
+    }
+  };
+
   // Validate phone number strictly
   const validatePhone = (raw: string): { isValid: boolean; error?: string; formatted?: string; country?: string } => {
     const trimmed = raw.trim();
@@ -842,13 +911,6 @@ function SmsInboxContent() {
         {/* TOP SECTIONS NAVBAR: 1. Individual | 2. Upload Format | 3. Bulk */}
         <header className="bg-white border-b border-slate-200/90 shrink-0 px-4 sm:px-6 py-2.5 z-20 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
           <div className="flex items-center gap-3">
-            <Link
-              href="/admin"
-              className="p-1.5 hover:bg-slate-100 text-slate-500 hover:text-slate-900 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
-              title="Back to Admin Dashboard"
-            >
-              <ChevronLeft size={20} />
-            </Link>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -924,13 +986,6 @@ function SmsInboxContent() {
         {/* Top Header */}
         <div className="p-3.5 px-4 border-b border-slate-200 bg-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <Link
-              href="/admin"
-              className="p-1.5 hover:bg-slate-100 text-slate-500 hover:text-slate-900 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
-              title="Back to Admin Dashboard"
-            >
-              <ChevronLeft size={20} />
-            </Link>
             <div>
               <h1 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
                 <span>Messages</span>
@@ -1033,7 +1088,18 @@ function SmsInboxContent() {
                           ? contact.display_name
                           : contact?.phone_e164 || "Unknown Contact"}
                       </span>
-                      <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenEditContact(conv);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-all cursor-pointer"
+                          title="Edit contact name"
+                        >
+                          <Edit2 size={12} />
+                        </button>
                         <button
                           type="button"
                           onClick={(e) => {
@@ -1116,9 +1182,19 @@ function SmsInboxContent() {
                     : <Phone size={14} />}
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-xs md:text-sm font-bold text-slate-900 truncate">
-                    {activeConv.contacts?.display_name || activeConv.contacts?.phone_e164}
-                  </h2>
+                  <div className="flex items-center gap-1.5">
+                    <h2 className="text-xs md:text-sm font-bold text-slate-900 truncate">
+                      {activeConv.contacts?.display_name || activeConv.contacts?.phone_e164}
+                    </h2>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditContact(activeConv)}
+                      className="p-1 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors cursor-pointer shrink-0"
+                      title="Edit contact name"
+                    >
+                      <Edit2 size={12} />
+                    </button>
+                  </div>
                   <p className="text-[11px] text-slate-500 font-medium truncate">
                     {activeConv.contacts?.phone_e164}
                   </p>
@@ -1710,6 +1786,70 @@ function SmsInboxContent() {
                   className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-colors shadow-xs cursor-pointer"
                 >
                   {creatingConv ? "Creating..." : "Start Chat"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT CONTACT NAME MODAL */}
+      {editingContactModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl p-5 md:p-6 max-w-sm w-full shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                  <Edit2 size={16} />
+                </div>
+                <div>
+                  <h3 className="text-sm md:text-base font-bold text-slate-900">Edit Contact Name</h3>
+                  <p className="text-[11px] text-slate-500 font-mono">{editingContactModal.phone}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingContactModal(null)}
+                className="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveContactName} className="mt-4 space-y-3.5">
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                  Contact Display Name
+                </label>
+                <input
+                  type="text"
+                  value={editContactNameInput}
+                  onChange={(e) => setEditContactNameInput(e.target.value)}
+                  placeholder="e.g. Navya, Prakash - USA, Marcus Vance"
+                  required
+                  autoFocus
+                  className="w-full bg-slate-50 border border-slate-300 focus:border-emerald-600 focus:bg-white rounded-xl px-3.5 py-2.5 text-xs md:text-sm font-semibold text-slate-900 outline-none transition"
+                />
+                <p className="text-[10px] text-slate-400 mt-1 px-0.5">
+                  This custom name will be saved and displayed across conversations & messages.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingContactModal(null)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingContactName || !editContactNameInput.trim()}
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer flex items-center gap-1.5"
+                >
+                  {savingContactName && <RefreshCw size={12} className="animate-spin" />}
+                  <span>{savingContactName ? "Saving..." : "Save Name"}</span>
                 </button>
               </div>
             </form>
