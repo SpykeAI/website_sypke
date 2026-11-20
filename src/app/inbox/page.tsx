@@ -23,10 +23,11 @@ import {
   ChevronLeft,
   Trash2,
   FileSpreadsheet,
-  UploadCloud
+  UploadCloud,
+  Bookmark
 } from "lucide-react";
 import { getAvailableLines, PhoneLine } from "@/lib/phoneLines";
-import SmsUploadFormat from "@/components/admin/SmsUploadFormat";
+import SmsTemplatesManager from "@/components/admin/SmsTemplatesManager";
 import BulkSmsManager from "@/components/admin/BulkSmsManager";
 
 interface Contact {
@@ -105,10 +106,10 @@ function SmsInboxContent() {
   const phoneParam = searchParams.get("phone");
   const tabParam = searchParams.get("tab");
 
-  // Top Section Switcher: "individual" | "format" | "bulk"
-  const [activeSection, setActiveSection] = useState<"individual" | "format" | "bulk">(() => {
+  // Top Section Switcher: "individual" | "templates" | "bulk"
+  const [activeSection, setActiveSection] = useState<"individual" | "templates" | "bulk">(() => {
     if (tabParam === "bulk") return "bulk";
-    if (tabParam === "format") return "format";
+    if (tabParam === "templates" || tabParam === "format") return "templates";
     return "individual";
   });
   const [appliedDraftTemplate, setAppliedDraftTemplate] = useState<string | null>(null);
@@ -649,12 +650,12 @@ function SmsInboxContent() {
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 hidden sm:block">
-                Individual two-way chat, upload format & bulk messaging
+                Individual two-way chat, saved SMS templates & bulk campaigns
               </p>
             </div>
           </div>
 
-          {/* 3 SECTIONS TABS: 1. Individual | 2. Upload Format | 3. Bulk */}
+          {/* 3 SECTIONS TABS: 1. Individual | 2. Templates | 3. Bulk */}
           <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200/80">
             <button
               type="button"
@@ -678,15 +679,15 @@ function SmsInboxContent() {
 
             <button
               type="button"
-              onClick={() => setActiveSection("format")}
+              onClick={() => setActiveSection("templates")}
               className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
-                activeSection === "format"
+                activeSection === "templates"
                   ? "bg-white text-emerald-800 shadow-2xs"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <FileSpreadsheet size={14} className={activeSection === "format" ? "text-emerald-600" : "text-slate-400"} />
-              <span>Upload Format</span>
+              <Bookmark size={14} className={activeSection === "templates" ? "text-emerald-600" : "text-slate-400"} />
+              <span>Templates</span>
             </button>
 
             <button
@@ -1258,13 +1259,12 @@ function SmsInboxContent() {
     </div>
   )}
 
-        {/* SECTION 2: UPLOAD FORMAT */}
-        {activeSection === "format" && (
+        {/* SECTION 2: TEMPLATES */}
+        {activeSection === "templates" && (
           <div className="flex-1 h-full overflow-y-auto">
-            <SmsUploadFormat
-              onSwitchToBulk={() => setActiveSection("bulk")}
-              onApplyDraftToBulk={(draftText) => {
-                setAppliedDraftTemplate(draftText);
+            <SmsTemplatesManager
+              onUseInBulk={(body) => {
+                setAppliedDraftTemplate(body);
                 setActiveSection("bulk");
               }}
             />
@@ -1276,7 +1276,7 @@ function SmsInboxContent() {
           <div className="flex-1 h-full overflow-y-auto">
             <BulkSmsManager
               initialTemplate={appliedDraftTemplate}
-              onOpenFormatGuide={() => setActiveSection("format")}
+              onOpenTemplates={() => setActiveSection("templates")}
             />
           </div>
         )}

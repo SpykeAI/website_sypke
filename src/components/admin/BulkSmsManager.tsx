@@ -23,9 +23,12 @@ import {
   Pause,
   X,
   Phone,
-  ArrowRight
+  ArrowRight,
+  Download,
+  Bookmark
 } from "lucide-react";
 import { PhoneLine, getAvailableLines } from "@/lib/phoneLines";
+import { DEFAULT_TEMPLATES, SmsTemplate, TEMPLATES_STORAGE_KEY } from "./SmsTemplatesManager";
 
 export interface SmsBatchRecipient {
   phone: string;
@@ -121,14 +124,37 @@ function normalizePhone(raw: string): string {
 
 interface BulkSmsManagerProps {
   onOpenFormatGuide?: () => void;
+  onOpenTemplates?: () => void;
   initialTemplate?: string | null;
 }
 
-export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: BulkSmsManagerProps) {
+export default function BulkSmsManager({
+  onOpenFormatGuide,
+  onOpenTemplates,
+  initialTemplate
+}: BulkSmsManagerProps) {
   // Batch List / History state
   const [batches, setBatches] = useState<SmsBatch[]>(INITIAL_BATCHES);
   const [historySearch, setHistorySearch] = useState("");
   const [historyStatusFilter, setHistoryStatusFilter] = useState<string>("all");
+
+  // Saved Templates for Dropdown
+  const [savedTemplates, setSavedTemplates] = useState<SmsTemplate[]>(DEFAULT_TEMPLATES);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(TEMPLATES_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setSavedTemplates(parsed);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load templates from localStorage", e);
+    }
+  }, []);
 
   // Campaign Composer State
   const [batchName, setBatchName] = useState("Batch-Tampa-1");
@@ -143,6 +169,62 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
       setMessageTemplate(initialTemplate);
     }
   }, [initialTemplate]);
+
+  // Sample CSV & Excel download helpers
+  const handleDownloadSampleCsv = () => {
+    const csvContent =
+      'Phone Number,Name,Company,Custom Message\n' +
+      '+18135550192,"Marcus Vance","Tampa HVAC Solutions","Hi Marcus, your seasonal tune-up slot is confirmed."\n' +
+      '+18135550144,"Sarah Jenkins","Bay Area Cooling","Hi Sarah, our commercial AC team is in Tampa tomorrow."\n' +
+      '+17275550188,"Carlos Mendez","Clearwater Refrigeration","Carlos, special safety inspection on heat pumps available."\n' +
+      '+919876543210,"Rajesh Kumar","Kumar Logistics","Hi Rajesh, your voice dispatch AI agent demo is live."';
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "Spyke_Bulk_SMS_Sample.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast("success", 'Downloaded "Spyke_Bulk_SMS_Sample.csv"!');
+  };
+
+  const handleDownloadSampleExcel = () => {
+    const sampleRows = [
+      {
+        "Phone Number": "+18135550192",
+        "Name": "Marcus Vance",
+        "Company": "Tampa HVAC Solutions",
+        "Custom Message": "Hi Marcus, your seasonal tune-up slot is confirmed."
+      },
+      {
+        "Phone Number": "+18135550144",
+        "Name": "Sarah Jenkins",
+        "Company": "Bay Area Cooling",
+        "Custom Message": "Hi Sarah, our commercial AC team is in Tampa tomorrow."
+      },
+      {
+        "Phone Number": "+17275550188",
+        "Name": "Carlos Mendez",
+        "Company": "Clearwater Refrigeration",
+        "Custom Message": "Carlos, special safety inspection on heat pumps available."
+      },
+      {
+        "Phone Number": "+919876543210",
+        "Name": "Rajesh Kumar",
+        "Company": "Kumar Logistics",
+        "Custom Message": "Hi Rajesh, your voice dispatch AI agent demo is live."
+      }
+    ];
+
+    const ws = XLSX.utils.json_to_sheet(sampleRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Recipients");
+    XLSX.writeFile(wb, "Spyke_Bulk_SMS_Sample.xlsx");
+    showToast("success", 'Downloaded "Spyke_Bulk_SMS_Sample.xlsx"!');
+  };
 
   const [selectedSender, setSelectedSender] = useState<string>("+13464770028");
 
@@ -723,7 +805,17 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
             </p>
           </div>
 
-          {onOpenFormatGuide && (
+          {onOpenTemplates ? (
+            <button
+              type="button"
+              onClick={onOpenTemplates}
+              className="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition flex items-center gap-1.5 border border-emerald-200 cursor-pointer self-start sm:self-auto shadow-2xs"
+            >
+              <Bookmark size={13} className="text-emerald-600" />
+              <span>Manage Templates</span>
+              <ArrowRight size={12} className="text-emerald-600" />
+            </button>
+          ) : onOpenFormatGuide ? (
             <button
               type="button"
               onClick={onOpenFormatGuide}
@@ -732,7 +824,7 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
               <FileSpreadsheet size={13} className="text-emerald-600" />
               <span>View Format Guide</span>
             </button>
-          )}
+          ) : null}
         </div>
 
         {/* 2-Column Clean Studio Form */}
@@ -775,6 +867,31 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
                     <span>{recipients.length} contacts loaded</span>
                   </div>
                 )}
+              </div>
+
+              {/* Sample Format Download Buttons */}
+              <div className="flex items-center justify-between pt-2 px-0.5">
+                <span className="text-[11px] font-semibold text-slate-500">Need template?</span>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleDownloadSampleCsv}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold border border-slate-200 transition cursor-pointer"
+                    title="Download sample CSV format"
+                  >
+                    <Download size={11} className="text-slate-500" />
+                    <span>Sample CSV</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDownloadSampleExcel}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200 transition cursor-pointer"
+                    title="Download sample Excel (.xlsx) format"
+                  >
+                    <Download size={11} className="text-emerald-600" />
+                    <span>Sample Excel</span>
+                  </button>
+                </div>
               </div>
 
               {recipients.length > 0 && (
@@ -890,6 +1007,55 @@ export default function BulkSmsManager({ onOpenFormatGuide, initialTemplate }: B
                   <span className="font-bold text-emerald-700">
                     {segmentCount} segment{segmentCount > 1 ? "s" : ""}
                   </span>
+                </div>
+              </div>
+
+              {/* Choose a Template Dropdown */}
+              <div className="p-3 bg-emerald-50/50 rounded-2xl border border-emerald-200/80 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-emerald-950 flex items-center gap-1.5">
+                    <Bookmark size={12} className="text-emerald-600" />
+                    <span>Choose a Template</span>
+                  </label>
+                  {onOpenTemplates && (
+                    <button
+                      type="button"
+                      onClick={onOpenTemplates}
+                      className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Create / Edit in Templates</span>
+                      <ArrowRight size={10} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="relative">
+                  <select
+                    value={selectedTemplateId}
+                    onChange={(e) => {
+                      const tplId = e.target.value;
+                      setSelectedTemplateId(tplId);
+                      if (tplId) {
+                        const found = savedTemplates.find((t) => t.id === tplId);
+                        if (found) {
+                          setMessageTemplate(found.body);
+                          showToast("info", `Applied template: "${found.name}"`);
+                        }
+                      }
+                    }}
+                    className="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-emerald-300 bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#00DF81] appearance-none pr-8 cursor-pointer shadow-2xs"
+                  >
+                    <option value="">— Select a saved template (or write your own) —</option>
+                    {savedTemplates.map((tpl) => (
+                      <option key={tpl.id} value={tpl.id}>
+                        {tpl.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={13}
+                    className="text-emerald-700 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                  />
                 </div>
               </div>
 
