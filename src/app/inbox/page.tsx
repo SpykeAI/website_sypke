@@ -916,8 +916,7 @@ function SmsInboxContent() {
         </header>
 
         {/* SECTION 1: INDIVIDUAL */}
-        {activeSection === "individual" && (
-          <div className="flex-1 flex h-full min-w-0 overflow-hidden">
+        <div className={activeSection === "individual" ? "flex-1 flex h-full min-w-0 overflow-hidden" : "hidden"}>
             {/* CONVERSATIONS LIST */}
             <div className={`${
               activeConvId ? "hidden md:flex" : "flex"
@@ -1566,29 +1565,24 @@ function SmsInboxContent() {
         )}
       </div>
     </div>
-  )}
 
         {/* SECTION 2: TEMPLATES */}
-        {activeSection === "templates" && (
-          <div className="flex-1 h-full overflow-y-auto">
-            <SmsTemplatesManager
-              onUseInBulk={(body) => {
-                setAppliedDraftTemplate(body);
-                setActiveSection("bulk");
-              }}
-            />
-          </div>
-        )}
+        <div className={activeSection === "templates" ? "flex-1 h-full overflow-y-auto" : "hidden"}>
+          <SmsTemplatesManager
+            onUseInBulk={(body) => {
+              setAppliedDraftTemplate(body);
+              setActiveSection("bulk");
+            }}
+          />
+        </div>
 
         {/* SECTION 3: BULK */}
-        {activeSection === "bulk" && (
-          <div className="flex-1 h-full overflow-y-auto">
-            <BulkSmsManager
-              initialTemplate={appliedDraftTemplate}
-              onOpenTemplates={() => setActiveSection("templates")}
-            />
-          </div>
-        )}
+        <div className={activeSection === "bulk" ? "flex-1 h-full overflow-y-auto" : "hidden"}>
+          <BulkSmsManager
+            initialTemplate={appliedDraftTemplate}
+            onOpenTemplates={() => setActiveSection("templates")}
+          />
+        </div>
       </div>
 
       {/* NEW CONVERSATION MODAL */}

@@ -99,6 +99,47 @@ export function formatScheduleSummary(dateTimeStr: string, timezone: string): st
   }
 }
 
+export function isScheduledTimeDue(scheduledFor?: string, timezone?: string): boolean {
+  if (!scheduledFor) return false;
+  try {
+    const [datePart, timePart] = scheduledFor.split("T");
+    if (!datePart || !timePart) return false;
+    const [year, month, day] = datePart.split("-").map(Number);
+    const [hours, minutes] = timePart.split(":").map(Number);
+
+    // Target timezone
+    const targetTz = timezone || "America/Chicago";
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: targetTz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(new Date());
+    const getPart = (type: string) => {
+      const p = parts.find((x) => x.type === type);
+      return p ? Number(p.value) : 0;
+    };
+    const nowYear = getPart("year");
+    const nowMonth = getPart("month");
+    const nowDay = getPart("day");
+    let nowHour = getPart("hour");
+    if (nowHour === 24) nowHour = 0;
+    const nowMinute = getPart("minute");
+
+    // Format comparable keys: YYYYMMDDHHmm
+    const targetKey = year * 100000000 + month * 1000000 + day * 10000 + hours * 100 + minutes;
+    const nowKey = nowYear * 100000000 + nowMonth * 1000000 + nowDay * 10000 + nowHour * 100 + nowMinute;
+
+    return nowKey >= targetKey;
+  } catch (e) {
+    return false;
+  }
+}
+
 const INITIAL_BATCHES: SmsBatch[] = [
   {
     id: "batch-houston-1",
@@ -106,7 +147,7 @@ const INITIAL_BATCHES: SmsBatch[] = [
     fileName: "Houston_Numbers_Nov.xlsx",
     delaySeconds: 60,
     delayDisplay: "1m delay",
-    status: "scheduled",
+    status: "completed",
     scheduledFor: "2026-11-20T17:00",
     scheduledTimezone: "America/Chicago",
     scheduledDisplay: "Nov 20, 2026 at 5:00 PM (CT)",
@@ -329,6 +370,7 @@ export default function BulkSmsManager({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cancelSendingRef = useRef(false);
   const pauseSendingRef = useRef(false);
+  const isAutoDispatchingRef = useRef(false);
 
   // Load saved batches from localStorage
   useEffect(() => {
@@ -769,10 +811,46 @@ export default function BulkSmsManager({
     currentBatch.deliveredCount = delivered;
     currentBatch.failedCount = failed;
 
-    saveBatches(batches.map((b) => (b.id === batchId ? currentBatch : b)));
+    setBatches((prev) => {
+      const updated = prev.map((b) => (b.id === batchId ? currentBatch : b));
+      try {
+        localStorage.setItem("spyke_sms_bulk_batches_v1", JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
     setIsSending(false);
     showToast("success", `Campaign "${activeBatchName}" finished: ${delivered} delivered, ${failed} failed.`);
   };
+
+  // Background ticker: Automatically launch scheduled bulk campaigns when due
+  useEffect(() => {
+    const checkScheduledBatches = () => {
+      if (isSending || isAutoDispatchingRef.current) return;
+
+      const dueBatch = batches.find(
+        (b) =>
+          b.status === "scheduled" &&
+          b.id !== "batch-houston-1" &&
+          b.scheduledFor &&
+          isScheduledTimeDue(b.scheduledFor, b.scheduledTimezone)
+      );
+
+      if (dueBatch) {
+        isAutoDispatchingRef.current = true;
+        showToast(
+          "info",
+          `⏰ Scheduled start time reached! Auto-launching campaign "${dueBatch.batchName}"...`
+        );
+        handleSendBulkCampaign(dueBatch).finally(() => {
+          isAutoDispatchingRef.current = false;
+        });
+      }
+    };
+
+    checkScheduledBatches();
+    const interval = setInterval(checkScheduledBatches, 5000);
+    return () => clearInterval(interval);
+  }, [batches, isSending]);
 
   // Delete Batch
   const handleDeleteBatch = (id: string) => {
