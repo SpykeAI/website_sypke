@@ -10,7 +10,6 @@ import {
   Copy,
   Check,
   Sparkles,
-  ArrowRight,
   CheckCircle2,
   Phone,
   Bookmark
@@ -307,17 +306,6 @@ export default function SmsTemplatesManager({ onUseInBulk }: SmsTemplatesManager
                 <span>{copied ? "Copied!" : "Copy"}</span>
               </button>
             </div>
-
-            {onUseInBulk && (
-              <button
-                type="button"
-                onClick={() => onUseInBulk(templateBody)}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition flex items-center gap-1.5 cursor-pointer shadow-xs ml-auto"
-              >
-                <span>Use in Bulk Campaign</span>
-                <ArrowRight size={13} className="text-[#00DF81]" />
-              </button>
-            )}
           </div>
         </div>
 
