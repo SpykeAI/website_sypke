@@ -26,7 +26,9 @@ import {
   ArrowRight,
   Download,
   Bookmark,
-  Info
+  Info,
+  Calendar,
+  Globe
 } from "lucide-react";
 import { PhoneLine, getAvailableLines } from "@/lib/phoneLines";
 import { DEFAULT_TEMPLATES, SmsTemplate, TEMPLATES_STORAGE_KEY } from "./SmsTemplatesManager";
@@ -47,7 +49,10 @@ export interface SmsBatch {
   fileName: string;
   delaySeconds: number;
   delayDisplay: string;
-  status: "completed" | "in_progress" | "draft" | "failed";
+  status: "completed" | "in_progress" | "draft" | "scheduled" | "failed";
+  scheduledFor?: string;
+  scheduledTimezone?: string;
+  scheduledDisplay?: string;
   createdAt: string;
   senderNumber: string;
   messageTemplate: string;
@@ -58,7 +63,65 @@ export interface SmsBatch {
   recipients: SmsBatchRecipient[];
 }
 
+export const SCHEDULE_TIMEZONES = [
+  { value: "America/Chicago", label: "US Central (Houston, Dallas, Austin, Chicago) - CT", short: "CT" },
+  { value: "America/New_York", label: "US Eastern (New York, Miami, Tampa, Atlanta) - ET", short: "ET" },
+  { value: "America/Denver", label: "US Mountain (Denver, Phoenix, Salt Lake) - MT", short: "MT" },
+  { value: "America/Los_Angeles", label: "US Pacific (Los Angeles, San Francisco, Seattle) - PT", short: "PT" },
+  { value: "America/Anchorage", label: "US Alaska (Anchorage) - AKT", short: "AKT" },
+  { value: "Pacific/Honolulu", label: "US Hawaii (Honolulu) - HST", short: "HST" },
+  { value: "Asia/Kolkata", label: "India Standard Time (IST)", short: "IST" },
+  { value: "Europe/London", label: "UK / Europe (London) - GMT", short: "GMT" },
+];
+
+export function formatScheduleSummary(dateTimeStr: string, timezone: string): string {
+  if (!dateTimeStr) return "";
+  try {
+    const [datePart, timePart] = dateTimeStr.split("T");
+    if (!datePart || !timePart) return dateTimeStr;
+    const [year, month, day] = datePart.split("-").map(Number);
+    const [hours, minutes] = timePart.split(":").map(Number);
+
+    const d = new Date(year, month - 1, day, hours, minutes);
+    const dateFormatted = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+
+    const ampm = hours >= 12 ? "PM" : "AM";
+    const hour12 = hours % 12 || 12;
+    const minFormatted = String(minutes).padStart(2, "0");
+    const timeFormatted = `${hour12}:${minFormatted} ${ampm}`;
+
+    const tzObj = SCHEDULE_TIMEZONES.find((t) => t.value === timezone);
+    const tzLabel = tzObj ? tzObj.short : timezone;
+
+    return `${dateFormatted} at ${timeFormatted} (${tzLabel})`;
+  } catch (e) {
+    return dateTimeStr;
+  }
+}
+
 const INITIAL_BATCHES: SmsBatch[] = [
+  {
+    id: "batch-houston-1",
+    batchName: "Batch-Houston-Evening-Outreach",
+    fileName: "Houston_Numbers_Nov.xlsx",
+    delaySeconds: 60,
+    delayDisplay: "1m delay",
+    status: "scheduled",
+    scheduledFor: "2026-11-20T17:00",
+    scheduledTimezone: "America/Chicago",
+    scheduledDisplay: "Nov 20, 2026 at 5:00 PM (CT)",
+    createdAt: "Today, 01:20 PM",
+    senderNumber: "+13464770028",
+    messageTemplate: "Hi {name}, our Houston service fleet is in your area this evening. Reply YES for priority dispatch.",
+    totalRecipients: 88,
+    sentCount: 0,
+    deliveredCount: 0,
+    failedCount: 0,
+    recipients: [
+      { phone: "+17135550111", name: "David Miller", company: "Houston Energy Works", status: "pending" },
+      { phone: "+17135550222", name: "Elena Gomez", company: "Lone Star Logistics", status: "pending" }
+    ]
+  },
   {
     id: "batch-1",
     batchName: "Batch-Tampa-1",
@@ -235,6 +298,15 @@ export default function BulkSmsManager({
 
   // Available Sender Lines
   const [availableLines] = useState<PhoneLine[]>(() => getAvailableLines("+13464770028"));
+
+  // Campaign Schedule Timing State
+  const [sendTiming, setSendTiming] = useState<"immediate" | "scheduled">("immediate");
+  const [scheduledDateTime, setScheduledDateTime] = useState<string>(() => {
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T17:00`;
+  });
+  const [scheduledTimezone, setScheduledTimezone] = useState<string>("America/Chicago");
 
   // Modals & Queue View Toggle
   const [showQueueDetails, setShowQueueDetails] = useState(false);
@@ -512,6 +584,9 @@ export default function BulkSmsManager({
       delaySeconds: totalDelaySeconds,
       delayDisplay,
       status: "draft",
+      scheduledFor: sendTiming === "scheduled" ? scheduledDateTime : undefined,
+      scheduledTimezone: sendTiming === "scheduled" ? scheduledTimezone : undefined,
+      scheduledDisplay: sendTiming === "scheduled" ? formatScheduleSummary(scheduledDateTime, scheduledTimezone) : undefined,
       createdAt: "Just now",
       senderNumber: selectedSender,
       messageTemplate,
@@ -526,6 +601,43 @@ export default function BulkSmsManager({
 
     saveBatches([newBatch, ...batches]);
     showToast("success", `Batch "${newBatch.batchName}" saved to history as Draft!`);
+  };
+
+  // Schedule Bulk Campaign for later start time
+  const handleScheduleCampaign = () => {
+    if (!batchName.trim()) {
+      showToast("error", "Please provide a Batch Name (e.g. Batch-Houston-1)");
+      return;
+    }
+    if (recipients.length === 0) {
+      showToast("error", "Please attach a CSV or Excel file before scheduling.");
+      return;
+    }
+
+    const scheduleSummary = formatScheduleSummary(scheduledDateTime, scheduledTimezone);
+
+    const newBatch: SmsBatch = {
+      id: "batch-" + Date.now(),
+      batchName: batchName.trim(),
+      fileName: selectedFileName || "Houston_Numbers.xlsx",
+      delaySeconds: totalDelaySeconds,
+      delayDisplay,
+      status: "scheduled",
+      scheduledFor: scheduledDateTime,
+      scheduledTimezone: scheduledTimezone,
+      scheduledDisplay: scheduleSummary,
+      createdAt: "Just now",
+      senderNumber: selectedSender,
+      messageTemplate,
+      totalRecipients: recipients.length,
+      sentCount: 0,
+      deliveredCount: 0,
+      failedCount: 0,
+      recipients,
+    };
+
+    saveBatches([newBatch, ...batches]);
+    showToast("success", `Campaign scheduled to launch on ${scheduleSummary}!`);
   };
 
   // Send Bulk Campaign with real delays
@@ -1002,10 +1114,114 @@ export default function BulkSmsManager({
               </div>
             </div>
 
-            {/* Sender Line */}
+            {/* 4. Campaign Start Timing (Schedule) */}
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <Calendar size={13} className="text-purple-600" />
+                  <span>4. Campaign Start Timing</span>
+                </label>
+                <span
+                  className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                    sendTiming === "scheduled"
+                      ? "bg-purple-100 text-purple-800 border border-purple-200"
+                      : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                  }`}
+                >
+                  {sendTiming === "scheduled" ? "Scheduled" : "Send Now"}
+                </span>
+              </div>
+
+              {/* Timing Mode Pills */}
+              <div className="grid grid-cols-2 gap-2 p-1 bg-white rounded-xl border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setSendTiming("immediate")}
+                  className={`py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    sendTiming === "immediate"
+                      ? "bg-slate-900 text-white shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Send size={12} className={sendTiming === "immediate" ? "text-[#00DF81]" : ""} />
+                  <span>Send Immediately</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSendTiming("scheduled")}
+                  className={`py-1.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    sendTiming === "scheduled"
+                      ? "bg-purple-600 text-white shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Calendar size={12} />
+                  <span>Schedule for Later</span>
+                </button>
+              </div>
+
+              {/* When Scheduled is active: Date/Time + Timezone pickers */}
+              {sendTiming === "scheduled" && (
+                <div className="pt-1.5 space-y-2.5 animate-in fade-in duration-200">
+                  {/* Date & Time Picker */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Start Date & Time *
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={scheduledDateTime}
+                      onChange={(e) => setScheduledDateTime(e.target.value)}
+                      className="w-full px-3 py-1.5 text-xs font-semibold rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+
+                  {/* Timezone Selector */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center gap-1">
+                      <Globe size={11} className="text-purple-600" />
+                      <span>Select Target Time Zone *</span>
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={scheduledTimezone}
+                        onChange={(e) => setScheduledTimezone(e.target.value)}
+                        className="w-full px-3 py-1.5 text-xs font-semibold rounded-xl border border-slate-200 bg-white appearance-none pr-8 cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800"
+                      >
+                        {SCHEDULE_TIMEZONES.map((tz) => (
+                          <option key={tz.value} value={tz.value}>
+                            {tz.label}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown
+                        size={14}
+                        className="text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Dynamic Scheduled Notice */}
+                  <div className="p-2.5 bg-purple-50/80 border border-purple-200 rounded-xl space-y-0.5 text-xs text-purple-900">
+                    <div className="font-bold flex items-center gap-1 text-[11px]">
+                      <Calendar size={12} className="text-purple-700" />
+                      <span>Live Start Schedule:</span>
+                    </div>
+                    <p className="font-semibold text-purple-950 text-xs">
+                      {formatScheduleSummary(scheduledDateTime, scheduledTimezone)}
+                    </p>
+                    <p className="text-[10px] text-purple-700/80">
+                      Messages will be sent with {delayDisplay} pacing starting exactly at this scheduled time.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 5. Sender Line */}
             <div>
               <label className="block text-[11px] font-bold text-slate-600 mb-1">
-                Sender Number Line
+                5. Sender Number Line
               </label>
               <div className="relative">
                 <select
@@ -1144,24 +1360,36 @@ export default function BulkSmsManager({
                 <span>Save as Draft</span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => handleSendBulkCampaign()}
-                disabled={isSending}
-                className="px-6 py-2.5 rounded-xl bg-[#00DF81] hover:bg-[#00c271] text-slate-950 text-xs font-extrabold transition flex items-center gap-2 shadow-md shadow-[#00DF81]/20 cursor-pointer disabled:opacity-50"
-              >
-                {isSending ? (
-                  <>
-                    <RefreshCw size={14} className="animate-spin" />
-                    <span>Sending ({sendingProgress.current}/{sendingProgress.total})...</span>
-                  </>
-                ) : (
-                  <>
-                    <Send size={14} />
-                    <span>Send Bulk SMS Campaign ({recipients.length || 0})</span>
-                  </>
-                )}
-              </button>
+              {sendTiming === "scheduled" ? (
+                <button
+                  type="button"
+                  onClick={handleScheduleCampaign}
+                  disabled={isSending}
+                  className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold transition flex items-center gap-2 shadow-md shadow-purple-600/25 cursor-pointer disabled:opacity-50"
+                >
+                  <Calendar size={14} />
+                  <span>Schedule Bulk Campaign ({recipients.length || 0})</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleSendBulkCampaign()}
+                  disabled={isSending}
+                  className="px-6 py-2.5 rounded-xl bg-[#00DF81] hover:bg-[#00c271] text-slate-950 text-xs font-extrabold transition flex items-center gap-2 shadow-md shadow-[#00DF81]/20 cursor-pointer disabled:opacity-50"
+                >
+                  {isSending ? (
+                    <>
+                      <RefreshCw size={14} className="animate-spin" />
+                      <span>Sending ({sendingProgress.current}/{sendingProgress.total})...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send size={14} />
+                      <span>Send Bulk SMS Campaign ({recipients.length || 0})</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -1359,6 +1587,7 @@ export default function BulkSmsManager({
               className="px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 bg-white"
             >
               <option value="all">All Status</option>
+              <option value="scheduled">Scheduled 📅</option>
               <option value="completed">Completed</option>
               <option value="in_progress">In Progress</option>
               <option value="draft">Draft</option>
@@ -1374,7 +1603,7 @@ export default function BulkSmsManager({
               <tr className="bg-slate-900 text-white font-bold">
                 <th className="p-3 whitespace-nowrap">Batch Name</th>
                 <th className="p-3 whitespace-nowrap">File & Recipients</th>
-                <th className="p-3 whitespace-nowrap">Delays</th>
+                <th className="p-3 whitespace-nowrap">Delays & Timing</th>
                 <th className="p-3 whitespace-nowrap">Status</th>
                 <th className="p-3 whitespace-nowrap">Sent</th>
                 <th className="p-3 whitespace-nowrap">Delivered</th>
@@ -1419,10 +1648,21 @@ export default function BulkSmsManager({
                       </div>
                     </td>
                     <td className="p-3 whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
-                        <Clock size={11} className="text-slate-500" />
-                        <span>{b.delayDisplay}</span>
-                      </span>
+                      <div className="space-y-1">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                          <Clock size={11} className="text-slate-500" />
+                          <span>{b.delayDisplay}</span>
+                        </span>
+                        {b.scheduledDisplay && (
+                          <span
+                            className="block text-[10px] font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200"
+                            title={`Scheduled start: ${b.scheduledDisplay}`}
+                          >
+                            <Calendar size={10} className="inline mr-1 text-purple-600" />
+                            <span>{b.scheduledDisplay}</span>
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-3 whitespace-nowrap">
                       <span
@@ -1431,6 +1671,8 @@ export default function BulkSmsManager({
                             ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                             : b.status === "in_progress"
                             ? "bg-blue-50 text-blue-700 border border-blue-200"
+                            : b.status === "scheduled"
+                            ? "bg-purple-50 text-purple-700 border border-purple-200"
                             : b.status === "draft"
                             ? "bg-amber-50 text-amber-700 border border-amber-200"
                             : "bg-rose-50 text-rose-700 border border-rose-200"
@@ -1438,6 +1680,7 @@ export default function BulkSmsManager({
                       >
                         {b.status === "completed" && <CheckCircle2 size={11} />}
                         {b.status === "in_progress" && <RefreshCw size={11} className="animate-spin" />}
+                        {b.status === "scheduled" && <Calendar size={11} className="text-purple-600" />}
                         <span>{b.status.replace("_", " ")}</span>
                       </span>
                     </td>
@@ -1459,6 +1702,17 @@ export default function BulkSmsManager({
                     </td>
                     <td className="p-3 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        {b.status === "scheduled" && (
+                          <button
+                            type="button"
+                            onClick={() => handleSendBulkCampaign(b)}
+                            className="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-lg transition cursor-pointer shadow-xs flex items-center gap-1"
+                            title="Launch this scheduled campaign right now"
+                          >
+                            <Play size={11} />
+                            <span>Run Now</span>
+                          </button>
+                        )}
                         {b.status === "draft" && (
                           <button
                             type="button"
