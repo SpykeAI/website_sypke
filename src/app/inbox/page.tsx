@@ -24,11 +24,15 @@ import {
   Trash2,
   FileSpreadsheet,
   UploadCloud,
-  Bookmark
+  Bookmark,
+  Calendar,
+  Play,
+  Globe,
+  X
 } from "lucide-react";
 import { getAvailableLines, PhoneLine } from "@/lib/phoneLines";
 import SmsTemplatesManager from "@/components/admin/SmsTemplatesManager";
-import BulkSmsManager from "@/components/admin/BulkSmsManager";
+import BulkSmsManager, { SCHEDULE_TIMEZONES, formatScheduleSummary } from "@/components/admin/BulkSmsManager";
 
 interface Contact {
   id: string;
@@ -46,6 +50,18 @@ interface Conversation {
   contacts: Contact;
 }
 
+export interface ScheduledIndividualSms {
+  id: string;
+  conversationId: string;
+  toNumber: string;
+  fromNumber: string;
+  body: string;
+  scheduledFor: string;
+  scheduledTimezone: string;
+  scheduledDisplay: string;
+  createdAt: string;
+}
+
 interface Message {
   id: string;
   conversation_id: string;
@@ -53,9 +69,12 @@ interface Message {
   from_number: string;
   to_number: string;
   body: string;
-  status: "pending" | "accepted" | "sent" | "delivered" | "failed";
+  status: "pending" | "accepted" | "sent" | "delivered" | "failed" | "scheduled";
   error_code: string | null;
   created_at: string;
+  scheduled_for?: string;
+  scheduled_timezone?: string;
+  scheduled_display?: string;
 }
 
 // Dynamic SMS Segment & Cost Calculation
@@ -149,10 +168,51 @@ function SmsInboxContent() {
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Individual Schedule SMS State
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleModalText, setScheduleModalText] = useState("");
+  const [scheduleModalDateTime, setScheduleModalDateTime] = useState<string>(() => {
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T17:00`;
+  });
+  const [scheduleModalTimezone, setScheduleModalTimezone] = useState<string>("America/Chicago");
+  const [scheduledSuccessToast, setScheduledSuccessToast] = useState<string | null>(null);
+
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevMsgCountRef = useRef(0);
   const shouldScrollBottomRef = useRef(true);
+
+  // Merge scheduled individual messages stored locally into chat thread
+  const mergeWithScheduled = (apiMsgs: Message[], convId: string): Message[] => {
+    try {
+      const stored = localStorage.getItem("spyke_scheduled_individual_sms_v1");
+      if (!stored) return apiMsgs;
+      const list: ScheduledIndividualSms[] = JSON.parse(stored);
+      const convScheduled = list.filter((item) => item.conversationId === convId);
+      if (convScheduled.length === 0) return apiMsgs;
+
+      const scheduledAsMsgs: Message[] = convScheduled.map((item) => ({
+        id: item.id,
+        conversation_id: item.conversationId,
+        direction: "outbound",
+        from_number: item.fromNumber,
+        to_number: item.toNumber,
+        body: item.body,
+        status: "scheduled",
+        error_code: null,
+        created_at: item.createdAt,
+        scheduled_for: item.scheduledFor,
+        scheduled_timezone: item.scheduledTimezone,
+        scheduled_display: item.scheduledDisplay,
+      }));
+
+      return [...apiMsgs, ...scheduledAsMsgs];
+    } catch (e) {
+      return apiMsgs;
+    }
+  };
 
   // 1. Fetch conversations (with support for auto-opening/creating phone numbers from dialer)
   const fetchConversations = async (silent = false, targetPhone?: string) => {
@@ -228,7 +288,7 @@ function SmsInboxContent() {
       const res = await fetch(`/api/sms/messages?conversationId=${convId}`);
       const data = await res.json();
       if (data.ok) {
-        const newMsgs: Message[] = data.messages || [];
+        const newMsgs: Message[] = mergeWithScheduled(data.messages || [], convId);
         setMessages((prev) => {
           // Check if data actually changed to avoid useless re-renders
           if (
@@ -250,6 +310,63 @@ function SmsInboxContent() {
       if (!silent) setLoadingMessages(false);
     }
   };
+
+  // Check and auto-trigger individual scheduled SMS when their time arrives
+  useEffect(() => {
+    const checkScheduledMessages = async () => {
+      try {
+        const stored = localStorage.getItem("spyke_scheduled_individual_sms_v1");
+        if (!stored) return;
+        const list: ScheduledIndividualSms[] = JSON.parse(stored);
+        if (!Array.isArray(list) || list.length === 0) return;
+
+        const now = new Date();
+        const dueList: ScheduledIndividualSms[] = [];
+        const remainingList: ScheduledIndividualSms[] = [];
+
+        for (const item of list) {
+          const targetDate = new Date(item.scheduledFor);
+          if (now.getTime() >= targetDate.getTime()) {
+            dueList.push(item);
+          } else {
+            remainingList.push(item);
+          }
+        }
+
+        if (dueList.length > 0) {
+          localStorage.setItem("spyke_scheduled_individual_sms_v1", JSON.stringify(remainingList));
+
+          for (const item of dueList) {
+            try {
+              await fetch("/api/sms/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  to: item.toNumber,
+                  text: item.body,
+                  conversationId: item.conversationId,
+                  from: item.fromNumber,
+                }),
+              });
+            } catch (err) {
+              console.error("Failed to send scheduled message:", err);
+            }
+          }
+
+          if (activeConvId) {
+            fetchMessages(activeConvId, true);
+          }
+          fetchConversations(true);
+        }
+      } catch (e) {
+        console.error("Scheduled messages timer error", e);
+      }
+    };
+
+    checkScheduledMessages();
+    const interval = setInterval(checkScheduledMessages, 15000);
+    return () => clearInterval(interval);
+  }, [activeConvId]);
 
   // Initial load and whenever phoneParam changes
   useEffect(() => {
@@ -351,6 +468,99 @@ function SmsInboxContent() {
       );
     } finally {
       setSending(false);
+    }
+  };
+
+  // Open Schedule Modal for active conversation
+  const handleOpenScheduleModal = () => {
+    setScheduleModalText(inputText);
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    setScheduleModalDateTime(`${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T17:00`);
+    setShowScheduleModal(true);
+  };
+
+  // Confirm schedule individual SMS
+  const handleConfirmScheduleIndividualSms = () => {
+    if (!scheduleModalText.trim() || !activeConv || !scheduleModalDateTime) return;
+
+    const effectiveSender = (selectedFromNumber || activeConv.telnyx_number || "+13464770028").trim();
+    const scheduleSummary = formatScheduleSummary(scheduleModalDateTime, scheduleModalTimezone);
+
+    const newScheduledItem: ScheduledIndividualSms = {
+      id: "sched-" + Date.now(),
+      conversationId: activeConv.id,
+      toNumber: activeConv.contacts.phone_e164,
+      fromNumber: effectiveSender,
+      body: scheduleModalText.trim(),
+      scheduledFor: scheduleModalDateTime,
+      scheduledTimezone: scheduleModalTimezone,
+      scheduledDisplay: scheduleSummary,
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      const stored = localStorage.getItem("spyke_scheduled_individual_sms_v1");
+      const list: ScheduledIndividualSms[] = stored ? JSON.parse(stored) : [];
+      const updated = [...list, newScheduledItem];
+      localStorage.setItem("spyke_scheduled_individual_sms_v1", JSON.stringify(updated));
+    } catch (e) {
+      console.error("Failed to save scheduled individual SMS", e);
+    }
+
+    setInputText("");
+    setShowScheduleModal(false);
+    fetchMessages(activeConv.id, true);
+    setScheduledSuccessToast(`Message scheduled for ${scheduleSummary}!`);
+    setTimeout(() => setScheduledSuccessToast(null), 4000);
+  };
+
+  // Send a scheduled message immediately
+  const handleSendScheduledNow = async (scheduledId: string) => {
+    try {
+      const stored = localStorage.getItem("spyke_scheduled_individual_sms_v1");
+      if (!stored) return;
+      const list: ScheduledIndividualSms[] = JSON.parse(stored);
+      const target = list.find((item) => item.id === scheduledId);
+      if (!target) return;
+
+      const remaining = list.filter((item) => item.id !== scheduledId);
+      localStorage.setItem("spyke_scheduled_individual_sms_v1", JSON.stringify(remaining));
+
+      await fetch("/api/sms/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: target.toNumber,
+          text: target.body,
+          conversationId: target.conversationId,
+          from: target.fromNumber,
+        }),
+      });
+
+      if (activeConvId) {
+        fetchMessages(activeConvId, true);
+      }
+      fetchConversations(true);
+    } catch (err) {
+      console.error("Failed to send scheduled message now", err);
+    }
+  };
+
+  // Cancel / delete a scheduled individual message
+  const handleCancelScheduled = (scheduledId: string) => {
+    try {
+      const stored = localStorage.getItem("spyke_scheduled_individual_sms_v1");
+      if (!stored) return;
+      const list: ScheduledIndividualSms[] = JSON.parse(stored);
+      const remaining = list.filter((item) => item.id !== scheduledId);
+      localStorage.setItem("spyke_scheduled_individual_sms_v1", JSON.stringify(remaining));
+
+      if (activeConvId) {
+        fetchMessages(activeConvId, true);
+      }
+    } catch (err) {
+      console.error("Failed to cancel scheduled message", err);
     }
   };
 
@@ -989,6 +1199,23 @@ function SmsInboxContent() {
               </div>
             )}
 
+            {/* Scheduled Success Toast */}
+            {scheduledSuccessToast && (
+              <div className="bg-purple-50 border-b border-purple-200 px-4 md:px-6 py-2.5 text-purple-900 text-xs flex items-center justify-between shrink-0 animate-in fade-in">
+                <div className="flex items-center gap-2">
+                  <Calendar size={15} className="text-purple-600 shrink-0" />
+                  <span className="font-semibold">{scheduledSuccessToast}</span>
+                </div>
+                <button
+                  onClick={() => setScheduledSuccessToast(null)}
+                  className="text-purple-600 hover:text-purple-800 p-0.5 rounded transition cursor-pointer"
+                  title="Dismiss"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+
             {/* Messages Scroll Area - FIXED INTERNAL SCROLLING */}
             <div 
               ref={messagesContainerRef}
@@ -1008,6 +1235,57 @@ function SmsInboxContent() {
                 messages.map((msg) => {
                   const isOutbound = msg.direction === "outbound";
                   const isInternalNote = msg.body?.startsWith("📝 Note:");
+
+                  {/* Scheduled Individual SMS Card */}
+                  if (msg.status === "scheduled") {
+                    return (
+                      <div key={msg.id} className="flex flex-col items-end my-2 w-full animate-in fade-in slide-in-from-bottom-1 duration-200">
+                        <div className="max-w-[85%] sm:max-w-[70%] md:max-w-[55%] bg-purple-50/90 border border-purple-200/90 rounded-2xl rounded-br-xs p-3.5 shadow-xs">
+                          <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-purple-100">
+                            <div className="flex items-center gap-1.5 text-purple-800 font-bold text-[11px]">
+                              <Calendar size={13} className="text-purple-600 shrink-0" />
+                              <span>SCHEDULED SMS</span>
+                            </div>
+                            <span className="text-[10px] font-semibold text-purple-700 bg-purple-100/80 px-2 py-0.5 rounded-full border border-purple-200">
+                              {SCHEDULE_TIMEZONES.find((t) => t.value === msg.scheduled_timezone)?.short || msg.scheduled_timezone || "CT"}
+                            </span>
+                          </div>
+
+                          <p className="whitespace-pre-wrap break-all [overflow-wrap:anywhere] text-slate-800 text-xs md:text-sm select-text mb-2.5 leading-relaxed font-normal">
+                            {msg.body}
+                          </p>
+
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-purple-100/70 text-[10.5px]">
+                            <div className="text-purple-900 font-medium flex items-center gap-1">
+                              <Clock size={11} className="text-purple-600 shrink-0" />
+                              <span>{msg.scheduled_display || (msg.scheduled_for ? new Date(msg.scheduled_for).toLocaleString() : "Pending delivery")}</span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleSendScheduledNow(msg.id)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold text-[10px] transition-colors shadow-2xs cursor-pointer"
+                                title="Send this message right now instead of waiting"
+                              >
+                                <Play size={10} className="fill-current" />
+                                <span>Send Now</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleCancelScheduled(msg.id)}
+                                className="inline-flex items-center gap-1 px-2 py-1 bg-white hover:bg-rose-50 text-rose-600 border border-purple-200 hover:border-rose-300 rounded-lg font-semibold text-[10px] transition-colors cursor-pointer"
+                                title="Cancel and delete this scheduled message"
+                              >
+                                <Trash2 size={10} />
+                                <span>Cancel</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
 
                   if (isInternalNote) {
                     return (
@@ -1158,8 +1436,27 @@ function SmsInboxContent() {
                   </div>
                 )}
 
+                {/* Scheduled Notice if active conversation has any scheduled messages */}
+                {(() => {
+                  const scheduledInThisConv = messages.filter((m) => m.status === "scheduled");
+                  if (scheduledInThisConv.length === 0) return null;
+                  return (
+                    <div className="flex items-center justify-between px-3 py-1.5 bg-purple-50/80 border border-purple-200/80 rounded-xl text-[11px] text-purple-900">
+                      <span className="flex items-center gap-1.5 font-medium">
+                        <Calendar size={12} className="text-purple-600 shrink-0" />
+                        <span>
+                          <strong className="font-bold">{scheduledInThisConv.length}</strong> {scheduledInThisConv.length === 1 ? "message" : "messages"} scheduled for future delivery in this chat.
+                        </span>
+                      </span>
+                      <span className="text-[9.5px] text-purple-700 bg-purple-100/90 px-2 py-0.5 rounded-full font-bold border border-purple-200 shrink-0">
+                        Auto-dispatch active
+                      </span>
+                    </div>
+                  );
+                })()}
+
                 {/* The Input Capsule */}
-                <div className="flex items-end gap-2 bg-slate-100 hover:bg-slate-100/90 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20 border border-slate-200 focus-within:border-emerald-500 rounded-3xl p-1.5 pl-4 transition-all">
+                <div className="flex items-end gap-1.5 bg-slate-100 hover:bg-slate-100/90 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20 border border-slate-200 focus-within:border-emerald-500 rounded-3xl p-1.5 pl-4 transition-all">
                   <textarea
                     rows={1}
                     placeholder={
@@ -1183,11 +1480,23 @@ function SmsInboxContent() {
                     className="flex-1 bg-transparent border-0 text-sm text-slate-800 placeholder-slate-400 focus:outline-none resize-none py-1.5 max-h-24 leading-snug"
                   />
 
+                  {/* Schedule SMS Button */}
+                  <button
+                    type="button"
+                    onClick={handleOpenScheduleModal}
+                    disabled={!inputText.trim() || sending || activeConv.contacts?.do_not_text}
+                    className="w-8 h-8 rounded-full bg-purple-100 hover:bg-purple-200 disabled:opacity-30 disabled:hover:bg-purple-100 text-purple-700 flex items-center justify-center shrink-0 transition-all shadow-2xs cursor-pointer mb-0.5 border border-purple-200"
+                    title="Schedule this SMS for a specific date, time & timezone"
+                  >
+                    <Calendar size={14} />
+                  </button>
+
+                  {/* Immediate Send Button */}
                   <button
                     type="submit"
                     disabled={!inputText.trim() || sending || activeConv.contacts?.do_not_text}
                     className="w-8 h-8 rounded-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-30 disabled:hover:bg-emerald-600 text-white flex items-center justify-center shrink-0 transition-all shadow-xs cursor-pointer mb-0.5"
-                    title="Send SMS"
+                    title="Send SMS immediately"
                   >
                     <Send size={14} className={inputText.trim() ? "translate-x-0.5" : ""} />
                   </button>
@@ -1407,6 +1716,127 @@ function SmsInboxContent() {
                   className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-colors shadow-xs cursor-pointer"
                 >
                   {creatingConv ? "Creating..." : "Start Chat"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* INDIVIDUAL SCHEDULE SMS MODAL */}
+      {showScheduleModal && activeConv && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl p-5 md:p-6 max-w-lg w-full shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                  <Calendar size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm md:text-base font-bold text-slate-900">Schedule Individual SMS</h3>
+                  <p className="text-[11px] text-slate-500">
+                    To: <span className="font-semibold text-slate-700">{activeConv.contacts?.display_name || activeConv.contacts?.phone_e164}</span> ({activeConv.contacts?.phone_e164})
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowScheduleModal(false)}
+                className="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmScheduleIndividualSms} className="mt-4 space-y-3.5">
+              {/* Message text */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                  Message Content
+                </label>
+                <textarea
+                  rows={3}
+                  value={scheduleModalText}
+                  onChange={(e) => setScheduleModalText(e.target.value)}
+                  placeholder="Type your message to schedule..."
+                  required
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-purple-500 focus:bg-white focus:ring-1 focus:ring-purple-500 rounded-xl p-3 text-xs md:text-sm text-slate-800 resize-none transition outline-none leading-relaxed"
+                />
+                <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1 px-1">
+                  <span>{scheduleModalText.length} characters</span>
+                  <span>From: <strong className="text-slate-600">{selectedFromNumber}</strong></span>
+                </div>
+              </div>
+
+              {/* Date & Time + Timezone Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                    Send Date & Time
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="datetime-local"
+                      value={scheduleModalDateTime}
+                      onChange={(e) => setScheduleModalDateTime(e.target.value)}
+                      required
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-purple-500 focus:bg-white focus:ring-1 focus:ring-purple-500 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 transition outline-none cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                    Target Timezone
+                  </label>
+                  <div className="relative inline-flex w-full items-center">
+                    <select
+                      value={scheduleModalTimezone}
+                      onChange={(e) => setScheduleModalTimezone(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 focus:border-purple-500 focus:bg-white focus:ring-1 focus:ring-purple-500 rounded-xl pl-3 pr-7 py-2 text-xs font-semibold text-slate-800 appearance-none transition outline-none cursor-pointer"
+                    >
+                      {SCHEDULE_TIMEZONES.map((tz) => (
+                        <option key={tz.value} value={tz.value}>
+                          {tz.label} ({tz.short})
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown size={12} className="text-slate-500 absolute right-2.5 pointer-events-none" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Live Preview Summary Box */}
+              {scheduleModalDateTime && (
+                <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-start gap-2.5 text-xs text-purple-950">
+                  <Globe size={15} className="text-purple-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold block text-purple-900 text-[11px] uppercase tracking-wider">
+                      Scheduled Delivery Time
+                    </span>
+                    <p className="mt-0.5 font-medium leading-relaxed">
+                      {formatScheduleSummary(scheduleModalDateTime, scheduleModalTimezone)}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowScheduleModal(false)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!scheduleModalText.trim() || !scheduleModalDateTime}
+                  className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer flex items-center gap-1.5"
+                >
+                  <Calendar size={13} />
+                  <span>Confirm Schedule</span>
                 </button>
               </div>
             </form>
