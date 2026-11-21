@@ -486,7 +486,7 @@ function SmsInboxContent() {
     setInputText("");
 
     const effectiveSender = (selectedFromNumber || activeConv.telnyx_number || "+13464770028").trim();
-    const currentSenderName = currentUser?.display_name || "Tushar rawat";
+    const currentSenderName = currentUser?.display_name || "";
 
     // Optimistic UI update
     const optimisticMsg: Message = {
@@ -1471,13 +1471,13 @@ function SmsInboxContent() {
 
                         {isOutbound && (
                           <>
-                            {(senderName || currentUser.display_name) && (
+                            {senderName && (
                               <span
                                 className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs"
-                                title={`Sent from ${senderName || currentUser.display_name}'s portal`}
+                                title={`Sent from ${senderName}'s portal`}
                               >
                                 <span>👤</span>
-                                <span>{senderName || currentUser.display_name}</span>
+                                <span>{senderName}</span>
                               </span>
                             )}
 
