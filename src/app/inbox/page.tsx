@@ -202,7 +202,7 @@ function SmsInboxContent() {
     role: string;
     portal_type: string;
   }>({
-    display_name: "Super Administrator",
+    display_name: "Spyke super admin",
     role: "Super Admin",
     portal_type: "superadmin",
   });
@@ -222,7 +222,7 @@ function SmsInboxContent() {
     }, {});
 
     const portalType = cookies.portal_role || "superadmin";
-    const displayName = cookies.portal_user_name || (portalType === "superadmin" ? "Super Administrator" : "Team Member");
+    const displayName = cookies.portal_user_name || (portalType === "superadmin" ? "Spyke super admin" : "Team Member");
     const roleName = cookies.portal_user_role || (portalType === "superadmin" ? "Super Admin" : "Agent");
 
     setCurrentUser({

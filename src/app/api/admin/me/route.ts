@@ -17,13 +17,18 @@ export async function GET() {
     }
 
     // 1. Superadmin master session
-    if (portalRole === "superadmin" || portalEmail === "spykeai2026@gmail.com") {
+    if (
+      portalRole === "superadmin" ||
+      portalEmail === "spykeai2026@gmail.com" ||
+      portalEmail === "spykeai-admin" ||
+      portalEmail === "admin"
+    ) {
       return NextResponse.json({
         ok: true,
         user: {
           id: "superadmin-master",
           email: "spykeai2026@gmail.com",
-          display_name: "Super Administrator",
+          display_name: "Spyke super admin",
           role: "Super Admin",
           portal_type: "superadmin",
         },

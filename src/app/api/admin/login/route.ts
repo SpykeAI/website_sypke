@@ -50,7 +50,7 @@ export async function POST(req: Request) {
         redirectUrl: "/inbox",
         user: {
           email: "spykeai2026@gmail.com",
-          display_name: "Super Administrator (OTP Verified)",
+          display_name: "Spyke super admin",
           role: "superadmin",
         },
       });
@@ -74,6 +74,22 @@ export async function POST(req: Request) {
 
       response.cookies.set("portal_email", "spykeai2026@gmail.com", {
         httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24,
+        path: "/",
+      });
+
+      response.cookies.set("portal_user_name", encodeURIComponent("Spyke super admin"), {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24,
+        path: "/",
+      });
+
+      response.cookies.set("portal_user_role", encodeURIComponent("Super Admin"), {
+        httpOnly: false,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         maxAge: 60 * 60 * 24,
@@ -102,6 +118,14 @@ export async function POST(req: Request) {
     const isSuperadminEmail =
       normalizedInput === "spykeai2026@gmail.com" ||
       normalizedInput === "spykeai2026@gmail" ||
+      normalizedInput === "spykeai-admin" ||
+      normalizedInput === "spykeai_admin" ||
+      normalizedInput === "spyke-admin" ||
+      normalizedInput === "spykeadmin" ||
+      normalizedInput === "spyke super admin" ||
+      normalizedInput === "spyke" ||
+      normalizedInput === "admin" ||
+      normalizedInput === "superadmin" ||
       (process.env.ADMIN_EMAIL && normalizedInput === process.env.ADMIN_EMAIL.trim().toLowerCase());
 
     const isSuperadminPassword =
@@ -117,7 +141,7 @@ export async function POST(req: Request) {
         redirectUrl: "/inbox",
         user: {
           email: "spykeai2026@gmail.com",
-          display_name: "Super Administrator",
+          display_name: "Spyke super admin",
           role: "superadmin",
         },
       });
@@ -147,7 +171,7 @@ export async function POST(req: Request) {
         path: "/",
       });
 
-      response.cookies.set("portal_user_name", encodeURIComponent("Super Administrator"), {
+      response.cookies.set("portal_user_name", encodeURIComponent("Spyke super admin"), {
         httpOnly: false,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
@@ -176,14 +200,17 @@ export async function POST(req: Request) {
       (u) =>
         u.email?.toLowerCase() === normalizedInput ||
         u.user_metadata?.username?.toLowerCase() === normalizedInput ||
+        u.user_metadata?.display_name?.toLowerCase() === normalizedInput ||
+        u.email?.toLowerCase().split("@")[0] === normalizedInput ||
         u.email?.toLowerCase() === `${normalizedInput}@internal.spykeai.com` ||
-        u.email?.toLowerCase() === `${normalizedInput}@external.spykeai.com`
+        u.email?.toLowerCase() === `${normalizedInput}@external.spykeai.com` ||
+        u.email?.toLowerCase() === `${normalizedInput}@spykeai.com`
     );
 
     if (matchedUser && matchedUser.email) {
       targetEmail = matchedUser.email;
       targetPortalType = matchedUser.user_metadata?.portal_type || "internal";
-      targetDisplayName = matchedUser.user_metadata?.display_name || matchedUser.user_metadata?.username || targetEmail;
+      targetDisplayName = matchedUser.user_metadata?.display_name || matchedUser.user_metadata?.username || matchedUser.email.split("@")[0] || targetEmail;
 
       if (matchedUser.user_metadata?.status === "inactive") {
         return NextResponse.json(

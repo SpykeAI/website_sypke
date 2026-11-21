@@ -34,7 +34,7 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
     portalType: "superadmin" | "internal" | "external";
     email?: string;
   }>({
-    displayName: "Super Administrator",
+    displayName: "Spyke super admin",
     roleName: "Super Admin",
     portalType: "superadmin",
   });
@@ -54,7 +54,7 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
     }, {});
 
     const portalType = cookies.portal_role === "external" ? "external" : cookies.portal_role === "internal" ? "internal" : "superadmin";
-    const displayName = cookies.portal_user_name || (portalType === "superadmin" ? "Super Administrator" : "Team Member");
+    const displayName = cookies.portal_user_name || (portalType === "superadmin" ? "Spyke super admin" : "Team Member");
     const roleName = cookies.portal_user_role || (portalType === "superadmin" ? "Super Admin" : portalType === "internal" ? "Internal Team" : "Client");
 
     setRole(portalType);
@@ -73,7 +73,7 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
           const fetchedType = data.user.portal_type || "superadmin";
           setRole(fetchedType);
           setProfile({
-            displayName: data.user.display_name || "Team Member",
+            displayName: data.user.display_name || (fetchedType === "superadmin" ? "Spyke super admin" : "Team Member"),
             roleName: data.user.role || (fetchedType === "internal" ? "Internal Team" : "Super Admin"),
             portalType: fetchedType,
             email: data.user.email,
@@ -89,6 +89,12 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
     } catch (e) {
       console.error("Logout failed", e);
     } finally {
+      // Clear all portal cookies on client as well
+      document.cookie = "admin_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      document.cookie = "portal_role=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      document.cookie = "portal_email=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      document.cookie = "portal_user_name=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      document.cookie = "portal_user_role=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;";
       router.push(role === "external" ? "/clientportal/login" : "/admin/login");
       router.refresh();
     }
