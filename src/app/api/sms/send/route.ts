@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { supabase } from "@/lib/supabase";
 import { normalizeToE164, sendTelnyxSms } from "@/lib/telnyx";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { to, text, conversationId, from } = body;
+    const { to, text, conversationId, from, senderName } = body;
 
     if (!to || !text || typeof text !== "string" || text.trim().length === 0) {
       return NextResponse.json(
@@ -13,6 +14,21 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    // Resolve sender attribution name (from body or session cookie)
+    let resolvedSender = senderName ? String(senderName).trim() : "";
+    if (!resolvedSender) {
+      try {
+        const cookieStore = await cookies();
+        const cookieUser = cookieStore.get("portal_user_name")?.value;
+        if (cookieUser) {
+          resolvedSender = decodeURIComponent(cookieUser).trim();
+        }
+      } catch {}
+    }
+
+    const cleanText = text.trim();
+    const storedBody = resolvedSender ? `${cleanText}\n<!--sent_by:${resolvedSender}-->` : cleanText;
 
     const normalizedTo = normalizeToE164(to);
     const telnyxFrom = (from || process.env.TELNYX_FROM_NUMBER || "+13464770028").replace(/^["']|["']$/g, "").trim();
@@ -90,7 +106,7 @@ export async function POST(req: Request) {
           direction: "outbound",
           from_number: telnyxFrom,
           to_number: normalizedTo,
-          body: text.trim(),
+          body: storedBody,
           status: "pending",
         })
         .select("id")
@@ -104,7 +120,7 @@ export async function POST(req: Request) {
     // 5. Call Telnyx Messages API
     let telnyxRes = await sendTelnyxSms({
       to: normalizedTo,
-      text: text.trim(),
+      text: cleanText,
       from: telnyxFrom,
     });
 
@@ -114,7 +130,7 @@ export async function POST(req: Request) {
       console.warn(`Carrier send failed on ${telnyxFrom}, retrying with primary line ${primaryNumber}`);
       const fallbackRes = await sendTelnyxSms({
         to: normalizedTo,
-        text: text.trim(),
+        text: cleanText,
         from: primaryNumber,
       });
       if (fallbackRes.ok) {

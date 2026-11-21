@@ -28,21 +28,59 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [role, setRole] = useState<"superadmin" | "internal" | "external">("superadmin");
+  const [profile, setProfile] = useState<{
+    displayName: string;
+    roleName: string;
+    portalType: "superadmin" | "internal" | "external";
+    email?: string;
+  }>({
+    displayName: "Super Administrator",
+    roleName: "Super Admin",
+    portalType: "superadmin",
+  });
 
   useEffect(() => {
+    // 1. Read cookies immediately for instant display
     const cookies = document.cookie.split(";").reduce((acc: any, cookie) => {
       const [key, val] = cookie.trim().split("=");
-      if (key && val) acc[key] = decodeURIComponent(val);
+      if (key && val) {
+        try {
+          acc[key] = decodeURIComponent(val);
+        } catch {
+          acc[key] = val;
+        }
+      }
       return acc;
     }, {});
 
-    if (cookies.portal_role === "external") {
-      setRole("external");
-    } else if (cookies.portal_role === "internal") {
-      setRole("internal");
-    } else {
-      setRole("superadmin");
-    }
+    const portalType = cookies.portal_role === "external" ? "external" : cookies.portal_role === "internal" ? "internal" : "superadmin";
+    const displayName = cookies.portal_user_name || (portalType === "superadmin" ? "Super Administrator" : "Team Member");
+    const roleName = cookies.portal_user_role || (portalType === "superadmin" ? "Super Admin" : portalType === "internal" ? "Internal Team" : "Client");
+
+    setRole(portalType);
+    setProfile({
+      displayName,
+      roleName,
+      portalType,
+      email: cookies.portal_email,
+    });
+
+    // 2. Fetch authenticated /api/admin/me session
+    fetch("/api/admin/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.ok && data.user) {
+          const fetchedType = data.user.portal_type || "superadmin";
+          setRole(fetchedType);
+          setProfile({
+            displayName: data.user.display_name || "Team Member",
+            roleName: data.user.role || (fetchedType === "internal" ? "Internal Team" : "Super Admin"),
+            portalType: fetchedType,
+            email: data.user.email,
+          });
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const handleLogout = async () => {
@@ -413,6 +451,44 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
             </div>
           )}
 
+          {/* User Profile Card */}
+          <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs flex items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className={`w-8 h-8 rounded-full text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs uppercase ${
+                profile.portalType === "superadmin"
+                  ? "bg-linear-to-tr from-purple-600 to-indigo-600"
+                  : profile.portalType === "internal"
+                  ? "bg-linear-to-tr from-emerald-600 to-teal-500"
+                  : "bg-linear-to-tr from-blue-600 to-cyan-500"
+              }`}>
+                {profile.displayName ? profile.displayName.charAt(0) : "U"}
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-slate-800 truncate leading-tight" title={profile.displayName}>
+                  {profile.displayName}
+                </p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className={`inline-flex items-center px-1.5 py-0.5 text-[9px] font-semibold rounded-md ${
+                    profile.portalType === "superadmin"
+                      ? "bg-purple-50 text-purple-700 border border-purple-200/70"
+                      : profile.portalType === "internal"
+                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200/70"
+                      : "bg-blue-50 text-blue-700 border border-blue-200/70"
+                  }`}>
+                    {profile.roleName}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer shrink-0"
+              title="Sign Out"
+            >
+              <LogOut size={14} />
+            </button>
+          </div>
+
           <div className="flex items-center justify-between pt-1">
             <Link
               href="/"
@@ -423,24 +499,9 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
               <ArrowLeft size={14} />
               <span>Back to Website</span>
             </Link>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] text-slate-400 flex items-center gap-1">
-                <ShieldCheck
-                  size={12}
-                  className={isClientPortal || role === "external" ? "text-blue-500" : "text-emerald-500"}
-                />
-                <span className="capitalize">{isClientPortal || role === "external" ? "Client" : role}</span>
-              </span>
-              <span className="text-slate-300 text-xs">·</span>
-              <button
-                onClick={handleLogout}
-                className="text-[10px] font-semibold text-slate-400 hover:text-rose-600 flex items-center gap-1 transition-colors cursor-pointer"
-                title="Sign Out"
-              >
-                <LogOut size={11} />
-                <span>Exit</span>
-              </button>
-            </div>
+            <span className="text-[10px] text-slate-400">
+              v2.4 Active
+            </span>
           </div>
         </div>
       </aside>

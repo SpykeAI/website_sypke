@@ -84,13 +84,14 @@ interface Message {
 // - India (+91): $0.0680 per segment (~ ₹5.68 INR) [Alphanumeric Sender ID termination]
 // - International Other: ~$0.0850 per segment
 function calculateSmsCost(text: string, recipientPhone?: string | null) {
+  const clean = (text || "").replace(/\n?<!--sent_by:(.*?)-->$/, "");
   const phone = (recipientPhone || "").trim();
   const isIndia = phone.startsWith("+91") || phone.startsWith("91") || (/^[6-9]\d{9}$/.test(phone));
   const isUS = phone.startsWith("+1") || (!phone.startsWith("+") && phone.length === 10 && /^[2-9]/.test(phone));
 
   const ratePerSegment = isIndia ? 0.068 : isUS ? 0.0085 : 0.085;
 
-  const charCount = text.length;
+  const charCount = clean.length;
   const isUnicode = /[^\u0000-\u007F]/.test(text);
   const segmentLimit = isUnicode ? 70 : 160;
 
@@ -194,6 +195,56 @@ function SmsInboxContent() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevMsgCountRef = useRef(0);
   const shouldScrollBottomRef = useRef(true);
+
+  // Current Logged-in Portal User State
+  const [currentUser, setCurrentUser] = useState<{
+    display_name: string;
+    role: string;
+    portal_type: string;
+  }>({
+    display_name: "Super Administrator",
+    role: "Super Admin",
+    portal_type: "superadmin",
+  });
+
+  useEffect(() => {
+    // 1. Read cookies for instantaneous zero-lag display
+    const cookies = document.cookie.split(";").reduce((acc: any, cookie) => {
+      const [key, val] = cookie.trim().split("=");
+      if (key && val) {
+        try {
+          acc[key] = decodeURIComponent(val);
+        } catch {
+          acc[key] = val;
+        }
+      }
+      return acc;
+    }, {});
+
+    const portalType = cookies.portal_role || "superadmin";
+    const displayName = cookies.portal_user_name || (portalType === "superadmin" ? "Super Administrator" : "Team Member");
+    const roleName = cookies.portal_user_role || (portalType === "superadmin" ? "Super Admin" : "Agent");
+
+    setCurrentUser({
+      display_name: displayName,
+      role: roleName,
+      portal_type: portalType,
+    });
+
+    // 2. Fetch authenticated user details from /api/admin/me
+    fetch("/api/admin/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.ok && data.user) {
+          setCurrentUser({
+            display_name: data.user.display_name || "Team Member",
+            role: data.user.role || "Agent",
+            portal_type: data.user.portal_type || "internal",
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Merge scheduled individual messages stored locally into chat thread
   const mergeWithScheduled = (apiMsgs: Message[], convId: string): Message[] => {
@@ -357,6 +408,7 @@ function SmsInboxContent() {
                   text: item.body,
                   conversationId: item.conversationId,
                   from: item.fromNumber,
+                  senderName: currentUser.display_name,
                 }),
               });
             } catch (err) {
@@ -460,6 +512,7 @@ function SmsInboxContent() {
           text: tempText,
           conversationId: activeConv.id,
           from: effectiveSender,
+          senderName: currentUser.display_name,
         }),
       });
 
@@ -546,6 +599,7 @@ function SmsInboxContent() {
           text: target.body,
           conversationId: target.conversationId,
           from: target.fromNumber,
+          senderName: currentUser.display_name,
         }),
       });
 
@@ -1310,6 +1364,9 @@ function SmsInboxContent() {
                 messages.map((msg) => {
                   const isOutbound = msg.direction === "outbound";
                   const isInternalNote = msg.body?.startsWith("📝 Note:");
+                  const matchSender = msg.body?.match(/\n?<!--sent_by:(.*?)-->$/);
+                  const senderName = matchSender ? matchSender[1].trim() : null;
+                  const cleanBody = msg.body ? msg.body.replace(/\n?<!--sent_by:(.*?)-->$/, "") : "";
 
                   {/* Scheduled Individual SMS Card */}
                   if (msg.status === "scheduled") {
@@ -1327,13 +1384,21 @@ function SmsInboxContent() {
                           </div>
 
                           <p className="whitespace-pre-wrap break-all [overflow-wrap:anywhere] text-slate-800 text-xs md:text-sm select-text mb-2.5 leading-relaxed font-normal">
-                            {msg.body}
+                            {cleanBody}
                           </p>
 
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-purple-100/70 text-[10.5px]">
-                            <div className="text-purple-900 font-medium flex items-center gap-1">
-                              <Clock size={11} className="text-purple-600 shrink-0" />
-                              <span>{msg.scheduled_display || (msg.scheduled_for ? new Date(msg.scheduled_for).toLocaleString() : "Pending delivery")}</span>
+                            <div className="text-purple-900 font-medium flex items-center gap-1.5 flex-wrap">
+                              <div className="flex items-center gap-1">
+                                <Clock size={11} className="text-purple-600 shrink-0" />
+                                <span>{msg.scheduled_display || (msg.scheduled_for ? new Date(msg.scheduled_for).toLocaleString() : "Pending delivery")}</span>
+                              </div>
+                              {senderName && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-semibold bg-purple-100/90 text-purple-800 border border-purple-200">
+                                  <span>👤</span>
+                                  <span>{senderName}</span>
+                                </span>
+                              )}
                             </div>
 
                             <div className="flex items-center gap-1.5 shrink-0">
@@ -1349,7 +1414,7 @@ function SmsInboxContent() {
                               <button
                                 type="button"
                                 onClick={() => handleCancelScheduled(msg.id)}
-                                className="inline-flex items-center gap-1 px-2 py-1 bg-white hover:bg-rose-50 text-rose-600 border border-purple-200 hover:border-rose-300 rounded-lg font-semibold text-[10px] transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-rose-50 text-rose-600 border border-purple-200 hover:border-rose-300 rounded-lg font-semibold text-[10px] transition-colors cursor-pointer"
                                 title="Cancel and delete this scheduled message"
                               >
                                 <Trash2 size={10} />
@@ -1394,10 +1459,10 @@ function SmsInboxContent() {
                             : "bg-white text-slate-800 rounded-bl-xs border border-slate-200/80 shadow-xs"
                         }`}
                       >
-                        <p className="whitespace-pre-wrap break-all [overflow-wrap:anywhere] select-text">{msg.body}</p>
+                        <p className="whitespace-pre-wrap break-all [overflow-wrap:anywhere] select-text">{cleanBody}</p>
                       </div>
 
-                      {/* Timestamp & Status & Cost Breakdown & Delete Message */}
+                      {/* Timestamp & Sender Attribution & Status & Cost Breakdown & Delete Message */}
                       <div className="flex items-center gap-1.5 mt-1 px-1 text-[10px] text-slate-400 font-medium flex-wrap justify-end">
                         <span>
                           {new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -1405,6 +1470,16 @@ function SmsInboxContent() {
 
                         {isOutbound && (
                           <>
+                            {senderName && (
+                              <span
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs"
+                                title={`Sent from ${senderName}'s portal`}
+                              >
+                                <span>👤</span>
+                                <span>{senderName}</span>
+                              </span>
+                            )}
+
                             <span className="flex items-center gap-0.5 ml-0.5">
                               {msg.status === "pending" && <Clock size={11} className="text-amber-500" />}
                               {msg.status === "accepted" && <Check size={11} className="text-slate-400" />}
@@ -1417,7 +1492,7 @@ function SmsInboxContent() {
                             {/* Accurate Money / Cost Breakdown */}
                             {(() => {
                               const targetPhone = msg.to_number || activeConv?.contacts?.phone_e164 || "";
-                              const cost = calculateSmsCost(msg.body, targetPhone);
+                              const cost = calculateSmsCost(cleanBody, targetPhone);
                               return (
                                 <span
                                   className={`inline-flex items-center gap-1 ml-1 px-1.5 py-0.5 rounded text-[9.5px] font-semibold tracking-tight shadow-2xs ${

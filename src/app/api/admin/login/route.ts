@@ -147,6 +147,22 @@ export async function POST(req: Request) {
         path: "/",
       });
 
+      response.cookies.set("portal_user_name", encodeURIComponent("Super Administrator"), {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24,
+        path: "/",
+      });
+
+      response.cookies.set("portal_user_role", encodeURIComponent("Super Admin"), {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24,
+        path: "/",
+      });
+
       return response;
     }
 
@@ -190,6 +206,8 @@ export async function POST(req: Request) {
     }
 
     const userPortalType = authData.user.user_metadata?.portal_type || targetPortalType;
+    const userRole = authData.user.user_metadata?.role || (userPortalType === "internal" ? "Internal Team" : "Client");
+    const userDisplayName = authData.user.user_metadata?.display_name || authData.user.user_metadata?.username || targetDisplayName;
     const redirectUrl = userPortalType === "external" ? "/clientportal" : "/admin/internal";
 
     const response = NextResponse.json({
@@ -199,8 +217,8 @@ export async function POST(req: Request) {
       redirectUrl,
       user: {
         email: authData.user.email,
-        display_name: targetDisplayName,
-        role: userPortalType,
+        display_name: userDisplayName,
+        role: userRole,
       },
     });
 
@@ -222,6 +240,22 @@ export async function POST(req: Request) {
 
     response.cookies.set("portal_email", targetEmail, {
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24,
+      path: "/",
+    });
+
+    response.cookies.set("portal_user_name", encodeURIComponent(userDisplayName), {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24,
+      path: "/",
+    });
+
+    response.cookies.set("portal_user_role", encodeURIComponent(userRole), {
+      httpOnly: false,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 60 * 60 * 24,
