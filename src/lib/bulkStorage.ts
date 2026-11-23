@@ -141,3 +141,43 @@ export async function deleteBulkBatch(id: string): Promise<{ success: boolean; b
   const ok = await saveBulkBatches(updated);
   return { success: ok, batches: updated };
 }
+
+export function isScheduledTimeDue(scheduledFor?: string, timezone?: string): boolean {
+  if (!scheduledFor) return false;
+  try {
+    const [datePart, timePart] = scheduledFor.split("T");
+    if (!datePart || !timePart) return false;
+    const [year, month, day] = datePart.split("-").map(Number);
+    const [hours, minutes] = timePart.split(":").map(Number);
+
+    const targetTz = timezone || "America/Chicago";
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: targetTz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(new Date());
+    const getPart = (type: string) => {
+      const p = parts.find((x) => x.type === type);
+      return p ? Number(p.value) : 0;
+    };
+    const nowYear = getPart("year");
+    const nowMonth = getPart("month");
+    const nowDay = getPart("day");
+    let nowHour = getPart("hour");
+    if (nowHour === 24) nowHour = 0;
+    const nowMinute = getPart("minute");
+
+    const targetKey = year * 100000000 + month * 1000000 + day * 10000 + hours * 100 + minutes;
+    const nowKey = nowYear * 100000000 + nowMonth * 1000000 + nowDay * 10000 + nowHour * 100 + nowMinute;
+
+    return nowKey >= targetKey;
+  } catch (e) {
+    return false;
+  }
+}
+

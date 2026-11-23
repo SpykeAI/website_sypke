@@ -28,7 +28,8 @@ import {
   Bookmark,
   Info,
   Calendar,
-  Globe
+  Globe,
+  Cloud
 } from "lucide-react";
 import { PhoneLine, getAvailableLines } from "@/lib/phoneLines";
 import { DEFAULT_TEMPLATES, SmsTemplate, TEMPLATES_STORAGE_KEY } from "./SmsTemplatesManager";
@@ -1080,6 +1081,45 @@ export default function BulkSmsManager({
     return () => clearInterval(interval);
   }, [batches, isSending]);
 
+  // Cloud status polling: refresh live progress from server when batches are in progress or scheduled
+  useEffect(() => {
+    const hasActiveBatches = batches.some(
+      (b) => b.status === "in_progress" || b.status === "scheduled"
+    );
+    if (!hasActiveBatches) return;
+
+    const interval = setInterval(() => {
+      fetch("/api/sms/bulk/batches")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.ok && Array.isArray(data.batches) && data.batches.length > 0) {
+            setBatches(data.batches);
+          }
+        })
+        .catch(() => {});
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [batches]);
+
+  // Resume campaign in the background via Autonomous Cloud Dispatcher
+  const handleResumeBatch = async (target: SmsBatch) => {
+    showToast("info", `Resuming "${target.batchName}" via Autonomous Cloud Dispatcher...`);
+    const updated = batches.map((b) => (b.id === target.id ? { ...b, status: "in_progress" as const } : b));
+    saveBatches(updated);
+
+    try {
+      await fetch("/api/cron/bulk-dispatch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ batchId: target.id }),
+      });
+      showToast("success", `Autonomous Cloud Dispatcher is processing "${target.batchName}". You can safely close your browser!`);
+    } catch (e) {
+      console.error("Failed to resume batch", e);
+    }
+  };
+
   // Delete Batch (Super Admin only)
   const handleDeleteBatch = async (id: string) => {
     if (!isSuperadminUser) {
@@ -1259,6 +1299,14 @@ export default function BulkSmsManager({
               <span>View Format Guide</span>
             </button>
           ) : null}
+        </div>
+
+        {/* Autonomous Cloud Dispatcher Notice */}
+        <div className="flex items-start sm:items-center gap-2.5 px-4 py-2.5 bg-emerald-50/80 border border-emerald-200/90 rounded-2xl text-emerald-900 text-xs">
+          <Cloud size={16} className="text-emerald-600 shrink-0 mt-0.5 sm:mt-0" />
+          <span>
+            <strong>Autonomous Cloud Dispatcher:</strong> When scheduled or started, messages are dispatched automatically by our cloud worker. You can safely close your browser or turn off your computer.
+          </span>
         </div>
 
         {/* 2-Column Clean Studio Form */}
@@ -2059,6 +2107,18 @@ export default function BulkSmsManager({
                             className="px-2.5 py-1 bg-[#00DF81] hover:bg-[#00c271] text-slate-950 text-xs font-bold rounded-lg transition cursor-pointer shadow-xs"
                           >
                             Send
+                          </button>
+                        )}
+                        {/* Resume Button if batch was interrupted or has pending contacts */}
+                        {(b.status === "failed" || (b.status === "in_progress" && !isSending) || (b.status === "completed" && b.recipients.some((r) => r.status === "pending"))) && (
+                          <button
+                            type="button"
+                            onClick={() => handleResumeBatch(b)}
+                            className="px-2.5 py-1 bg-amber-400 hover:bg-amber-500 text-slate-950 text-xs font-bold rounded-lg transition cursor-pointer shadow-xs flex items-center gap-1"
+                            title="Resume sending remaining contacts via Autonomous Cloud Dispatcher"
+                          >
+                            <Play size={11} className="fill-current" />
+                            <span>Resume</span>
                           </button>
                         )}
                         {isSuperadminUser && (
