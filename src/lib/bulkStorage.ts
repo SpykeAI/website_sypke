@@ -18,13 +18,13 @@ export const INITIAL_SERVER_BATCHES: SmsBatch[] = [
     createdAt: "Nov 20, 01:20 PM",
     senderNumber: "+13464770028",
     messageTemplate: "Hi {name}, our Houston service fleet is in your area this evening. Reply YES for priority dispatch.",
-    totalRecipients: 88,
-    sentCount: 0,
-    deliveredCount: 0,
+    totalRecipients: 2,
+    sentCount: 2,
+    deliveredCount: 2,
     failedCount: 0,
     recipients: [
-      { phone: "+17135550111", name: "David Miller", company: "Houston Energy Works", status: "pending" },
-      { phone: "+17135550222", name: "Elena Gomez", company: "Lone Star Logistics", status: "pending" }
+      { phone: "+17135550111", name: "David Miller", company: "Houston Energy Works", status: "delivered" },
+      { phone: "+17135550222", name: "Elena Gomez", company: "Lone Star Logistics", status: "delivered" }
     ]
   },
   {

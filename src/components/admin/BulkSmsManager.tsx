@@ -259,16 +259,16 @@ const INITIAL_BATCHES: SmsBatch[] = [
     scheduledFor: "2026-11-20T17:00",
     scheduledTimezone: "America/Chicago",
     scheduledDisplay: "Nov 20, 2026 at 5:00 PM (CT)",
-    createdAt: "Today, 01:20 PM",
+    createdAt: "Nov 20, 01:20 PM",
     senderNumber: "+13464770028",
     messageTemplate: "Hi {name}, our Houston service fleet is in your area this evening. Reply YES for priority dispatch.",
-    totalRecipients: 88,
-    sentCount: 0,
-    deliveredCount: 0,
+    totalRecipients: 2,
+    sentCount: 2,
+    deliveredCount: 2,
     failedCount: 0,
     recipients: [
-      { phone: "+17135550111", name: "David Miller", company: "Houston Energy Works", status: "pending" },
-      { phone: "+17135550222", name: "Elena Gomez", company: "Lone Star Logistics", status: "pending" }
+      { phone: "+17135550111", name: "David Miller", company: "Houston Energy Works", status: "delivered" },
+      { phone: "+17135550222", name: "Elena Gomez", company: "Lone Star Logistics", status: "delivered" }
     ]
   },
   {
@@ -495,6 +495,19 @@ export default function BulkSmsManager({
   const cancelSendingRef = useRef(false);
   const pauseSendingRef = useRef(false);
   const isAutoDispatchingRef = useRef(false);
+
+  // Prevent accidental tab closure or reload while sending
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isSending) {
+        e.preventDefault();
+        e.returnValue = "A Bulk SMS campaign is currently sending messages. If you leave or reload now, the campaign will stop.";
+        return e.returnValue;
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isSending]);
 
   // Load saved batches: instantaneous localStorage read + shared cloud sync
   useEffect(() => {
