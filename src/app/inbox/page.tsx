@@ -319,33 +319,57 @@ function SmsInboxContent() {
       return matchCampaign[1].trim();
     }
 
-    // 2. Backward compatibility for historical bulk messages sent before tag was added
+    const cleanMsg = (msg.body || "")
+      .replace(/\n?<!--sent_by:(.*?)-->/g, "")
+      .replace(/\n?<!--bulk_campaign:(.*?)-->/g, "")
+      .trim();
+
+    if (!cleanMsg) return null;
+
+    // 2. Specific historical bulk campaigns detection
+    if (
+      cleanMsg.includes("Orlando HVAC companies") ||
+      cleanMsg.includes("AC repair calls do you miss after hours")
+    ) {
+      return "Batch-Orlando-AC-Followup";
+    }
+
+    if (
+      cleanMsg.includes("test messg fromSpykeAi") ||
+      cleanMsg.includes("test abc test") ||
+      cleanMsg.includes("test def test") ||
+      cleanMsg.includes("test xyz test")
+    ) {
+      return "Batch-spyke-test-contacts";
+    }
+
+    // 3. Match against loaded bulk batches (by recipient list and by template)
     const targetPhone = (recipientPhone || msg.to_number || "").replace(/\D/g, "");
-    if (!targetPhone || !bulkBatches.length) return null;
 
     for (const b of bulkBatches) {
-      if (!b.recipients || !b.recipients.length) continue;
-      const rec = b.recipients.find(
-        (r) => (r.phone || "").replace(/\D/g, "") === targetPhone
-      );
-      if (rec) {
-        const tmpl = b.messageTemplate || "";
-        const expected = tmpl
-          .replace(/\{name\}/gi, rec.name || "")
-          .replace(/\{company\}/gi, rec.company || "")
-          .replace(/\{phone\}/gi, rec.phone || "")
-          .trim();
+      // 3a. Match by recipient phone + personalized template
+      if (b.recipients && b.recipients.length && targetPhone) {
+        const rec = b.recipients.find(
+          (r) => (r.phone || "").replace(/\D/g, "") === targetPhone
+        );
+        if (rec) {
+          const tmpl = b.messageTemplate || "";
+          const expected = tmpl
+            .replace(/\{name\}/gi, rec.name || "")
+            .replace(/\{company\}/gi, rec.company || "")
+            .replace(/\{phone\}/gi, rec.phone || "")
+            .trim();
 
-        const cleanMsg = (msg.body || "")
-          .replace(/\n?<!--sent_by:(.*?)-->/g, "")
-          .replace(/\n?<!--bulk_campaign:(.*?)-->/g, "")
-          .trim();
-
-        if (cleanMsg && expected) {
-          if (cleanMsg === expected || cleanMsg.includes(expected.slice(0, 25))) {
+          if (expected && (cleanMsg === expected || cleanMsg.includes(expected.slice(0, 25)))) {
             return b.batchName;
           }
         }
+      }
+
+      // 3b. Match by core template text (ignoring {placeholders})
+      const staticTmpl = (b.messageTemplate || "").replace(/\{.*?\}/g, "").trim();
+      if (staticTmpl && staticTmpl.length >= 25 && cleanMsg.includes(staticTmpl.slice(0, 35))) {
+        return b.batchName;
       }
     }
 
