@@ -1549,8 +1549,9 @@ function SmsInboxContent() {
                 messages.map((msg) => {
                   const isOutbound = msg.direction === "outbound";
                   const isInternalNote = msg.body?.startsWith("📝 Note:");
-                  const matchSender = msg.body?.match(/<!--sent_by:(.*?)-->/);
-                  const senderName = matchSender ? matchSender[1].trim() : null;
+                  const rawText = (msg as any).raw_body || msg.body || "";
+                  const matchSender = rawText.match(/<!--sent_by:(.*?)-->/);
+                  const senderName = msg.sender_name || (matchSender ? matchSender[1].trim() : null);
                   const campaignName = resolveMessageCampaign(msg, activeConv?.contacts?.phone_e164);
                   const cleanBody = msg.body
                     ? msg.body
@@ -1588,12 +1589,6 @@ function SmsInboxContent() {
                                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-semibold bg-purple-100/90 text-purple-800 border border-purple-200">
                                   <span>👤</span>
                                   <span>{senderName}</span>
-                                </span>
-                              )}
-                              {campaignName && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-purple-100/90 text-purple-800 border border-purple-200">
-                                  <Megaphone size={10} className="text-purple-600 shrink-0" />
-                                  <span>Campaign: {campaignName}</span>
                                 </span>
                               )}
                             </div>
@@ -1672,20 +1667,10 @@ function SmsInboxContent() {
                             {senderName && (
                               <span
                                 className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs"
-                                title={`Sent from ${senderName}'s portal`}
+                                title={`Sent by ${senderName}`}
                               >
                                 <span>👤</span>
                                 <span>{senderName}</span>
-                              </span>
-                            )}
-
-                            {campaignName && (
-                              <span
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-purple-50 text-purple-700 border border-purple-200/90 shadow-2xs"
-                                title={`Dispatched from Bulk Campaign: ${campaignName}`}
-                              >
-                                <Megaphone size={9} className="text-purple-600 shrink-0" />
-                                <span>Campaign: {campaignName}</span>
                               </span>
                             )}
 
