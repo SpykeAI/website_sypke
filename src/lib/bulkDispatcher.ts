@@ -77,7 +77,7 @@ export async function processBackgroundBulkDispatch(options?: {
           const normalizedTo = normalizeToE164(recipient.phone);
           const senderFrom = (batch.senderNumber || process.env.TELNYX_FROM_NUMBER || "+13464770028").replace(/^["']|["']$/g, "").trim();
           const senderAttribution = batch.uploadedBy || "Spyke AI Cloud Dispatcher";
-          const storedBody = `${text.trim()}\n<!--sent_by:${senderAttribution}-->`;
+          const storedBody = `${text.trim()}\n<!--sent_by:${senderAttribution}-->\n<!--bulk_campaign:${batch.batchName}-->`;
 
           try {
             // Check opt-out status

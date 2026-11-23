@@ -1000,6 +1000,7 @@ export default function BulkSmsManager({
             to: recipient.phone,
             text: personalizedText,
             from: activeSender,
+            campaignName: activeBatchName,
           }),
         });
 

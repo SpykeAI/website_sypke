@@ -29,7 +29,8 @@ import {
   Play,
   Globe,
   Edit2,
-  X
+  X,
+  Megaphone
 } from "lucide-react";
 import { getAvailableLines, PhoneLine } from "@/lib/phoneLines";
 import SmsTemplatesManager from "@/components/admin/SmsTemplatesManager";
@@ -90,7 +91,10 @@ interface Message {
 // - India (+91): $0.0680 per segment (~ ₹5.68 INR) [Alphanumeric Sender ID termination]
 // - International Other: ~$0.0850 per segment
 function calculateSmsCost(text: string, recipientPhone?: string | null) {
-  const clean = (text || "").replace(/\n?<!--sent_by:(.*?)-->$/, "");
+  const clean = (text || "")
+    .replace(/\n?<!--sent_by:(.*?)-->/g, "")
+    .replace(/\n?<!--bulk_campaign:(.*?)-->/g, "")
+    .trim();
   const phone = (recipientPhone || "").trim();
   const isIndia = phone.startsWith("+91") || phone.startsWith("91") || (/^[6-9]\d{9}$/.test(phone));
   const isUS = phone.startsWith("+1") || (!phone.startsWith("+") && phone.length === 10 && /^[2-9]/.test(phone));
@@ -254,6 +258,99 @@ function SmsInboxContent() {
     currentUser.portal_type === "superadmin" ||
     currentUser.role?.toLowerCase()?.includes("super admin") ||
     currentUser.display_name?.toLowerCase()?.includes("super admin");
+
+  // Bulk Campaigns Data for Attribution in Individual Chat
+  interface BulkBatchInfo {
+    batchName: string;
+    messageTemplate?: string;
+    recipients?: Array<{
+      phone?: string;
+      name?: string;
+      company?: string;
+    }>;
+  }
+  const [bulkBatches, setBulkBatches] = useState<BulkBatchInfo[]>([]);
+  const [phoneToCampaignMap, setPhoneToCampaignMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const fetchBatches = async () => {
+      try {
+        const res = await fetch("/api/sms/bulk/batches");
+        const data = await res.json();
+        if (data.ok && Array.isArray(data.batches)) {
+          setBulkBatches(data.batches);
+          const map: Record<string, string> = {};
+          data.batches.forEach((b: BulkBatchInfo) => {
+            if (b.batchName && Array.isArray(b.recipients)) {
+              b.recipients.forEach((r) => {
+                const raw = (r.phone || "").trim();
+                const digits = raw.replace(/\D/g, "");
+                if (raw) map[raw] = b.batchName;
+                if (digits) {
+                  map[digits] = b.batchName;
+                  map[`+${digits}`] = b.batchName;
+                  if (digits.length === 10) {
+                    map[`1${digits}`] = b.batchName;
+                    map[`+1${digits}`] = b.batchName;
+                    map[`91${digits}`] = b.batchName;
+                    map[`+91${digits}`] = b.batchName;
+                  }
+                }
+              });
+            }
+          });
+          setPhoneToCampaignMap(map);
+        }
+      } catch {}
+    };
+    fetchBatches();
+  }, []);
+
+  // Helper to resolve if an outbound message came from a bulk campaign
+  const resolveMessageCampaign = (
+    msg: Message,
+    recipientPhone?: string | null
+  ): string | null => {
+    if (msg.direction !== "outbound") return null;
+
+    // 1. Direct tag in body: <!--bulk_campaign:XYZ-->
+    const matchCampaign = msg.body?.match(/<!--bulk_campaign:(.*?)-->/);
+    if (matchCampaign && matchCampaign[1]?.trim()) {
+      return matchCampaign[1].trim();
+    }
+
+    // 2. Backward compatibility for historical bulk messages sent before tag was added
+    const targetPhone = (recipientPhone || msg.to_number || "").replace(/\D/g, "");
+    if (!targetPhone || !bulkBatches.length) return null;
+
+    for (const b of bulkBatches) {
+      if (!b.recipients || !b.recipients.length) continue;
+      const rec = b.recipients.find(
+        (r) => (r.phone || "").replace(/\D/g, "") === targetPhone
+      );
+      if (rec) {
+        const tmpl = b.messageTemplate || "";
+        const expected = tmpl
+          .replace(/\{name\}/gi, rec.name || "")
+          .replace(/\{company\}/gi, rec.company || "")
+          .replace(/\{phone\}/gi, rec.phone || "")
+          .trim();
+
+        const cleanMsg = (msg.body || "")
+          .replace(/\n?<!--sent_by:(.*?)-->/g, "")
+          .replace(/\n?<!--bulk_campaign:(.*?)-->/g, "")
+          .trim();
+
+        if (cleanMsg && expected) {
+          if (cleanMsg === expected || cleanMsg.includes(expected.slice(0, 25))) {
+            return b.batchName;
+          }
+        }
+      }
+    }
+
+    return null;
+  };
 
   // Merge scheduled individual messages stored locally into chat thread
   const mergeWithScheduled = (apiMsgs: Message[], convId: string): Message[] => {
@@ -1217,6 +1314,21 @@ function SmsInboxContent() {
                           {conv.interest_level}
                         </span>
                       )}
+                      {(() => {
+                        const rawPhone = contact?.phone_e164 || "";
+                        const cDigits = rawPhone.replace(/\D/g, "");
+                        const convCampaign = phoneToCampaignMap[rawPhone] || phoneToCampaignMap[cDigits] || null;
+                        if (!convCampaign) return null;
+                        return (
+                          <span
+                            className="inline-flex items-center gap-1 text-[9px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200/90 max-w-[140px] truncate shadow-2xs"
+                            title={`Origin: Bulk Campaign ${convCampaign}`}
+                          >
+                            <Megaphone size={8} className="text-purple-600 shrink-0" />
+                            <span className="truncate">{convCampaign}</span>
+                          </span>
+                        );
+                      })()}
                       {contact?.do_not_text && (
                         <span className="text-[9px] text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 font-semibold">
                           OPTED OUT
@@ -1276,6 +1388,28 @@ function SmsInboxContent() {
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
+                {/* Bulk Campaign Origin Pill (if conversation/contact is from bulk campaign) */}
+                {(() => {
+                  const rawPhone = activeConv.contacts?.phone_e164 || "";
+                  const cDigits = rawPhone.replace(/\D/g, "");
+                  const fromMsgs = messages
+                    .map((m) => resolveMessageCampaign(m, rawPhone))
+                    .find(Boolean);
+                  const activeCampaign = fromMsgs || phoneToCampaignMap[rawPhone] || phoneToCampaignMap[cDigits] || null;
+                  if (!activeCampaign) return null;
+                  return (
+                    <span
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] md:text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200/90 shadow-2xs shrink-0"
+                      title={`This contact is part of Bulk Campaign: ${activeCampaign}`}
+                    >
+                      <Megaphone size={12} className="text-purple-600 shrink-0" />
+                      <span className="truncate max-w-[130px] sm:max-w-[190px] md:max-w-[240px]">
+                        Campaign: {activeCampaign}
+                      </span>
+                    </span>
+                  );
+                })()}
+
                 {/* Stage Pill Dropdown */}
                 <div className="relative inline-flex items-center">
                   <select
@@ -1386,9 +1520,15 @@ function SmsInboxContent() {
                 messages.map((msg) => {
                   const isOutbound = msg.direction === "outbound";
                   const isInternalNote = msg.body?.startsWith("📝 Note:");
-                  const matchSender = msg.body?.match(/\n?<!--sent_by:(.*?)-->$/);
+                  const matchSender = msg.body?.match(/<!--sent_by:(.*?)-->/);
                   const senderName = matchSender ? matchSender[1].trim() : null;
-                  const cleanBody = msg.body ? msg.body.replace(/\n?<!--sent_by:(.*?)-->$/, "") : "";
+                  const campaignName = resolveMessageCampaign(msg, activeConv?.contacts?.phone_e164);
+                  const cleanBody = msg.body
+                    ? msg.body
+                        .replace(/\n?<!--sent_by:(.*?)-->/g, "")
+                        .replace(/\n?<!--bulk_campaign:(.*?)-->/g, "")
+                        .trim()
+                    : "";
 
                   {/* Scheduled Individual SMS Card */}
                   if (msg.status === "scheduled") {
@@ -1419,6 +1559,12 @@ function SmsInboxContent() {
                                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-semibold bg-purple-100/90 text-purple-800 border border-purple-200">
                                   <span>👤</span>
                                   <span>{senderName}</span>
+                                </span>
+                              )}
+                              {campaignName && (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-purple-100/90 text-purple-800 border border-purple-200">
+                                  <Megaphone size={10} className="text-purple-600 shrink-0" />
+                                  <span>Campaign: {campaignName}</span>
                                 </span>
                               )}
                             </div>
@@ -1501,6 +1647,16 @@ function SmsInboxContent() {
                               >
                                 <span>👤</span>
                                 <span>{senderName}</span>
+                              </span>
+                            )}
+
+                            {campaignName && (
+                              <span
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-purple-50 text-purple-700 border border-purple-200/90 shadow-2xs"
+                                title={`Dispatched from Bulk Campaign: ${campaignName}`}
+                              >
+                                <Megaphone size={9} className="text-purple-600 shrink-0" />
+                                <span>Campaign: {campaignName}</span>
                               </span>
                             )}
 

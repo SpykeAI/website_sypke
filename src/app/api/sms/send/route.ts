@@ -6,7 +6,7 @@ import { normalizeToE164, sendTelnyxSms } from "@/lib/telnyx";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { to, text, conversationId, from, senderName } = body;
+    const { to, text, conversationId, from, senderName, campaignName } = body;
 
     if (!to || !text || typeof text !== "string" || text.trim().length === 0) {
       return NextResponse.json(
@@ -28,7 +28,13 @@ export async function POST(req: Request) {
     }
 
     const cleanText = text.trim();
-    const storedBody = resolvedSender ? `${cleanText}\n<!--sent_by:${resolvedSender}-->` : cleanText;
+    let storedBody = cleanText;
+    if (resolvedSender) {
+      storedBody += `\n<!--sent_by:${resolvedSender}-->`;
+    }
+    if (campaignName && typeof campaignName === "string" && campaignName.trim()) {
+      storedBody += `\n<!--bulk_campaign:${campaignName.trim()}-->`;
+    }
 
     const normalizedTo = normalizeToE164(to);
     const telnyxFrom = (from || process.env.TELNYX_FROM_NUMBER || "+13464770028").replace(/^["']|["']$/g, "").trim();
