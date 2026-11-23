@@ -56,6 +56,7 @@ interface Conversation {
   unread_count: number;
   interest_level?: string | null;
   campaign_name?: string | null;
+  summary?: string | null;
   contacts: Contact;
 }
 
@@ -1344,7 +1345,7 @@ function SmsInboxContent() {
                       {(() => {
                         const rawPhone = contact?.phone_e164 || "";
                         const cDigits = rawPhone.replace(/\D/g, "");
-                        const convCampaign = conv.campaign_name || phoneToCampaignMap[rawPhone] || phoneToCampaignMap[cDigits] || null;
+                        const convCampaign = conv.summary || conv.campaign_name || phoneToCampaignMap[rawPhone] || phoneToCampaignMap[cDigits] || null;
                         if (!convCampaign) return null;
                         return (
                           <span
@@ -1422,7 +1423,7 @@ function SmsInboxContent() {
                   const fromMsgs = messages
                     .map((m) => m.campaign_name || resolveMessageCampaign(m, rawPhone))
                     .find(Boolean);
-                  const activeCampaign = activeConv.campaign_name || fromMsgs || phoneToCampaignMap[rawPhone] || phoneToCampaignMap[cDigits] || null;
+                  const activeCampaign = activeConv.summary || activeConv.campaign_name || fromMsgs || phoneToCampaignMap[rawPhone] || phoneToCampaignMap[cDigits] || null;
                   if (!activeCampaign) return null;
                   return (
                     <div
