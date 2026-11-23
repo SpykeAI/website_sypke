@@ -250,6 +250,11 @@ function SmsInboxContent() {
       .catch(() => {});
   }, []);
 
+  const isSuperadmin =
+    currentUser.portal_type === "superadmin" ||
+    currentUser.role?.toLowerCase()?.includes("super admin") ||
+    currentUser.display_name?.toLowerCase()?.includes("super admin");
+
   // Merge scheduled individual messages stored locally into chat thread
   const mergeWithScheduled = (apiMsgs: Message[], convId: string): Message[] => {
     try {
@@ -909,6 +914,11 @@ function SmsInboxContent() {
   // Delete conversation or message handler
   const handleConfirmDelete = async () => {
     if (!confirmDeleteModal) return;
+    if (!isSuperadmin) {
+      alert("Delete action is restricted to Super Admin.");
+      setConfirmDeleteModal(null);
+      return;
+    }
     setDeleting(true);
 
     try {
@@ -1162,22 +1172,24 @@ function SmsInboxContent() {
                         >
                           <Edit2 size={12} />
                         </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setConfirmDeleteModal({
-                              isOpen: true,
-                              type: "conversation",
-                              id: conv.id,
-                              label: contact?.display_name || contact?.phone_e164 || "this conversation",
-                            });
-                          }}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-all cursor-pointer"
-                          title="Delete conversation"
-                        >
-                          <Trash2 size={12} />
-                        </button>
+                        {isSuperadmin && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmDeleteModal({
+                                isOpen: true,
+                                type: "conversation",
+                                id: conv.id,
+                                label: contact?.display_name || contact?.phone_e164 || "this conversation",
+                              });
+                            }}
+                            className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-all cursor-pointer"
+                            title="Delete conversation (Super Admin only)"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
                         <span className="text-[10px] text-slate-400 font-medium">
                           {new Date(conv.last_message_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </span>
@@ -1294,22 +1306,24 @@ function SmsInboxContent() {
                   <Phone size={13} />
                 </Link>
 
-                {/* Delete Chat Button */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setConfirmDeleteModal({
-                      isOpen: true,
-                      type: "conversation",
-                      id: activeConv.id,
-                      label: activeConv.contacts?.display_name || activeConv.contacts?.phone_e164 || "this chat",
-                    })
-                  }
-                  className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-full border border-slate-200 hover:border-rose-300 transition-colors flex items-center justify-center cursor-pointer shrink-0"
-                  title="Delete Chat Thread"
-                >
-                  <Trash2 size={13} />
-                </button>
+                {/* Delete Chat Button (Super Admin only) */}
+                {isSuperadmin && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setConfirmDeleteModal({
+                        isOpen: true,
+                        type: "conversation",
+                        id: activeConv.id,
+                        label: activeConv.contacts?.display_name || activeConv.contacts?.phone_e164 || "this chat",
+                      })
+                    }
+                    className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-full border border-slate-200 hover:border-rose-300 transition-colors flex items-center justify-center cursor-pointer shrink-0"
+                    title="Delete Chat Thread (Super Admin only)"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
 
                 {activeConv.contacts?.do_not_text && (
                   <div className="flex items-center gap-1 px-2 py-0.5 md:px-3 md:py-1 bg-rose-50 border border-rose-200 rounded-full text-rose-700 text-[10px] md:text-xs font-semibold shrink-0">
@@ -1419,15 +1433,17 @@ function SmsInboxContent() {
                                 <Play size={10} className="fill-current" />
                                 <span>Send Now</span>
                               </button>
-                              <button
-                                type="button"
-                                onClick={() => handleCancelScheduled(msg.id)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-rose-50 text-rose-600 border border-purple-200 hover:border-rose-300 rounded-lg font-semibold text-[10px] transition-colors cursor-pointer"
-                                title="Cancel and delete this scheduled message"
-                              >
-                                <Trash2 size={10} />
-                                <span>Cancel</span>
-                              </button>
+                              {isSuperadmin && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleCancelScheduled(msg.id)}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-rose-50 text-rose-600 border border-purple-200 hover:border-rose-300 rounded-lg font-semibold text-[10px] transition-colors cursor-pointer"
+                                  title="Cancel and delete this scheduled message (Super Admin only)"
+                                >
+                                  <Trash2 size={10} />
+                                  <span>Cancel</span>
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1525,14 +1541,16 @@ function SmsInboxContent() {
                           </>
                         )}
 
-                        <button
-                          type="button"
-                          onClick={() => setConfirmDeleteModal({ isOpen: true, type: "message", id: msg.id })}
-                          className="opacity-0 group-hover:opacity-100 hover:text-rose-500 transition-opacity p-0.5 cursor-pointer ml-0.5"
-                          title="Delete message"
-                        >
-                          <Trash2 size={11} />
-                        </button>
+                        {isSuperadmin && (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteModal({ isOpen: true, type: "message", id: msg.id })}
+                            className="opacity-0 group-hover:opacity-100 hover:text-rose-500 transition-opacity p-0.5 cursor-pointer ml-0.5"
+                            title="Delete message (Super Admin only)"
+                          >
+                            <Trash2 size={11} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
@@ -1740,6 +1758,8 @@ function SmsInboxContent() {
           <BulkSmsManager
             initialTemplate={appliedDraftTemplate}
             onOpenTemplates={() => setActiveSection("templates")}
+            isSuperadmin={isSuperadmin}
+            currentUser={currentUser}
           />
         </div>
       </div>

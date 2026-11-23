@@ -56,6 +56,13 @@ interface SmsTemplatesManagerProps {
 }
 
 export default function SmsTemplatesManager({ onUseInBulk }: SmsTemplatesManagerProps) {
+  const isSuperadminUser =
+    typeof document !== "undefined" &&
+    document.cookie.split(";").some((c) => {
+      const trimmed = c.trim();
+      return trimmed.startsWith("portal_role=superadmin") || trimmed.startsWith("admin_session=");
+    });
+
   const [templates, setTemplates] = useState<SmsTemplate[]>(DEFAULT_TEMPLATES);
   const [activeTemplateId, setActiveTemplateId] = useState<string>("tpl-1");
   const [templateName, setTemplateName] = useState("Medical Spa / Client Outreach");
@@ -372,12 +379,12 @@ export default function SmsTemplatesManager({ onUseInBulk }: SmsTemplatesManager
                     </p>
                   </div>
 
-                  {templates.length > 1 && (
+                  {isSuperadminUser && templates.length > 1 && (
                     <button
                       type="button"
                       onClick={(e) => handleDeleteTemplate(tpl.id, e)}
                       className="text-slate-400 hover:text-rose-600 p-1 transition cursor-pointer shrink-0 mt-0.5"
-                      title="Delete template"
+                      title="Delete template (Super Admin only)"
                     >
                       <Trash2 size={13} />
                     </button>

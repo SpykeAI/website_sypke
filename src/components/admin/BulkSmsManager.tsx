@@ -61,6 +61,7 @@ export interface SmsBatch {
   deliveredCount: number;
   failedCount: number;
   recipients: SmsBatchRecipient[];
+  uploadedBy?: string;
 }
 
 export const SCHEDULE_TIMEZONES = [
@@ -338,13 +339,33 @@ interface BulkSmsManagerProps {
   onOpenFormatGuide?: () => void;
   onOpenTemplates?: () => void;
   initialTemplate?: string | null;
+  isSuperadmin?: boolean;
+  currentUser?: { display_name: string; role: string; portal_type: string };
 }
 
 export default function BulkSmsManager({
   onOpenFormatGuide,
   onOpenTemplates,
-  initialTemplate
+  initialTemplate,
+  isSuperadmin,
+  currentUser,
 }: BulkSmsManagerProps) {
+  // Determine if active user is Superadmin
+  const isSuperadminUser = Boolean(
+    isSuperadmin ||
+    currentUser?.portal_type === "superadmin" ||
+    currentUser?.role?.toLowerCase()?.includes("super admin") ||
+    currentUser?.display_name?.toLowerCase()?.includes("super admin") ||
+    (typeof document !== "undefined" &&
+      document.cookie.split(";").some((c) => {
+        const trimmed = c.trim();
+        return trimmed.startsWith("portal_role=superadmin") || trimmed.startsWith("admin_session=");
+      }))
+  );
+
+  // Active batch ID for currently uploaded/drafted sheet
+  const [currentActiveBatchId, setCurrentActiveBatchId] = useState<string | null>(null);
+
   // Batch List / History state
   const [batches, setBatches] = useState<SmsBatch[]>(INITIAL_BATCHES);
   const [historySearch, setHistorySearch] = useState("");
@@ -475,29 +496,73 @@ export default function BulkSmsManager({
   const pauseSendingRef = useRef(false);
   const isAutoDispatchingRef = useRef(false);
 
-  // Load saved batches from localStorage
+  // Load saved batches: instantaneous localStorage read + shared cloud sync
   useEffect(() => {
+    let localBatches: SmsBatch[] = [];
     try {
       const stored = localStorage.getItem("spyke_sms_bulk_batches_v1");
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed) && parsed.length > 0) {
+          localBatches = parsed;
           setBatches(parsed);
         }
       }
     } catch (e) {
       console.error("Failed to load local batches", e);
     }
+
+    // Fetch shared batches from server so all users (superadmin, internal agents) see the exact same history
+    fetch("/api/sms/bulk/batches")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.ok && Array.isArray(data.batches) && data.batches.length > 0) {
+          const cloudBatches: SmsBatch[] = data.batches;
+          const map = new Map<string, SmsBatch>();
+          cloudBatches.forEach((b) => map.set(b.id, b));
+
+          // Merge any batches created locally that aren't in cloud yet
+          const unsynced: SmsBatch[] = [];
+          localBatches.forEach((b) => {
+            if (!map.has(b.id)) {
+              map.set(b.id, b);
+              unsynced.push(b);
+            }
+          });
+
+          const merged = Array.from(map.values());
+          setBatches(merged);
+          try {
+            localStorage.setItem("spyke_sms_bulk_batches_v1", JSON.stringify(merged));
+          } catch (e) {}
+
+          // Automatically push any unsynced local sheets to the cloud so everyone has access
+          if (unsynced.length > 0) {
+            fetch("/api/sms/bulk/batches", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ batches: merged }),
+            }).catch(() => {});
+          }
+        }
+      })
+      .catch((err) => console.error("Failed to load shared cloud batches:", err));
   }, []);
 
-  // Save batches helper
+  // Save batches helper: persists to both localStorage and shared server cloud
   const saveBatches = (newBatches: SmsBatch[]) => {
     setBatches(newBatches);
     try {
       localStorage.setItem("spyke_sms_bulk_batches_v1", JSON.stringify(newBatches));
     } catch (e) {
-      console.error("Failed to save batches to localStorage", e);
+      console.warn("localStorage quota exceeded or failed, continuing with cloud sync", e);
     }
+    // Sync to shared cloud storage
+    fetch("/api/sms/bulk/batches", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ batches: newBatches }),
+    }).catch((err) => console.error("Failed to sync batches to cloud:", err));
   };
 
   const showToast = (type: "success" | "error" | "info", text: string) => {
@@ -707,7 +772,34 @@ export default function BulkSmsManager({
         }
 
         setRecipients(parsed);
-        showToast("success", `Successfully loaded ${parsed.length} recipients from ${file.name}!`);
+
+        // Auto-save uploaded file immediately into history and cloud so it is never lost
+        const uploaderName = currentUser?.display_name || (isSuperadminUser ? "Spyke super admin" : "Portal User");
+        const autoBatchName = `Batch-${cleanBaseName}`;
+        setBatchName(autoBatchName);
+        const autoBatchId = "batch-" + Date.now();
+        setCurrentActiveBatchId(autoBatchId);
+
+        const newUploadedBatch: SmsBatch = {
+          id: autoBatchId,
+          batchName: autoBatchName,
+          fileName: file.name,
+          delaySeconds: totalDelaySeconds,
+          delayDisplay,
+          status: "draft",
+          createdAt: "Today, " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          senderNumber: selectedSender,
+          messageTemplate,
+          totalRecipients: parsed.length,
+          sentCount: 0,
+          deliveredCount: 0,
+          failedCount: 0,
+          recipients: parsed,
+          uploadedBy: uploaderName,
+        };
+
+        saveBatches([newUploadedBatch, ...batches]);
+        showToast("success", `Loaded ${parsed.length} recipients from "${file.name}" & saved to History!`);
       } catch (err: any) {
         showToast("error", "Failed to parse file: " + (err?.message || "Invalid file"));
       }
@@ -726,8 +818,11 @@ export default function BulkSmsManager({
       return;
     }
 
+    const uploaderName = currentUser?.display_name || (isSuperadminUser ? "Spyke super admin" : "Portal User");
+    const batchId = currentActiveBatchId || ("batch-" + Date.now());
+
     const newBatch: SmsBatch = {
-      id: "batch-" + Date.now(),
+      id: batchId,
       batchName: batchName.trim(),
       fileName: selectedFileName || "Manual_Recipients.xlsx",
       delaySeconds: totalDelaySeconds,
@@ -736,7 +831,7 @@ export default function BulkSmsManager({
       scheduledFor: sendTiming === "scheduled" ? scheduledDateTime : undefined,
       scheduledTimezone: sendTiming === "scheduled" ? scheduledTimezone : undefined,
       scheduledDisplay: sendTiming === "scheduled" ? formatScheduleSummary(scheduledDateTime, scheduledTimezone) : undefined,
-      createdAt: "Just now",
+      createdAt: "Today, " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       senderNumber: selectedSender,
       messageTemplate,
       totalRecipients: recipients.length > 0 ? recipients.length : 1,
@@ -746,9 +841,13 @@ export default function BulkSmsManager({
       recipients: recipients.length > 0 ? recipients : [
         { phone: "+18135550192", name: "Sample Contact", status: "pending" }
       ],
+      uploadedBy: uploaderName,
     };
 
-    saveBatches([newBatch, ...batches]);
+    const updated = batches.some((b) => b.id === batchId)
+      ? batches.map((b) => (b.id === batchId ? newBatch : b))
+      : [newBatch, ...batches];
+    saveBatches(updated);
     showToast("success", `Batch "${newBatch.batchName}" saved to history as Draft!`);
   };
 
@@ -768,9 +867,11 @@ export default function BulkSmsManager({
     }
 
     const scheduleSummary = formatScheduleSummary(scheduledDateTime, scheduledTimezone);
+    const uploaderName = currentUser?.display_name || (isSuperadminUser ? "Spyke super admin" : "Portal User");
+    const batchId = currentActiveBatchId || ("batch-" + Date.now());
 
     const newBatch: SmsBatch = {
-      id: "batch-" + Date.now(),
+      id: batchId,
       batchName: batchName.trim(),
       fileName: selectedFileName || "Houston_Numbers.xlsx",
       delaySeconds: totalDelaySeconds,
@@ -779,7 +880,7 @@ export default function BulkSmsManager({
       scheduledFor: scheduledDateTime,
       scheduledTimezone: scheduledTimezone,
       scheduledDisplay: scheduleSummary,
-      createdAt: "Just now",
+      createdAt: "Today, " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       senderNumber: selectedSender,
       messageTemplate,
       totalRecipients: recipients.length,
@@ -787,9 +888,13 @@ export default function BulkSmsManager({
       deliveredCount: 0,
       failedCount: 0,
       recipients,
+      uploadedBy: uploaderName,
     };
 
-    saveBatches([newBatch, ...batches]);
+    const updated = batches.some((b) => b.id === batchId)
+      ? batches.map((b) => (b.id === batchId ? newBatch : b))
+      : [newBatch, ...batches];
+    saveBatches(updated);
     showToast("success", `Campaign scheduled to launch on ${scheduleSummary}!`);
   };
 
@@ -818,7 +923,7 @@ export default function BulkSmsManager({
     setSendingProgress({ current: 0, total: activeRecipients.length, currentPhone: "", currentName: "" });
 
     // Create or update batch entry in history
-    const batchId = targetBatch ? targetBatch.id : "batch-" + Date.now();
+    const batchId = targetBatch ? targetBatch.id : (currentActiveBatchId || ("batch-" + Date.now()));
     let currentBatch: SmsBatch = {
       id: batchId,
       batchName: activeBatchName,
@@ -834,6 +939,7 @@ export default function BulkSmsManager({
       deliveredCount: 0,
       failedCount: 0,
       recipients: [...activeRecipients],
+      uploadedBy: targetBatch?.uploadedBy || currentUser?.display_name || (isSuperadminUser ? "Spyke super admin" : "Portal User"),
     };
 
     const updatedInitial = batches.some((b) => b.id === batchId)
@@ -924,9 +1030,7 @@ export default function BulkSmsManager({
 
     setBatches((prev) => {
       const updated = prev.map((b) => (b.id === batchId ? currentBatch : b));
-      try {
-        localStorage.setItem("spyke_sms_bulk_batches_v1", JSON.stringify(updated));
-      } catch (e) {}
+      saveBatches(updated);
       return updated;
     });
     setIsSending(false);
@@ -963,12 +1067,24 @@ export default function BulkSmsManager({
     return () => clearInterval(interval);
   }, [batches, isSending]);
 
-  // Delete Batch
-  const handleDeleteBatch = (id: string) => {
+  // Delete Batch (Super Admin only)
+  const handleDeleteBatch = async (id: string) => {
+    if (!isSuperadminUser) {
+      showToast("error", "Delete action is restricted to Super Admin.");
+      return;
+    }
     const updated = batches.filter((b) => b.id !== id);
     saveBatches(updated);
     showToast("info", "Batch removed from history.");
     if (analyticsBatch?.id === id) setAnalyticsBatch(null);
+
+    try {
+      await fetch(`/api/sms/bulk/batches?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+    } catch (e) {
+      console.error("Failed to delete batch on server", e);
+    }
   };
 
   // Template character and segment calculations
@@ -1825,8 +1941,15 @@ export default function BulkSmsManager({
                 filteredBatches.map((b) => (
                   <tr key={b.id} className="hover:bg-slate-50/70 transition">
                     <td className="p-3 font-bold text-slate-900 whitespace-nowrap">
-                      {b.batchName}
-                      <span className="block text-[10px] text-slate-400 font-normal">{b.createdAt}</span>
+                      <div>{b.batchName}</div>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[10px] text-slate-400 font-normal">{b.createdAt}</span>
+                        {b.uploadedBy && (
+                          <span className="text-[9px] font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                            By: {b.uploadedBy}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-3 text-slate-600 whitespace-nowrap">
                       <div className="flex items-center gap-2">
@@ -1925,14 +2048,16 @@ export default function BulkSmsManager({
                             Send
                           </button>
                         )}
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteBatch(b.id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
-                          title="Delete Batch"
-                        >
-                          <Trash2 size={13} />
-                        </button>
+                        {isSuperadminUser && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteBatch(b.id)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                            title="Delete Batch (Super Admin only)"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
