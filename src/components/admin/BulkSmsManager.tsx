@@ -140,6 +140,113 @@ export function isScheduledTimeDue(scheduledFor?: string, timezone?: string): bo
   }
 }
 
+// Disallow past scheduling: returns true if scheduled time is <= current time in target timezone
+export function isScheduledInPast(scheduledFor?: string, timezone?: string): boolean {
+  if (!scheduledFor) return false;
+  try {
+    const [datePart, timePart] = scheduledFor.split("T");
+    if (!datePart || !timePart) return false;
+    const [year, month, day] = datePart.split("-").map(Number);
+    const [hours, minutes] = timePart.split(":").map(Number);
+
+    const targetTz = timezone || "America/Chicago";
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: targetTz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(new Date());
+    const getPart = (type: string) => {
+      const p = parts.find((x) => x.type === type);
+      return p ? Number(p.value) : 0;
+    };
+    const nowYear = getPart("year");
+    const nowMonth = getPart("month");
+    const nowDay = getPart("day");
+    let nowHour = getPart("hour");
+    if (nowHour === 24) nowHour = 0;
+    const nowMinute = getPart("minute");
+
+    const targetKey = year * 100000000 + month * 1000000 + day * 10000 + hours * 100 + minutes;
+    const nowKey = nowYear * 100000000 + nowMonth * 1000000 + nowDay * 10000 + nowHour * 100 + nowMinute;
+
+    return targetKey <= nowKey;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Get minimum allowable datetime-local string (current time in target timezone)
+export function getMinDateTimeLocal(timezone?: string): string {
+  try {
+    const targetTz = timezone || "America/Chicago";
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: targetTz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(new Date());
+    const getPart = (type: string) => {
+      const p = parts.find((x) => x.type === type);
+      return p ? p.value : "00";
+    };
+    const year = getPart("year");
+    const month = getPart("month").padStart(2, "0");
+    const day = getPart("day").padStart(2, "0");
+    let hour = getPart("hour").padStart(2, "0");
+    if (hour === "24") hour = "00";
+    const minute = getPart("minute").padStart(2, "0");
+
+    return `${year}-${month}-${day}T${hour}:${minute}`;
+  } catch (e) {
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  }
+}
+
+// Get default future schedule datetime (1 hour in the future)
+export function getDefaultFutureSchedule(timezone?: string): string {
+  try {
+    const futureDate = new Date(Date.now() + 60 * 60 * 1000);
+    const targetTz = timezone || "America/Chicago";
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: targetTz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(futureDate);
+    const getPart = (type: string) => {
+      const p = parts.find((x) => x.type === type);
+      return p ? p.value : "00";
+    };
+    const year = getPart("year");
+    const month = getPart("month").padStart(2, "0");
+    const day = getPart("day").padStart(2, "0");
+    let hour = getPart("hour").padStart(2, "0");
+    if (hour === "24") hour = "00";
+    const minute = getPart("minute").padStart(2, "0");
+
+    return `${year}-${month}-${day}T${hour}:${minute}`;
+  } catch (e) {
+    const d = new Date(Date.now() + 60 * 60 * 1000);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+}
+
 const INITIAL_BATCHES: SmsBatch[] = [
   {
     id: "batch-houston-1",
@@ -333,8 +440,8 @@ export default function BulkSmsManager({
 
   const [selectedSender, setSelectedSender] = useState<string>("+13464770028");
 
-  // Delay settings: customizable from 1 second to 1 minute or more
-  const [delayAmount, setDelayAmount] = useState<number>(3);
+  // Delay settings: customizable from 1 second to 1 minute or more (default: 30 seconds)
+  const [delayAmount, setDelayAmount] = useState<number>(30);
   const [delayUnit, setDelayUnit] = useState<"seconds" | "minutes">("seconds");
 
   // Available Sender Lines
@@ -342,11 +449,7 @@ export default function BulkSmsManager({
 
   // Campaign Schedule Timing State
   const [sendTiming, setSendTiming] = useState<"immediate" | "scheduled">("immediate");
-  const [scheduledDateTime, setScheduledDateTime] = useState<string>(() => {
-    const now = new Date();
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T17:00`;
-  });
+  const [scheduledDateTime, setScheduledDateTime] = useState<string>(() => getDefaultFutureSchedule("America/Chicago"));
   const [scheduledTimezone, setScheduledTimezone] = useState<string>("America/Chicago");
 
   // Modals & Queue View Toggle
@@ -618,6 +721,10 @@ export default function BulkSmsManager({
       showToast("error", "Please provide a Batch Name (e.g. Batch-Tampa-1)");
       return;
     }
+    if (sendTiming === "scheduled" && isScheduledInPast(scheduledDateTime, scheduledTimezone)) {
+      showToast("error", "Cannot schedule for past time. Please select a future date and time.");
+      return;
+    }
 
     const newBatch: SmsBatch = {
       id: "batch-" + Date.now(),
@@ -653,6 +760,10 @@ export default function BulkSmsManager({
     }
     if (recipients.length === 0) {
       showToast("error", "Please attach a CSV or Excel file before scheduling.");
+      return;
+    }
+    if (isScheduledInPast(scheduledDateTime, scheduledTimezone)) {
+      showToast("error", "Cannot schedule for past time. Please select a future date and time.");
       return;
     }
 
@@ -1243,15 +1354,29 @@ export default function BulkSmsManager({
                 <div className="pt-1.5 space-y-2.5 animate-in fade-in duration-200">
                   {/* Date & Time Picker */}
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
-                      Start Date & Time *
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1 flex items-center justify-between">
+                      <span>Start Date & Time *</span>
+                      {isScheduledInPast(scheduledDateTime, scheduledTimezone) && (
+                        <span className="text-[10px] font-bold text-rose-600">⚠️ Past time not allowed</span>
+                      )}
                     </label>
                     <input
                       type="datetime-local"
+                      min={getMinDateTimeLocal(scheduledTimezone)}
                       value={scheduledDateTime}
                       onChange={(e) => setScheduledDateTime(e.target.value)}
-                      className="w-full px-3 py-1.5 text-xs font-semibold rounded-xl border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      className={`w-full px-3 py-1.5 text-xs font-semibold rounded-xl border bg-white focus:outline-none focus:ring-2 ${
+                        isScheduledInPast(scheduledDateTime, scheduledTimezone)
+                          ? "border-rose-400 focus:ring-rose-400 text-rose-900 bg-rose-50/30"
+                          : "border-slate-200 focus:ring-purple-500 text-slate-800"
+                      }`}
                     />
+                    {isScheduledInPast(scheduledDateTime, scheduledTimezone) && (
+                      <p className="text-[11px] font-bold text-rose-600 flex items-center gap-1 mt-1">
+                        <AlertCircle size={12} className="shrink-0" />
+                        <span>Past time is not allowed. Please choose a future date & time.</span>
+                      </p>
+                    )}
                   </div>
 
                   {/* Timezone Selector */}
@@ -1442,8 +1567,8 @@ export default function BulkSmsManager({
                 <button
                   type="button"
                   onClick={handleScheduleCampaign}
-                  disabled={isSending}
-                  className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-extrabold transition flex items-center gap-2 shadow-md shadow-purple-600/25 cursor-pointer disabled:opacity-50"
+                  disabled={isSending || isScheduledInPast(scheduledDateTime, scheduledTimezone)}
+                  className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-xs font-extrabold transition flex items-center gap-2 shadow-md shadow-purple-600/25 cursor-pointer"
                 >
                   <Calendar size={14} />
                   <span>Schedule Bulk Campaign ({recipients.length || 0})</span>

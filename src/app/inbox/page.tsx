@@ -33,7 +33,13 @@ import {
 } from "lucide-react";
 import { getAvailableLines, PhoneLine } from "@/lib/phoneLines";
 import SmsTemplatesManager from "@/components/admin/SmsTemplatesManager";
-import BulkSmsManager, { SCHEDULE_TIMEZONES, formatScheduleSummary } from "@/components/admin/BulkSmsManager";
+import BulkSmsManager, {
+  SCHEDULE_TIMEZONES,
+  formatScheduleSummary,
+  isScheduledInPast,
+  getMinDateTimeLocal,
+  getDefaultFutureSchedule,
+} from "@/components/admin/BulkSmsManager";
 
 interface Contact {
   id: string;
@@ -173,11 +179,9 @@ function SmsInboxContent() {
   // Individual Schedule SMS State
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduleModalText, setScheduleModalText] = useState("");
-  const [scheduleModalDateTime, setScheduleModalDateTime] = useState<string>(() => {
-    const now = new Date();
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T17:00`;
-  });
+  const [scheduleModalDateTime, setScheduleModalDateTime] = useState<string>(() =>
+    getDefaultFutureSchedule("America/Chicago")
+  );
   const [scheduleModalTimezone, setScheduleModalTimezone] = useState<string>("America/Chicago");
   const [scheduledSuccessToast, setScheduledSuccessToast] = useState<string | null>(null);
 
@@ -539,15 +543,18 @@ function SmsInboxContent() {
   // Open Schedule Modal for active conversation
   const handleOpenScheduleModal = () => {
     setScheduleModalText(inputText);
-    const now = new Date();
-    const pad = (n: number) => String(n).padStart(2, "0");
-    setScheduleModalDateTime(`${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T17:00`);
+    setScheduleModalDateTime(getDefaultFutureSchedule(scheduleModalTimezone));
     setShowScheduleModal(true);
   };
 
   // Confirm schedule individual SMS
   const handleConfirmScheduleIndividualSms = () => {
     if (!scheduleModalText.trim() || !activeConv || !scheduleModalDateTime) return;
+
+    if (isScheduledInPast(scheduleModalDateTime, scheduleModalTimezone)) {
+      setErrorBanner("Past time is not allowed while scheduling. Please choose a future date & time.");
+      return;
+    }
 
     const effectiveSender = (selectedFromNumber || activeConv.telnyx_number || "+13464770028").trim();
     const scheduleSummary = formatScheduleSummary(scheduleModalDateTime, scheduleModalTimezone);
@@ -1981,17 +1988,31 @@ function SmsInboxContent() {
               {/* Date & Time + Timezone Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                    Send Date & Time
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1 flex items-center justify-between">
+                    <span>Send Date & Time</span>
+                    {isScheduledInPast(scheduleModalDateTime, scheduleModalTimezone) && (
+                      <span className="text-[10px] font-bold text-rose-600 lowercase tracking-normal">⚠️ Past time not allowed</span>
+                    )}
                   </label>
                   <div className="relative">
                     <input
                       type="datetime-local"
+                      min={getMinDateTimeLocal(scheduleModalTimezone)}
                       value={scheduleModalDateTime}
                       onChange={(e) => setScheduleModalDateTime(e.target.value)}
                       required
-                      className="w-full bg-slate-50 border border-slate-200 focus:border-purple-500 focus:bg-white focus:ring-1 focus:ring-purple-500 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 transition outline-none cursor-pointer"
+                      className={`w-full bg-slate-50 border ${
+                        isScheduledInPast(scheduleModalDateTime, scheduleModalTimezone)
+                          ? "border-rose-400 focus:border-rose-500 focus:ring-rose-400 text-rose-900 bg-rose-50/30"
+                          : "border-slate-200 focus:border-purple-500 text-slate-800"
+                      } focus:bg-white focus:ring-1 rounded-xl px-3 py-2 text-xs font-semibold transition outline-none cursor-pointer`}
                     />
+                    {isScheduledInPast(scheduleModalDateTime, scheduleModalTimezone) && (
+                      <p className="text-[11px] font-bold text-rose-600 flex items-center gap-1 mt-1">
+                        <AlertCircle size={12} className="shrink-0" />
+                        <span>Past time is not allowed. Please select a future date & time.</span>
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -2042,8 +2063,12 @@ function SmsInboxContent() {
                 </button>
                 <button
                   type="submit"
-                  disabled={!scheduleModalText.trim() || !scheduleModalDateTime}
-                  className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer flex items-center gap-1.5"
+                  disabled={
+                    !scheduleModalText.trim() ||
+                    !scheduleModalDateTime ||
+                    isScheduledInPast(scheduleModalDateTime, scheduleModalTimezone)
+                  }
+                  className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition shadow-xs cursor-pointer flex items-center gap-1.5"
                 >
                   <Calendar size={13} />
                   <span>Confirm Schedule</span>
