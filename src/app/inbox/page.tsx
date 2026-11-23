@@ -489,8 +489,16 @@ function SmsInboxContent() {
           // Check if data actually changed to avoid useless re-renders
           if (
             prev.length === newMsgs.length &&
-            prev[prev.length - 1]?.id === newMsgs[newMsgs.length - 1]?.id &&
-            prev[prev.length - 1]?.status === newMsgs[newMsgs.length - 1]?.status
+            prev.every((p, idx) => {
+              const n = newMsgs[idx];
+              return (
+                p?.id === n?.id &&
+                p?.status === n?.status &&
+                p?.body === n?.body &&
+                p?.sender_name === n?.sender_name &&
+                p?.campaign_name === n?.campaign_name
+              );
+            })
           ) {
             return prev;
           }
@@ -1550,8 +1558,10 @@ function SmsInboxContent() {
                   const isOutbound = msg.direction === "outbound";
                   const isInternalNote = msg.body?.startsWith("📝 Note:");
                   const rawText = (msg as any).raw_body || msg.body || "";
-                  const matchSender = rawText.match(/<!--sent_by:(.*?)-->/);
-                  const senderName = msg.sender_name || (matchSender ? matchSender[1].trim() : null);
+                  const senderName =
+                    msg.sender_name ||
+                    (matchSender ? matchSender[1].trim() : null) ||
+                    (isOutbound ? (currentUser?.display_name && currentUser.display_name !== "Spyke super admin" ? currentUser.display_name : "Tushar rawat") : null);
                   const campaignName = resolveMessageCampaign(msg, activeConv?.contacts?.phone_e164);
                   const cleanBody = msg.body
                     ? msg.body
@@ -1666,10 +1676,10 @@ function SmsInboxContent() {
                           <>
                             {senderName && (
                               <span
-                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs"
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold bg-slate-100 text-slate-800 border border-slate-300 shadow-2xs"
                                 title={`Sent by ${senderName}`}
                               >
-                                <span>👤</span>
+                                <span className="text-slate-500">👤</span>
                                 <span>{senderName}</span>
                               </span>
                             )}

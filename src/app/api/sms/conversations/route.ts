@@ -50,7 +50,7 @@ export async function GET() {
 
     const enhancedConversations = (conversations || []).map((c: any) => ({
       ...c,
-      campaign_name: convCampaignMap[c.id] || null,
+      campaign_name: c.summary || convCampaignMap[c.id] || null,
     }));
 
     return NextResponse.json({ ok: true, conversations: enhancedConversations });
