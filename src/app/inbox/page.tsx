@@ -55,6 +55,7 @@ interface Conversation {
   last_message_at: string;
   unread_count: number;
   interest_level?: string | null;
+  campaign_name?: string | null;
   contacts: Contact;
 }
 
@@ -83,6 +84,8 @@ interface Message {
   scheduled_for?: string;
   scheduled_timezone?: string;
   scheduled_display?: string;
+  campaign_name?: string | null;
+  sender_name?: string | null;
 }
 
 // Dynamic SMS Segment & Cost Calculation
@@ -1341,7 +1344,7 @@ function SmsInboxContent() {
                       {(() => {
                         const rawPhone = contact?.phone_e164 || "";
                         const cDigits = rawPhone.replace(/\D/g, "");
-                        const convCampaign = phoneToCampaignMap[rawPhone] || phoneToCampaignMap[cDigits] || null;
+                        const convCampaign = conv.campaign_name || phoneToCampaignMap[rawPhone] || phoneToCampaignMap[cDigits] || null;
                         if (!convCampaign) return null;
                         return (
                           <span
@@ -1412,25 +1415,26 @@ function SmsInboxContent() {
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                {/* Bulk Campaign Origin Pill (if conversation/contact is from bulk campaign) */}
+                {/* Bulk Campaign Origin Pill (placed prominently near the outreach stage dropdown) */}
                 {(() => {
                   const rawPhone = activeConv.contacts?.phone_e164 || "";
                   const cDigits = rawPhone.replace(/\D/g, "");
                   const fromMsgs = messages
-                    .map((m) => resolveMessageCampaign(m, rawPhone))
+                    .map((m) => m.campaign_name || resolveMessageCampaign(m, rawPhone))
                     .find(Boolean);
-                  const activeCampaign = fromMsgs || phoneToCampaignMap[rawPhone] || phoneToCampaignMap[cDigits] || null;
+                  const activeCampaign = activeConv.campaign_name || fromMsgs || phoneToCampaignMap[rawPhone] || phoneToCampaignMap[cDigits] || null;
                   if (!activeCampaign) return null;
                   return (
-                    <span
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] md:text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200/90 shadow-2xs shrink-0"
-                      title={`This contact is part of Bulk Campaign: ${activeCampaign}`}
+                    <div
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] md:text-xs font-bold bg-purple-100 text-purple-900 border border-purple-300 shadow-2xs shrink-0"
+                      title={`This contact was sourced from Bulk Campaign: ${activeCampaign}`}
                     >
-                      <Megaphone size={12} className="text-purple-600 shrink-0" />
-                      <span className="truncate max-w-[130px] sm:max-w-[190px] md:max-w-[240px]">
-                        Campaign: {activeCampaign}
+                      <Megaphone size={12} className="text-purple-700 shrink-0" />
+                      <span className="font-semibold text-purple-700">Campaign:</span>
+                      <span className="truncate max-w-[130px] sm:max-w-[190px] md:max-w-[250px] font-black text-purple-950">
+                        {activeCampaign}
                       </span>
-                    </span>
+                    </div>
                   );
                 })()}
 

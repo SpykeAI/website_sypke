@@ -31,7 +31,28 @@ export async function GET() {
       return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true, conversations: conversations || [] });
+    // Map bulk campaign attribution directly from messages
+    const { data: bulkMsgs } = await supabase
+      .from("messages")
+      .select("conversation_id, body")
+      .like("body", "%<!--bulk_campaign:%");
+
+    const convCampaignMap: Record<string, string> = {};
+    if (bulkMsgs && bulkMsgs.length > 0) {
+      bulkMsgs.forEach((m) => {
+        const match = m.body?.match(/<!--bulk_campaign:(.*?)-->/);
+        if (match && match[1] && m.conversation_id) {
+          convCampaignMap[m.conversation_id] = match[1].trim();
+        }
+      });
+    }
+
+    const enhancedConversations = (conversations || []).map((c: any) => ({
+      ...c,
+      campaign_name: convCampaignMap[c.id] || null,
+    }));
+
+    return NextResponse.json({ ok: true, conversations: enhancedConversations });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
   }

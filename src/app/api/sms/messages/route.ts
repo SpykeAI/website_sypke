@@ -29,7 +29,29 @@ export async function GET(req: Request) {
       .update({ unread_count: 0 })
       .eq("id", conversationId);
 
-    return NextResponse.json({ ok: true, messages: messages || [] });
+    // Sanitize message body (strip hidden metadata comments) and provide first-class fields
+    const sanitizedMessages = (messages || []).map((m) => {
+      const matchCampaign = m.body?.match(/<!--bulk_campaign:(.*?)-->/);
+      const matchSender = m.body?.match(/<!--sent_by:(.*?)-->/);
+      const campaignName = matchCampaign ? matchCampaign[1].trim() : null;
+      const senderName = matchSender ? matchSender[1].trim() : null;
+      const cleanBody = m.body
+        ? m.body
+            .replace(/\n?<!--sent_by:(.*?)-->/g, "")
+            .replace(/\n?<!--bulk_campaign:(.*?)-->/g, "")
+            .trim()
+        : "";
+
+      return {
+        ...m,
+        body: cleanBody,
+        campaign_name: campaignName,
+        sender_name: senderName,
+        raw_body: m.body,
+      };
+    });
+
+    return NextResponse.json({ ok: true, messages: sanitizedMessages });
   } catch (err: any) {
     return NextResponse.json({ ok: false, error: err.message }, { status: 500 });
   }
