@@ -121,6 +121,10 @@ export async function processBackgroundBulkDispatch(options?: {
                 .maybeSingle();
               if (existingConv) {
                 convId = existingConv.id;
+                await supabase
+                  .from("conversations")
+                  .update({ summary: batch.batchName })
+                  .eq("id", existingConv.id);
               } else {
                 const { data: newConv } = await supabase
                   .from("conversations")
@@ -129,6 +133,7 @@ export async function processBackgroundBulkDispatch(options?: {
                     telnyx_number: senderFrom,
                     last_message_at: new Date().toISOString(),
                     unread_count: 0,
+                    summary: batch.batchName,
                   })
                   .select("id")
                   .maybeSingle();

@@ -84,15 +84,26 @@ export async function POST(req: Request) {
 
       if (existingConv) {
         activeConversationId = existingConv.id;
+        if (campaignName && typeof campaignName === "string" && campaignName.trim()) {
+          await supabase
+            .from("conversations")
+            .update({ summary: campaignName.trim() })
+            .eq("id", existingConv.id);
+        }
       } else {
+        const insertPayload: any = {
+          contact_id: contactId,
+          telnyx_number: telnyxFrom,
+          last_message_at: new Date().toISOString(),
+          unread_count: 0,
+        };
+        if (campaignName && typeof campaignName === "string" && campaignName.trim()) {
+          insertPayload.summary = campaignName.trim();
+        }
+
         const { data: newConv } = await supabase
           .from("conversations")
-          .insert({
-            contact_id: contactId,
-            telnyx_number: telnyxFrom,
-            last_message_at: new Date().toISOString(),
-            unread_count: 0,
-          })
+          .insert(insertPayload)
           .select("id")
           .single();
 

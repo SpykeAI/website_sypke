@@ -16,6 +16,7 @@ export async function GET() {
         last_message_at,
         unread_count,
         interest_level,
+        summary,
         created_at,
         contacts (
           id,
