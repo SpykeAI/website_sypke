@@ -97,7 +97,7 @@ export default function AppLayoutWrapper({ children }: { children: React.ReactNo
       <Script
         src="https://widgets.leadconnectorhq.com/loader.js"
         data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js"
-        data-widget-id="6b05956610f9c20b4d4c1381"
+        data-widget-id="6b05948d10f9c20b4d4bbf4b"
         data-position="bottom-left"
         data-widget-placement="left"
         strategy="afterInteractive"
