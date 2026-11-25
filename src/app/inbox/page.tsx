@@ -1558,6 +1558,7 @@ function SmsInboxContent() {
                   const isOutbound = msg.direction === "outbound";
                   const isInternalNote = msg.body?.startsWith("📝 Note:");
                   const rawText = (msg as any).raw_body || msg.body || "";
+                  const matchSender = rawText.match(/<!--sent_by:(.*?)-->/);
                   const senderName =
                     msg.sender_name ||
                     (matchSender ? matchSender[1].trim() : null) ||

@@ -377,6 +377,7 @@ export default function BulkSmsManager({
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
 
   useEffect(() => {
+    // 1. Instant local load
     try {
       const stored = localStorage.getItem(TEMPLATES_STORAGE_KEY);
       if (stored) {
@@ -388,6 +389,19 @@ export default function BulkSmsManager({
     } catch (e) {
       console.error("Failed to load templates from localStorage", e);
     }
+
+    // 2. Sync from cloud so any template created by Super Admin or other portals appears
+    fetch("/api/sms/templates")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.ok && Array.isArray(data.templates) && data.templates.length > 0) {
+          setSavedTemplates(data.templates);
+          try {
+            localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(data.templates));
+          } catch {}
+        }
+      })
+      .catch((err) => console.error("Failed to sync templates in BulkSmsManager", err));
   }, []);
 
   // Campaign Composer State
@@ -1676,7 +1690,7 @@ export default function BulkSmsManager({
                     <option value="">— Select a saved template (or write your own) —</option>
                     {savedTemplates.map((tpl) => (
                       <option key={tpl.id} value={tpl.id}>
-                        {tpl.name}
+                        {tpl.name} {tpl.createdBy ? `(by ${tpl.createdBy})` : ""}
                       </option>
                     ))}
                   </select>

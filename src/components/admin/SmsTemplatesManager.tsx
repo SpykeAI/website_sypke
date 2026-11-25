@@ -15,41 +15,14 @@ import {
   Bookmark
 } from "lucide-react";
 
-export interface SmsTemplate {
-  id: string;
-  name: string;
-  body: string;
-  updatedAt: string;
-}
+import {
+  SmsTemplate,
+  DEFAULT_TEMPLATES,
+  TEMPLATES_STORAGE_KEY,
+} from "@/lib/templateStorage";
 
-export const DEFAULT_TEMPLATES: SmsTemplate[] = [
-  {
-    id: "tpl-1",
-    name: "Medical Spa / Client Outreach",
-    body: "Hi {name}, our aesthetic specialists in Dallas have priority consultation slots available this week. Reply YES to reserve your appointment!",
-    updatedAt: "Today"
-  },
-  {
-    id: "tpl-2",
-    name: "HVAC Seasonal Tune-Up",
-    body: "Hello {name}, did you schedule your seasonal HVAC inspection with {company}? Get 20% off before peak heat hits. Reply YES to confirm.",
-    updatedAt: "Yesterday"
-  },
-  {
-    id: "tpl-3",
-    name: "Priority Consultation Follow-Up",
-    body: "Hi {name}, following up on your inquiry with {company}. Would 2 PM or 4 PM work better for a brief 5-min review? Reply STOP to cancel.",
-    updatedAt: "Nov 18"
-  },
-  {
-    id: "tpl-4",
-    name: "24/7 Emergency Dispatch Alert",
-    body: "Urgent: A service technician from {company} has been assigned to your area. Please confirm availability at spykeai.com/confirm",
-    updatedAt: "Nov 15"
-  }
-];
-
-export const TEMPLATES_STORAGE_KEY = "spyke_sms_templates_v2";
+export type { SmsTemplate };
+export { DEFAULT_TEMPLATES, TEMPLATES_STORAGE_KEY };
 
 interface SmsTemplatesManagerProps {
   onUseInBulk?: (templateBody: string) => void;
@@ -71,9 +44,37 @@ export default function SmsTemplatesManager({ onUseInBulk }: SmsTemplatesManager
   );
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [syncingCloud, setSyncingCloud] = useState(false);
 
-  // Load from localStorage
+  // Helper to determine currently logged in user name across all portals
+  const getCurrentUserName = (): string => {
+    if (typeof document === "undefined") return "Super Admin";
+    try {
+      const cookies = document.cookie.split(";").reduce((acc: Record<string, string>, c) => {
+        const [k, v] = c.trim().split("=");
+        if (k && v) {
+          try {
+            acc[k] = decodeURIComponent(v);
+          } catch {
+            acc[k] = v;
+          }
+        }
+        return acc;
+      }, {});
+
+      const name = cookies["portal_user_name"] || cookies["admin_user"] || cookies["portal_name"];
+      if (name && name.trim()) return name.trim();
+      const role = cookies["portal_role"] || cookies["admin_role"];
+      if (role === "superadmin" || isSuperadminUser) return "Super Admin";
+      return "Tushar rawat";
+    } catch {
+      return "User";
+    }
+  };
+
+  // Load from localStorage immediately for instant display, then sync with Cloud Storage
   useEffect(() => {
+    // 1. Instant local cache load
     try {
       const stored = localStorage.getItem(TEMPLATES_STORAGE_KEY);
       if (stored) {
@@ -86,8 +87,37 @@ export default function SmsTemplatesManager({ onUseInBulk }: SmsTemplatesManager
         }
       }
     } catch (e) {
-      console.error("Failed to load templates", e);
+      console.error("Failed to load templates from localStorage", e);
     }
+
+    // 2. Fetch shared cloud templates so all portals see the exact same list
+    setSyncingCloud(true);
+    fetch("/api/sms/templates")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.ok && Array.isArray(data.templates) && data.templates.length > 0) {
+          setTemplates(data.templates);
+          try {
+            localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(data.templates));
+          } catch {}
+
+          // Ensure active template remains valid
+          setActiveTemplateId((prevId) => {
+            const exists = data.templates.find((t: SmsTemplate) => t.id === prevId);
+            if (exists) {
+              setTemplateName(exists.name);
+              setTemplateBody(exists.body);
+              return prevId;
+            } else {
+              setTemplateName(data.templates[0].name);
+              setTemplateBody(data.templates[0].body);
+              return data.templates[0].id;
+            }
+          });
+        }
+      })
+      .catch((err) => console.error("Failed to sync shared cloud templates:", err))
+      .finally(() => setSyncingCloud(false));
   }, []);
 
   const persistTemplates = (updated: SmsTemplate[]) => {
@@ -118,38 +148,67 @@ export default function SmsTemplatesManager({ onUseInBulk }: SmsTemplatesManager
     setTemplateBody("");
   };
 
-  // Save or update template
-  const handleSaveTemplate = () => {
+  // Save or update template (persists locally and syncs to cloud storage for all portals)
+  const handleSaveTemplate = async () => {
     const trimmedName = templateName.trim() || "Untitled Template";
     if (!templateBody.trim()) {
       showToast("Please enter message content for this template.");
       return;
     }
 
-    let updated: SmsTemplate[];
+    const currentAuthor = getCurrentUserName();
+    let templateToSave: SmsTemplate;
+
     if (activeTemplateId === "new") {
-      const newTpl: SmsTemplate = {
+      templateToSave = {
         id: "tpl-" + Date.now(),
         name: trimmedName,
         body: templateBody,
-        updatedAt: "Just now"
+        updatedAt: "Just now",
+        createdBy: currentAuthor,
       };
-      updated = [newTpl, ...templates];
-      setActiveTemplateId(newTpl.id);
     } else {
-      updated = templates.map((t) =>
-        t.id === activeTemplateId
-          ? { ...t, name: trimmedName, body: templateBody, updatedAt: "Just now" }
-          : t
-      );
+      const existing = templates.find((t) => t.id === activeTemplateId);
+      templateToSave = {
+        id: activeTemplateId,
+        name: trimmedName,
+        body: templateBody,
+        updatedAt: "Just now",
+        createdBy: existing?.createdBy || currentAuthor,
+      };
     }
 
+    // Optimistic local update
+    const updated =
+      activeTemplateId === "new"
+        ? [templateToSave, ...templates]
+        : templates.map((t) => (t.id === activeTemplateId ? templateToSave : t));
+
     persistTemplates(updated);
-    showToast(`Template "${trimmedName}" saved!`);
+    setActiveTemplateId(templateToSave.id);
+    showToast(`Template "${trimmedName}" saved and shared with all portals!`);
+
+    // Sync to Cloud Storage so Tushar and all other users see it immediately
+    try {
+      const res = await fetch("/api/sms/templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ template: templateToSave }),
+      });
+      const data = await res.json();
+      if (data.ok && Array.isArray(data.templates)) {
+        setTemplates(data.templates);
+        try {
+          localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(data.templates));
+        } catch {}
+      }
+    } catch (err) {
+      console.error("Failed to sync template to cloud:", err);
+    }
   };
 
   // Delete template
-  const handleDeleteTemplate = (id: string, e: React.MouseEvent) => {
+  const handleDeleteTemplate = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (templates.length <= 1) {
       alert("At least one template must remain.");
@@ -161,6 +220,22 @@ export default function SmsTemplatesManager({ onUseInBulk }: SmsTemplatesManager
       handleSelectTemplate(filtered[0]);
     }
     showToast("Template removed.");
+
+    // Sync delete to Cloud Storage
+    try {
+      const res = await fetch(`/api/sms/templates?id=${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (data.ok && Array.isArray(data.templates)) {
+        setTemplates(data.templates);
+        try {
+          localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(data.templates));
+        } catch {}
+      }
+    } catch (err) {
+      console.error("Failed to delete template from cloud:", err);
+    }
   };
 
   // Copy text to clipboard
@@ -196,11 +271,11 @@ export default function SmsTemplatesManager({ onUseInBulk }: SmsTemplatesManager
               <span>SMS Templates</span>
             </h2>
             <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-              Reusable Presets
+              Shared Across All Portals
             </span>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Create, edit, and organize reusable SMS templates. These will be available directly in the Bulk Campaign dropdown.
+            Create, edit, and organize reusable SMS templates. Any template created by Super Admin, Tushar, or another team member is globally synchronized across all portals and in the Bulk Campaign dropdown.
           </p>
         </div>
 
@@ -356,6 +431,10 @@ export default function SmsTemplatesManager({ onUseInBulk }: SmsTemplatesManager
                 <Bookmark size={13} className="text-emerald-600" />
                 <span>Saved Templates ({templates.length})</span>
               </span>
+              <span className="text-[9.5px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Cloud Synced</span>
+              </span>
             </div>
 
             <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
@@ -374,6 +453,18 @@ export default function SmsTemplatesManager({ onUseInBulk }: SmsTemplatesManager
                       <p className="truncate text-xs font-bold text-slate-900">{tpl.name}</p>
                       <span className="text-[10px] text-slate-400 font-normal shrink-0">{tpl.updatedAt}</span>
                     </div>
+
+                    {/* Creator attribution pill & global sharing notice */}
+                    <div className="flex items-center gap-1.5 mt-0.5 mb-1">
+                      {tpl.createdBy && (
+                        <span className="inline-flex items-center gap-1 text-[9.5px] font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200 shadow-2xs">
+                          <span className="text-slate-500">👤</span>
+                          <span>{tpl.createdBy}</span>
+                        </span>
+                      )}
+                      <span className="text-[9px] text-slate-400 font-medium">All portals</span>
+                    </div>
+
                     <p className="text-[11px] text-slate-500 font-normal line-clamp-2 mt-1 leading-relaxed">
                       {tpl.body}
                     </p>
