@@ -17,3 +17,10 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/* LeadConnector (GoHighLevel) Chat Widget positioning */
+chat-widget {
+  left: 20px !important;
+  right: auto !important;
+  z-index: 45 !important;
+}

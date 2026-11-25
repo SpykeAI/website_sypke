@@ -98,11 +98,13 @@ export default function AppLayoutWrapper({ children }: { children: React.ReactNo
         src="https://widgets.leadconnectorhq.com/loader.js"
         data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js"
         data-widget-id="6b05956610f9c20b4d4c1381"
+        data-position="bottom-left"
+        data-widget-placement="left"
         strategy="afterInteractive"
       />
 
-      {/* Floating Fixed WhatsApp Button (Desktop) */}
-      <div className="fixed bottom-28 md:bottom-8 left-6 z-40 hidden md:block">
+      {/* Floating Fixed WhatsApp Button (Desktop) - Positioned above GHL Chat Widget */}
+      <div className="fixed bottom-24 md:bottom-28 left-6 z-40 hidden md:block">
         <a 
           href="http://wa.link/18sxk1" 
           target="_blank" 
