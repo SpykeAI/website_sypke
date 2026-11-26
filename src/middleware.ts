@@ -55,8 +55,8 @@ export function middleware(request: NextRequest) {
       // External users can ONLY access external client portal pages
       return NextResponse.redirect(new URL('/clientportal', request.url));
     } else if (portalRole === 'internal') {
-      // Internal users cannot access User Management or External Portal
-      const isSuperadminOnly = pathname.startsWith('/admin/users');
+      // Internal users cannot access User Management, Finance & Pricing Engine, or External Portal
+      const isSuperadminOnly = pathname.startsWith('/admin/users') || pathname.startsWith('/admin/finance');
       const isExternalRoute = pathname.startsWith('/admin/external') || pathname.startsWith('/clientportal');
       if (isSuperadminOnly || isExternalRoute) {
         return NextResponse.redirect(new URL('/admin/internal', request.url));

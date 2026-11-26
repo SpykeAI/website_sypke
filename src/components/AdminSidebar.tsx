@@ -17,7 +17,8 @@ import {
   KeyRound,
   User,
   BookOpen,
-  FileEdit
+  FileEdit,
+  DollarSign
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -105,6 +106,7 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
     pathname?.startsWith("/admin/calls") ? "calls" :
     pathname?.startsWith("/admin/emails") ? "emails" :
     pathname?.startsWith("/admin/transcripts") ? "transcripts" :
+    pathname?.startsWith("/admin/finance") ? "finance" :
     pathname?.startsWith("/admin/blog-updated") ? "blog_updated" :
     pathname?.startsWith("/admin/blog") ? "blog" :
     pathname?.startsWith("/clientportal") ? "clientportal" :
@@ -208,8 +210,16 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
           : []),
       ];
 
-  // Superadmin Management Items
+  // Superadmin Management Items (ONLY visible to Superadmin)
   const adminItems = [
+    {
+      id: "finance",
+      label: "Finance & Pricing Engine",
+      subtitle: "Telnyx, VAPI, Landline, Sarvam, GHL",
+      href: "/admin/finance",
+      icon: DollarSign,
+      badge: "ENGINE",
+    },
     {
       id: "users",
       label: "Portal Access and Users",
@@ -579,15 +589,26 @@ export default function AdminSidebar({ active }: AdminSidebarProps) {
               <span className="text-[10px] mt-0.5">Updated</span>
             </Link>
             {showUserMgmt && (
-              <Link
-                href="/admin/users"
-                className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
-                  currentTab === "users" ? "text-purple-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
-                }`}
-              >
-                <KeyRound size={18} />
-                <span className="text-[10px] mt-0.5">Users</span>
-              </Link>
+              <>
+                <Link
+                  href="/admin/finance"
+                  className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
+                    currentTab === "finance" ? "text-purple-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
+                  }`}
+                >
+                  <DollarSign size={18} />
+                  <span className="text-[10px] mt-0.5">Finance</span>
+                </Link>
+                <Link
+                  href="/admin/users"
+                  className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-xl transition-all ${
+                    currentTab === "users" ? "text-purple-600 font-bold" : "text-slate-500 hover:text-slate-800 font-medium"
+                  }`}
+                >
+                  <KeyRound size={18} />
+                  <span className="text-[10px] mt-0.5">Users</span>
+                </Link>
+              </>
             )}
           </>
         )}
