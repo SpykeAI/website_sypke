@@ -320,119 +320,129 @@ Generated via SpykeAI Enterprise Engine.
       <AdminSidebar active="finance" />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        {/* Top Header */}
-        <header className="bg-white border-b border-slate-200/90 px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-0 z-20 shadow-xs">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="p-1.5 bg-purple-100 text-purple-700 rounded-lg">
-                <DollarSign size={20} />
-              </span>
-              <h1 className="text-xl font-black text-slate-900 tracking-tight">
-                Finance & Pricing Engine
-              </h1>
-              <span className="bg-purple-100 text-purple-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-purple-200 flex items-center gap-1">
-                <ShieldCheck size={11} />
-                SUPERADMIN EXCLUSIVE
-              </span>
+        {/* Sticky Unified Top Bar (Header + Navigation Tabs) */}
+        <header className="bg-white border-b border-slate-200/90 sticky top-0 z-20 shadow-xs">
+          {/* Title & Currency Row */}
+          <div className="px-6 py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 bg-purple-100 text-purple-700 rounded-lg shrink-0">
+                  <DollarSign size={18} />
+                </span>
+                <h1 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                  Finance & Pricing Engine
+                </h1>
+                <span className="bg-purple-100 text-purple-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-purple-200 flex items-center gap-1 shrink-0">
+                  <ShieldCheck size={11} />
+                  SUPERADMIN EXCLUSIVE
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Live cost analysis & retail pricing engine across Telnyx, VAPI, Landline Remover, Sarvam AI, and GoHighLevel.
+              </p>
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Live cost analysis & retail pricing engine across Telnyx, VAPI, Landline Remover, Sarvam AI, and GoHighLevel.
-            </p>
+
+            {/* Currency Toggle */}
+            <div className="flex items-center shrink-0">
+              <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setCurrency("USD")}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    currency === "USD"
+                      ? "bg-white text-slate-900 shadow-xs"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  USD ($)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrency("INR")}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer ${
+                    currency === "INR"
+                      ? "bg-white text-slate-900 shadow-xs"
+                      : "text-slate-500 hover:text-slate-900"
+                  }`}
+                >
+                  <span>INR (₹)</span>
+                  <span className="text-[10px] text-emerald-600 font-semibold">86.5x</span>
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Currency Toggle & Tabs Quick Actions */}
-          <div className="flex items-center gap-2.5">
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
-              <button
-                onClick={() => setCurrency("USD")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                  currency === "USD"
-                    ? "bg-white text-slate-900 shadow-xs"
-                    : "text-slate-500 hover:text-slate-900"
-                }`}
-              >
-                USD ($)
-              </button>
-              <button
-                onClick={() => setCurrency("INR")}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1 ${
-                  currency === "INR"
-                    ? "bg-white text-slate-900 shadow-xs"
-                    : "text-slate-500 hover:text-slate-900"
-                }`}
-              >
-                <span>INR (₹)</span>
-                <span className="text-[10px] text-emerald-600 font-semibold">86.5x</span>
-              </button>
-            </div>
+          {/* Navigation Tabs (Unified inside sticky container, no wrapping, horizontal scroll) */}
+          <div className="px-6 py-2 border-t border-slate-100 flex items-center gap-2 overflow-x-auto text-xs font-bold bg-slate-50/60">
+            <button
+              type="button"
+              onClick={() => setActiveTab("engine")}
+              className={`px-3.5 py-2 rounded-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                activeTab === "engine"
+                  ? "bg-purple-600 text-white shadow-xs font-black"
+                  : "text-slate-600 hover:bg-slate-200/70 hover:text-slate-900"
+              }`}
+            >
+              <Calculator size={15} className="shrink-0" />
+              <span>Interactive Pricing Engine</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("matrix")}
+              className={`px-3.5 py-2 rounded-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                activeTab === "matrix"
+                  ? "bg-purple-600 text-white shadow-xs font-black"
+                  : "text-slate-600 hover:bg-slate-200/70 hover:text-slate-900"
+              }`}
+            >
+              <Layers size={15} className="shrink-0" />
+              <span>Provider Rate Cards (5 Tools)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("packages")}
+              className={`px-3.5 py-2 rounded-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                activeTab === "packages"
+                  ? "bg-purple-600 text-white shadow-xs font-black"
+                  : "text-slate-600 hover:bg-slate-200/70 hover:text-slate-900"
+              }`}
+            >
+              <Flame size={15} className="shrink-0" />
+              <span>Industry Packages</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("quote")}
+              className={`px-3.5 py-2 rounded-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                activeTab === "quote"
+                  ? "bg-purple-600 text-white shadow-xs font-black"
+                  : "text-slate-600 hover:bg-slate-200/70 hover:text-slate-900"
+              }`}
+            >
+              <FileText size={15} className="shrink-0" />
+              <span>Client Proposal Generator</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab("comparison")}
+              className={`px-3.5 py-2 rounded-xl flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                activeTab === "comparison"
+                  ? "bg-purple-600 text-white shadow-xs font-black"
+                  : "text-slate-600 hover:bg-slate-200/70 hover:text-slate-900"
+              }`}
+            >
+              <TrendingUp size={15} className="shrink-0" />
+              <span>AI vs Human Call Center ROI</span>
+            </button>
           </div>
         </header>
 
-        {/* Navigation Tabs */}
-        <div className="bg-white border-b border-slate-200/80 px-6 py-2 flex items-center gap-2 overflow-x-auto text-xs font-bold">
-          <button
-            onClick={() => setActiveTab("engine")}
-            className={`px-3.5 py-2 rounded-xl flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === "engine"
-                ? "bg-purple-600 text-white shadow-xs font-black"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            <Calculator size={15} />
-            <span>Interactive Pricing Engine</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("matrix")}
-            className={`px-3.5 py-2 rounded-xl flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === "matrix"
-                ? "bg-purple-600 text-white shadow-xs font-black"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            <Layers size={15} />
-            <span>Provider Rate Cards (5 Tools)</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("packages")}
-            className={`px-3.5 py-2 rounded-xl flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === "packages"
-                ? "bg-purple-600 text-white shadow-xs font-black"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            <Flame size={15} />
-            <span>Industry Packages (HVAC, Real Estate, Support)</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("quote")}
-            className={`px-3.5 py-2 rounded-xl flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === "quote"
-                ? "bg-purple-600 text-white shadow-xs font-black"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            <FileText size={15} />
-            <span>Client Proposal Generator</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("comparison")}
-            className={`px-3.5 py-2 rounded-xl flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === "comparison"
-                ? "bg-purple-600 text-white shadow-xs font-black"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            <TrendingUp size={15} />
-            <span>AI vs Human Call Center ROI</span>
-          </button>
-        </div>
-
         {/* Content Body */}
-        <div className="p-6 max-w-7xl mx-auto w-full space-y-6">
+        <div className="p-6 pb-24 md:pb-12 max-w-7xl mx-auto w-full space-y-6">
 
           {/* TAB 1: INTERACTIVE PRICING ENGINE */}
           {activeTab === "engine" && (
