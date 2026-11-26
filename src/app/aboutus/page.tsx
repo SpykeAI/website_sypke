@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { ArrowRight, Bot, Target, Zap, Phone, Share2, Wrench, PenTool, CheckCircle2, Lightbulb, Blocks, Settings, Users, ArrowUpRight, Globe, Layers, Eye } from "lucide-react";
+import AboutUsGhlChatWidget from "@/components/AboutUsGhlChatWidget";
 
 export const metadata: Metadata = {
   title: "About Us | Spyke AI Technologies",
@@ -335,6 +336,9 @@ export default function AboutUs() {
           </div>
         </div>
       </section>
+
+      {/* LeadConnector / GoHighLevel Chat Widget - Exclusively on About Us page */}
+      <AboutUsGhlChatWidget />
     </div>
   );
 }

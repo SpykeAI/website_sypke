@@ -13,6 +13,7 @@ export default function AppLayoutWrapper({ children }: { children: React.ReactNo
   const isClientPortal = pathname?.startsWith("/clientportal");
   const isContract = pathname?.startsWith("/contract");
   const isBlog = pathname?.startsWith("/blog");
+  const isAboutUs = pathname === "/aboutus" || pathname?.startsWith("/aboutus");
 
   // If inside /inbox, /phone, /admin, or /clientportal, render clean full-screen portal without marketing navbar/footer/widgets
   if (isInboxOrPhone || isAdmin || isClientPortal) {
@@ -93,18 +94,8 @@ export default function AppLayoutWrapper({ children }: { children: React.ReactNo
         </div>
       </footer>
 
-      {/* LeadConnector / GoHighLevel Chat Widget for Verification & Chat */}
-      <Script
-        src="https://widgets.leadconnectorhq.com/loader.js"
-        data-resources-url="https://widgets.leadconnectorhq.com/chat-widget/loader.js"
-        data-widget-id="6b05948d10f9c20b4d4bbf4b"
-        data-position="bottom-left"
-        data-widget-placement="left"
-        strategy="afterInteractive"
-      />
-
-      {/* Floating Fixed WhatsApp Button (Desktop) - Positioned above GHL Chat Widget */}
-      <div className="fixed bottom-24 md:bottom-28 left-6 z-40 hidden md:block">
+      {/* Floating Fixed WhatsApp Button (Desktop) */}
+      <div className={`fixed ${isAboutUs ? "bottom-24 md:bottom-28" : "bottom-28 md:bottom-8"} left-6 z-40 hidden md:block`}>
         <a 
           href="http://wa.link/18sxk1" 
           target="_blank" 
