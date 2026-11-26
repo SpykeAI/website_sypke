@@ -329,9 +329,22 @@ export default function AboutUs() {
             <h3 className="font-bold text-gray-900 text-2xl mb-2">Spyke AI Technologies</h3>
             <p className="text-gray-600 font-medium mb-6">AI Services & Automation Company</p>
             <div className="space-y-3 text-gray-700 font-medium">
-              <p className="flex items-center gap-2">📍 Hyderabad, Telangana, India</p>
-              <p className="flex items-center gap-2">🌐 <a href="https://spykeai.com" className="hover:text-[#00DF81] transition underline">spykeai.com</a></p>
-              <p className="flex items-center gap-2">✉️ <a href="mailto:contact@spykeai.com" className="hover:text-[#00DF81] transition underline">contact@spykeai.com</a></p>
+              <p className="flex items-start gap-2">
+                <span className="shrink-0 mt-0.5">📍</span>
+                <span>Flat No:102, Floor No. 1, Sri Hanuman Residency, Road No.10, Karmanghat, Opposite New Energy School, Hanuman Nagar, Hyderabad, Telangana 500097, India</span>
+              </p>
+              <p className="flex items-center gap-2">
+                <span>📞</span>
+                <span>Phone: <a href="tel:+918885770066" className="hover:text-[#00DF81] transition underline">+91 8885770066</a></span>
+              </p>
+              <p className="flex items-center gap-2">
+                <span>🌐</span>
+                <a href="https://spykeai.com" className="hover:text-[#00DF81] transition underline">spykeai.com</a>
+              </p>
+              <p className="flex items-center gap-2">
+                <span>✉️</span>
+                <a href="mailto:contact@spykeai.com" className="hover:text-[#00DF81] transition underline">contact@spykeai.com</a>
+              </p>
             </div>
           </div>
         </div>
