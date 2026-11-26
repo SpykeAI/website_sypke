@@ -19,7 +19,7 @@ import {
   SmsTemplate,
   DEFAULT_TEMPLATES,
   TEMPLATES_STORAGE_KEY,
-} from "@/lib/templateStorage";
+} from "@/lib/smsTemplates";
 
 export type { SmsTemplate };
 export { DEFAULT_TEMPLATES, TEMPLATES_STORAGE_KEY };
