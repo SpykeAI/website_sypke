@@ -34,6 +34,11 @@ import {
 } from "lucide-react";
 import { getAvailableLines, PhoneLine } from "@/lib/phoneLines";
 import SmsTemplatesManager from "@/components/admin/SmsTemplatesManager";
+import {
+  SmsTemplate,
+  DEFAULT_TEMPLATES,
+  TEMPLATES_STORAGE_KEY,
+} from "@/lib/smsTemplates";
 import BulkSmsManager, {
   SCHEDULE_TIMEZONES,
   formatScheduleSummary,
@@ -207,6 +212,22 @@ function SmsInboxContent() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevMsgCountRef = useRef(0);
   const shouldScrollBottomRef = useRef(true);
+  const messageTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // SMS Templates for Quick Insertion in Individual Chat
+  const [smsTemplates, setSmsTemplates] = useState<SmsTemplate[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(TEMPLATES_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch {}
+    }
+    return DEFAULT_TEMPLATES;
+  });
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
 
   // Current Logged-in Portal User State
   const [currentUser, setCurrentUser] = useState<{
@@ -611,6 +632,64 @@ function SmsInboxContent() {
   // Active conversation object
   const activeConv = conversations.find((c) => c.id === activeConvId);
 
+  // Sync SMS templates from localStorage & Cloud API
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(TEMPLATES_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setSmsTemplates(parsed);
+        }
+      }
+    } catch {}
+
+    fetch("/api/sms/templates")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.ok && Array.isArray(data.templates) && data.templates.length > 0) {
+          setSmsTemplates(data.templates);
+          try {
+            localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(data.templates));
+          } catch {}
+        }
+      })
+      .catch(() => {});
+  }, [activeSection]);
+
+  // Handler to choose template and automatically fill into text box with auto-resize
+  const handleSelectTemplate = (templateId: string) => {
+    setSelectedTemplateId(templateId);
+    if (!templateId) return;
+
+    const tpl = smsTemplates.find((t) => t.id === templateId);
+    if (!tpl) return;
+
+    let textToInsert = tpl.body;
+
+    // Contact name personalization
+    const contactName = (activeConv?.contacts?.display_name || "").trim();
+    if (contactName && contactName !== activeConv?.contacts?.phone_e164) {
+      textToInsert = textToInsert.replace(/\{name\}/gi, contactName);
+    }
+    // Contact phone personalization
+    const contactPhone = (activeConv?.contacts?.phone_e164 || "").trim();
+    if (contactPhone) {
+      textToInsert = textToInsert.replace(/\{phone\}/gi, contactPhone);
+    }
+
+    setInputText(textToInsert);
+
+    // Auto-focus and expand textarea height smoothly
+    setTimeout(() => {
+      if (messageTextareaRef.current) {
+        messageTextareaRef.current.style.height = "auto";
+        messageTextareaRef.current.style.height = `${Math.min(messageTextareaRef.current.scrollHeight, 120)}px`;
+        messageTextareaRef.current.focus();
+      }
+    }, 30);
+  };
+
   // Send message handler
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -626,6 +705,10 @@ function SmsInboxContent() {
 
     const tempText = inputText.trim();
     setInputText("");
+    setSelectedTemplateId("");
+    if (messageTextareaRef.current) {
+      messageTextareaRef.current.style.height = "auto";
+    }
 
     const effectiveSender = (selectedFromNumber || activeConv.telnyx_number || "+13464770028").trim();
     const currentSenderName = currentUser?.display_name || "";
@@ -1274,7 +1357,10 @@ function SmsInboxContent() {
               return (
                 <div
                   key={conv.id}
-                  onClick={() => setActiveConvId(conv.id)}
+                  onClick={() => {
+                    setActiveConvId(conv.id);
+                    setSelectedTemplateId("");
+                  }}
                   className={`p-3.5 cursor-pointer transition-colors flex items-start gap-3 group relative ${
                     isActive
                       ? "bg-emerald-50/80 border-l-4 border-emerald-600"
@@ -1743,36 +1829,80 @@ function SmsInboxContent() {
             {/* Native Phone Messages Style Composer */}
             <div className="p-2.5 sm:p-3 md:p-4 bg-white border-t border-slate-200 shrink-0 pb-16 md:pb-4">
               <form onSubmit={handleSendMessage} className="space-y-2">
-                {/* Sender Line Selector in Composer */}
-                <div className="flex items-center justify-between px-1 text-[11px]">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-slate-400 font-medium">From:</span>
-                    <div className="relative inline-flex items-center">
-                      <select
-                        value={isCustomSender ? "custom" : selectedFromNumber}
-                        onChange={(e) => {
-                          if (e.target.value === "custom") {
-                            setIsCustomSender(true);
-                          } else {
-                            setIsCustomSender(false);
-                            setSelectedFromNumber(e.target.value);
-                          }
-                        }}
-                        className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/90 rounded-md pl-2 pr-5 py-0.5 appearance-none focus:outline-none cursor-pointer transition shadow-2xs"
-                        title="Choose number to send from"
-                      >
-                        {availableLines.map((line) => (
-                          <option key={line.number} value={line.number}>
-                            {line.flag} {line.label} — {line.formatted}
-                          </option>
-                        ))}
-                        <option value="custom">✏️ Custom Sender Number...</option>
-                      </select>
-                      <ChevronDown size={11} className="text-emerald-700 absolute right-1.5 pointer-events-none" />
+                {/* Sender Line & Template Selector in Composer */}
+                <div className="flex items-center justify-between px-1 text-[11px] gap-2 flex-wrap">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                    {/* From Line Selector */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-slate-400 font-medium">From:</span>
+                      <div className="relative inline-flex items-center">
+                        <select
+                          value={isCustomSender ? "custom" : selectedFromNumber}
+                          onChange={(e) => {
+                            if (e.target.value === "custom") {
+                              setIsCustomSender(true);
+                            } else {
+                              setIsCustomSender(false);
+                              setSelectedFromNumber(e.target.value);
+                            }
+                          }}
+                          className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/90 rounded-md pl-2 pr-5 py-0.5 appearance-none focus:outline-none cursor-pointer transition shadow-2xs"
+                          title="Choose number to send from"
+                        >
+                          {availableLines.map((line) => (
+                            <option key={line.number} value={line.number}>
+                              {line.flag} {line.label} — {line.formatted}
+                            </option>
+                          ))}
+                          <option value="custom">✏️ Custom Sender Number...</option>
+                        </select>
+                        <ChevronDown size={11} className="text-emerald-700 absolute right-1.5 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    {/* Template Selector Dropdown */}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-slate-400 font-medium flex items-center gap-1">
+                        <Bookmark size={11} className="text-purple-600" />
+                        Template:
+                      </span>
+                      <div className="relative inline-flex items-center">
+                        <select
+                          value={selectedTemplateId}
+                          onChange={(e) => handleSelectTemplate(e.target.value)}
+                          className="text-[11px] font-semibold text-purple-900 bg-purple-50 hover:bg-purple-100 border border-purple-200/90 rounded-md pl-2 pr-5 py-0.5 appearance-none focus:outline-none cursor-pointer transition shadow-2xs max-w-[190px] sm:max-w-[250px] truncate"
+                          title="Choose a template to automatically type in message text box"
+                        >
+                          <option value="">📋 Choose template...</option>
+                          {smsTemplates.map((tpl) => (
+                            <option key={tpl.id} value={tpl.id}>
+                              {tpl.name}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown size={11} className="text-purple-700 absolute right-1.5 pointer-events-none" />
+                      </div>
+
+                      {selectedTemplateId && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedTemplateId("");
+                            setInputText("");
+                            if (messageTextareaRef.current) {
+                              messageTextareaRef.current.style.height = "auto";
+                            }
+                          }}
+                          className="text-[10px] text-slate-400 hover:text-rose-500 cursor-pointer p-0.5 transition"
+                          title="Clear template text"
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
                     </div>
                   </div>
 
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     {availableLines.find((l) => l.number === selectedFromNumber)?.badge || "Active Line"}
                   </span>
@@ -1815,6 +1945,7 @@ function SmsInboxContent() {
                 {/* The Input Capsule */}
                 <div className="flex items-end gap-1.5 bg-slate-100 hover:bg-slate-100/90 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20 border border-slate-200 focus-within:border-emerald-500 rounded-3xl p-1.5 pl-4 transition-all">
                   <textarea
+                    ref={messageTextareaRef}
                     rows={1}
                     placeholder={
                       activeConv.contacts?.do_not_text
@@ -1825,8 +1956,11 @@ function SmsInboxContent() {
                     value={inputText}
                     onChange={(e) => {
                       setInputText(e.target.value);
+                      if (selectedTemplateId) {
+                        setSelectedTemplateId("");
+                      }
                       e.target.style.height = "auto";
-                      e.target.style.height = `${Math.min(e.target.scrollHeight, 100)}px`;
+                      e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
                     }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
@@ -1834,7 +1968,7 @@ function SmsInboxContent() {
                         handleSendMessage(e);
                       }
                     }}
-                    className="flex-1 bg-transparent border-0 text-sm text-slate-800 placeholder-slate-400 focus:outline-none resize-none py-1.5 max-h-24 leading-snug"
+                    className="flex-1 bg-transparent border-0 text-sm text-slate-800 placeholder-slate-400 focus:outline-none resize-none py-1.5 max-h-28 leading-snug"
                   />
 
                   {/* Schedule SMS Button */}
