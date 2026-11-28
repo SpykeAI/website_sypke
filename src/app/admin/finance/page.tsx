@@ -15,7 +15,13 @@ import {
   Sparkles,
   CheckCircle2,
   Check,
-  RefreshCw
+  RefreshCw,
+  Calendar,
+  TrendingUp,
+  PhoneCall,
+  MessageSquare,
+  Clock,
+  Activity
 } from "lucide-react";
 
 // Exchange Rate USD to INR
@@ -32,6 +38,42 @@ interface LiveBalanceState {
   };
 }
 
+interface TelnyxDailyRecord {
+  date: string;
+  calls: number;
+  callSeconds: number;
+  callMinutes: number;
+  callCost: number;
+  sms: number;
+  smsCost: number;
+  totalCost: number;
+}
+
+interface TelnyxRecentActivityItem {
+  id: string;
+  kind: "voice" | "sms";
+  time: string;
+  direction: string;
+  destination: string;
+  durationSec: number;
+  cost: number;
+  status: string;
+  carrier: string;
+}
+
+interface TelnyxUsageState {
+  summary: {
+    totalCalls: number;
+    totalMinutes: number;
+    totalVoiceCost: number;
+    totalSms: number;
+    totalSmsCost: number;
+    grandTotalCost: number;
+  };
+  dailyBreakdown: TelnyxDailyRecord[];
+  recentActivity: TelnyxRecentActivityItem[];
+}
+
 export default function AdminFinancePage() {
   const [role, setRole] = useState<string>("superadmin");
   const [authChecked, setAuthChecked] = useState(false);
@@ -41,6 +83,11 @@ export default function AdminFinancePage() {
   const [liveData, setLiveData] = useState<LiveBalanceState | null>(null);
   const [loadingLive, setLoadingLive] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+
+  // Daily Usage & CDR Breakdown
+  const [usageData, setUsageData] = useState<TelnyxUsageState | null>(null);
+  const [loadingUsage, setLoadingUsage] = useState(false);
+  const [activeUsageTab, setActiveUsageTab] = useState<"daily" | "recent">("daily");
 
   const fetchLiveBalances = async () => {
     setLoadingLive(true);
@@ -58,6 +105,26 @@ export default function AdminFinancePage() {
     }
   };
 
+  const fetchTelnyxUsage = async () => {
+    setLoadingUsage(true);
+    try {
+      const res = await fetch("/api/admin/finance/telnyx-usage");
+      const data = await res.json();
+      if (data.ok) {
+        setUsageData(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch Telnyx usage", e);
+    } finally {
+      setLoadingUsage(false);
+    }
+  };
+
+  const refreshAll = () => {
+    fetchLiveBalances();
+    fetchTelnyxUsage();
+  };
+
   // Superadmin Access Verification & Initial Live Fetch
   useEffect(() => {
     fetch("/api/admin/me")
@@ -73,6 +140,7 @@ export default function AdminFinancePage() {
       });
 
     fetchLiveBalances();
+    fetchTelnyxUsage();
   }, []);
 
   // Format helper for Dollar amounts
@@ -198,12 +266,12 @@ export default function AdminFinancePage() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={fetchLiveBalances}
-                disabled={loadingLive}
+                onClick={refreshAll}
+                disabled={loadingLive || loadingUsage}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition-all cursor-pointer disabled:opacity-60"
               >
-                <RefreshCw size={12} className={loadingLive ? "animate-spin text-purple-300" : ""} />
-                <span>{loadingLive ? "Syncing..." : "Refresh Live Balances"}</span>
+                <RefreshCw size={12} className={(loadingLive || loadingUsage) ? "animate-spin text-purple-300" : ""} />
+                <span>{(loadingLive || loadingUsage) ? "Syncing Carrier Data..." : "Refresh Live Balances"}</span>
               </button>
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 font-bold text-xs">
                 <CheckCircle2 size={13} className="text-purple-600" />
@@ -509,6 +577,267 @@ export default function AdminFinancePage() {
               </div>
             </div>
 
+          </div>
+
+          {/* TELNYX LIVE DAILY USAGE & CDR BREAKDOWN */}
+          <div className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-6">
+            {/* Header banner */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shrink-0">
+                  <Activity size={22} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-black text-slate-900">
+                      Telnyx Live Daily Usage & CDR Breakdown
+                    </h2>
+                    <span className="bg-emerald-50 text-emerald-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      100% Authoritative Carrier Logs
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Official day-by-day billing logs for AI Voice calls (Vapi SIP Trunking) and SMS messages directly from Telnyx Carrier API.
+                  </p>
+                </div>
+              </div>
+
+              {/* Tabs: Daily Breakdown vs Recent Activity */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+                  <button
+                    type="button"
+                    onClick={() => setActiveUsageTab("daily")}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                      activeUsageTab === "daily"
+                        ? "bg-white text-slate-900 shadow-xs"
+                        : "text-slate-500 hover:text-slate-900"
+                    }`}
+                  >
+                    <Calendar size={13} />
+                    <span>Daily Breakdown</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveUsageTab("recent")}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                      activeUsageTab === "recent"
+                        ? "bg-white text-slate-900 shadow-xs"
+                        : "text-slate-500 hover:text-slate-900"
+                    }`}
+                  >
+                    <Clock size={13} />
+                    <span>Recent Activity ({usageData?.recentActivity?.length || 0})</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* KPI Summary Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
+                <div className="flex items-center justify-between text-slate-500 mb-1">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Total Voice Calls</span>
+                  <PhoneCall size={14} className="text-blue-600" />
+                </div>
+                <div className="text-xl font-black text-slate-900">
+                  {usageData?.summary?.totalCalls ?? (loadingUsage ? "..." : 0)}
+                </div>
+                <div className="text-[11px] text-slate-500 mt-0.5">
+                  {usageData?.summary?.totalMinutes ?? 0} total minutes
+                </div>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
+                <div className="flex items-center justify-between text-slate-500 mb-1">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Voice Cost</span>
+                  <Phone size={14} className="text-purple-600" />
+                </div>
+                <div className="text-xl font-black text-slate-900">
+                  {fmtRate(usageData?.summary?.totalVoiceCost ?? 0)}
+                </div>
+                <div className="text-[11px] text-slate-500 mt-0.5">
+                  Vapi SIP Wholesale
+                </div>
+              </div>
+
+              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4">
+                <div className="flex items-center justify-between text-slate-500 mb-1">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Total SMS Sent</span>
+                  <MessageSquare size={14} className="text-emerald-600" />
+                </div>
+                <div className="text-xl font-black text-slate-900">
+                  {usageData?.summary?.totalSms ?? (loadingUsage ? "..." : 0)}
+                </div>
+                <div className="text-[11px] text-slate-500 mt-0.5">
+                  Cost: {fmtRate(usageData?.summary?.totalSmsCost ?? 0)}
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50/50 border border-blue-200 rounded-2xl p-4">
+                <div className="flex items-center justify-between text-blue-900 mb-1">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Combined Billed</span>
+                  <TrendingUp size={14} className="text-blue-700" />
+                </div>
+                <div className="text-xl font-black text-blue-900">
+                  {fmt(usageData?.summary?.grandTotalCost ?? 0)}
+                </div>
+                <div className="text-[11px] text-blue-700/80 mt-0.5">
+                  Calls + SMS Telephony
+                </div>
+              </div>
+            </div>
+
+            {/* TAB CONTENT: DAILY BREAKDOWN */}
+            {activeUsageTab === "daily" && (
+              <div className="overflow-x-auto rounded-2xl border border-slate-200/80">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-slate-100/80 text-slate-600 border-b border-slate-200 font-bold">
+                      <th className="py-3 px-4">Date</th>
+                      <th className="py-3 px-4">Voice Calls</th>
+                      <th className="py-3 px-4">Voice Duration</th>
+                      <th className="py-3 px-4">Voice Cost</th>
+                      <th className="py-3 px-4">SMS Sent</th>
+                      <th className="py-3 px-4">SMS Cost</th>
+                      <th className="py-3 px-4 text-right">Day Total Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {loadingUsage ? (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-slate-400">
+                          Fetching Telnyx live carrier records...
+                        </td>
+                      </tr>
+                    ) : !usageData?.dailyBreakdown?.length ? (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-slate-400">
+                          No telephony activity found.
+                        </td>
+                      </tr>
+                    ) : (
+                      usageData.dailyBreakdown.map((row) => (
+                        <tr key={row.date} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="py-3 px-4 font-mono font-bold text-slate-900">
+                            {new Date(row.date + "T00:00:00Z").toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                              timeZone: "UTC",
+                            })}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="font-semibold text-slate-800">{row.calls}</span>
+                            <span className="text-slate-400 text-[11px] ml-1">calls</span>
+                          </td>
+                          <td className="py-3 px-4 font-mono text-slate-600">
+                            {row.callMinutes > 0 ? `${row.callMinutes} mins` : `${row.callSeconds}s`}
+                          </td>
+                          <td className="py-3 px-4 font-mono font-semibold text-purple-700">
+                            {fmtRate(row.callCost)}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="font-semibold text-slate-800">{row.sms}</span>
+                            <span className="text-slate-400 text-[11px] ml-1">msgs</span>
+                          </td>
+                          <td className="py-3 px-4 font-mono font-semibold text-emerald-700">
+                            {fmtRate(row.smsCost)}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <span className="inline-block bg-slate-900 text-white font-mono font-black text-xs px-2.5 py-1 rounded-lg">
+                              {fmtRate(row.totalCost)}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* TAB CONTENT: RECENT ACTIVITY */}
+            {activeUsageTab === "recent" && (
+              <div className="overflow-x-auto rounded-2xl border border-slate-200/80">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-slate-100/80 text-slate-600 border-b border-slate-200 font-bold">
+                      <th className="py-3 px-4">Timestamp</th>
+                      <th className="py-3 px-4">Type</th>
+                      <th className="py-3 px-4">Target Number</th>
+                      <th className="py-3 px-4">Direction</th>
+                      <th className="py-3 px-4">Duration</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4 text-right">Billed Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {loadingUsage ? (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-slate-400">
+                          Fetching recent carrier activity...
+                        </td>
+                      </tr>
+                    ) : !usageData?.recentActivity?.length ? (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-slate-400">
+                          No recent activity records.
+                        </td>
+                      </tr>
+                    ) : (
+                      usageData.recentActivity.map((item) => (
+                        <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="py-3 px-4 font-mono text-slate-600 text-[11px]">
+                            {new Date(item.time).toLocaleString([], {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              second: "2-digit",
+                            })}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-bold text-[10px] ${
+                                item.kind === "voice"
+                                  ? "bg-purple-50 text-purple-700 border border-purple-200"
+                                  : "bg-blue-50 text-blue-700 border border-blue-200"
+                              }`}
+                            >
+                              {item.kind === "voice" ? <PhoneCall size={10} /> : <MessageSquare size={10} />}
+                              {item.kind === "voice" ? "Voice Call" : "SMS"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 font-mono font-bold text-slate-900">
+                            {item.destination}
+                          </td>
+                          <td className="py-3 px-4 capitalize text-slate-500 font-medium text-[11px]">
+                            {item.direction}
+                          </td>
+                          <td className="py-3 px-4 font-mono text-slate-600">
+                            {item.kind === "voice"
+                              ? item.durationSec >= 60
+                                ? `${Math.floor(item.durationSec / 60)}m ${item.durationSec % 60}s`
+                                : `${item.durationSec}s`
+                              : "1 segment"}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="inline-block text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase">
+                              {item.status.replace(/_/g, " ")}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right font-mono font-bold text-slate-900">
+                            {fmtRate(item.cost)}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
         </div>
